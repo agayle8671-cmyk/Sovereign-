@@ -87,14 +87,11 @@ export async function POST(req: NextRequest) {
                 status: "pending_review",
                 originalFileName: file.name,
                 parsedContent: contractText,
-                extractedTerms: analysis,
+                extractedTerms: analysis as any,
                 riskScore: analysis.overallRiskScore,
-                riskFlags: analysis.risks,
-                paymentTerms: analysis.financials.paymentTerms,
+                riskFlags: analysis.risks as any,
                 totalValue: analysis.financials.totalValue?.toString() || null,
                 currency: analysis.financials.currency,
-                startDate: analysis.timeline.startDate,
-                endDate: analysis.timeline.endDate,
             })
             .returning();
 
