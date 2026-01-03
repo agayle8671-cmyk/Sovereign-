@@ -1,0 +1,3 @@
+⚠️ Recommendations Before Launch
+SOC 2 / AES-256 badges - Displayed but you'll need actual certifications
+Uptime SLA - Set up monitoring to back up 99.9% claim

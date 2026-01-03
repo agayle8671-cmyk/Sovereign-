@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import Link from "next/link";
 import {
-  Activity,
   ArrowUpRight,
   ArrowRight,
   Sparkles,
@@ -16,7 +15,6 @@ import {
   FileText,
   Clock,
   Send,
-  TrendingUp,
   Shield,
   Briefcase,
   MessageSquare,
@@ -25,6 +23,9 @@ import {
   Plus,
   ChevronRight,
 } from "lucide-react";
+import { RevenueChart } from "@/components/charts/RevenueChart";
+import { Sparkline } from "@/components/charts/Sparkline";
+import { ProgressRing } from "@/components/charts/ProgressRing";
 
 interface DashboardHomeProps {
   user: any;
@@ -100,51 +101,8 @@ export function DashboardHome({
 
       {/* Bento Grid */}
       <div className="grid grid-cols-4 gap-4 auto-rows-[180px]">
-        {/* Hero Tile: Financial Pulse (2x2) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="col-span-2 row-span-2 rounded-2xl bg-[#0f0f12] border border-white/[0.04] p-6 flex flex-col hover:border-white/[0.08] transition-colors group"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                <Activity className="w-5 h-5 text-emerald-500" />
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-white">Financial Pulse</h3>
-                <p className="text-xs text-zinc-600">Revenue & runway</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-1 text-emerald-400 text-xs font-medium">
-              <TrendingUp className="w-3 h-3" />
-              +24.5%
-            </div>
-          </div>
-
-          {/* Chart Area */}
-          <div className="flex-1 relative">
-            <svg viewBox="0 0 400 150" className="w-full h-full" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="pulseGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <path d="M0,120 Q50,100 100,90 T200,60 T300,80 T400,40 V150 H0 Z" fill="url(#pulseGrad)" />
-              <path d="M0,120 Q50,100 100,90 T200,60 T300,80 T400,40" fill="none" stroke="#10b981" strokeWidth="2" />
-              <circle cx="400" cy="40" r="5" fill="#10b981" className="animate-pulse" />
-            </svg>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-white/[0.04]">
-            <Stat label="Revenue" value="$84,250" />
-            <Stat label="Runway" value="8.2 mo" color="text-emerald-400" />
-            <Stat label="Pending" value="$12,400" color="text-amber-400" />
-          </div>
-        </motion.div>
+        {/* Hero Tile: Financial Pulse (2x2) - Premium Revenue Chart */}
+        <RevenueChart className="col-span-2 row-span-2" />
 
         {/* Agent Activity Feed (1x2) */}
         <motion.div
@@ -315,8 +273,8 @@ export function DashboardHome({
                       contract.riskScore >= 80
                         ? "bg-emerald-500/10 text-emerald-400"
                         : contract.riskScore >= 60
-                        ? "bg-amber-500/10 text-amber-400"
-                        : "bg-red-500/10 text-red-400"
+                          ? "bg-amber-500/10 text-amber-400"
+                          : "bg-red-500/10 text-red-400"
                     )}
                   >
                     {contract.riskScore >= 80 ? (
@@ -338,8 +296,8 @@ export function DashboardHome({
                       contract.riskScore >= 80
                         ? "text-emerald-400"
                         : contract.riskScore >= 60
-                        ? "text-amber-400"
-                        : "text-red-400"
+                          ? "text-amber-400"
+                          : "text-red-400"
                     )}
                   >
                     {contract.riskScore}%
@@ -389,8 +347,8 @@ export function DashboardHome({
                   score >= 80
                     ? "bg-emerald-500"
                     : score >= 60
-                    ? "bg-amber-500"
-                    : "bg-red-500";
+                      ? "bg-amber-500"
+                      : "bg-red-500";
 
                 return (
                   <Link
