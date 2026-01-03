@@ -1,492 +1,492 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import {
-    ArrowRight,
-    Check,
-    Zap,
-    Shield,
-    Users,
-    FileText,
-    BarChart3,
-    Sparkles,
-    ChevronRight,
-    Play,
-    Star
-} from "lucide-react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRef } from "react";
 
 // ============================================================================
-// SOVEREIGN LANDING PAGE - FINTECH AESTHETIC
-// Deep Navy (#020617), Emerald/Cyan accents, Dense information, Trust signals
+// SOVEREIGN LANDING PAGE
+// "Linear" Aesthetic - Precision-Engineered, Dark Future, Calm, Powerful
 // ============================================================================
 
 export default function MarketingPage() {
-    const heroRef = useRef<HTMLDivElement>(null);
-    const { scrollYProgress } = useScroll({
-        target: heroRef,
-        offset: ["start start", "end start"]
-    });
-
-    const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-    const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95]);
+    const [email, setEmail] = useState("");
 
     return (
-        <div className="bg-[#020617] min-h-screen text-white overflow-x-hidden selection:bg-emerald-500/30">
+        <div className="min-h-screen bg-zinc-950 text-white font-sans antialiased selection:bg-indigo-500/30">
 
             {/* ================================================================ */}
-            {/* NAVIGATION - Fintech Style */}
+            {/* NAVBAR */}
             {/* ================================================================ */}
-            <nav className="fixed top-0 inset-x-0 z-50 h-16 border-b border-white/5 bg-[#020617]/90 backdrop-blur-xl">
-                <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-6">
-                    <div className="flex items-center gap-8">
-                        <Link href="/" className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center relative">
-                                <span className="font-bold text-sm">S</span>
-                                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full" />
-                            </div>
-                            <span className="font-semibold text-lg tracking-tight">Sovereign</span>
-                        </Link>
-                        <div className="hidden lg:flex items-center gap-6 text-sm text-slate-400">
-                            <Link href="#features" className="hover:text-white transition-colors">Features</Link>
-                            <Link href="#pricing" className="hover:text-white transition-colors">Pricing</Link>
-                            <Link href="#security" className="hover:text-white transition-colors">Security</Link>
-                            <Link href="#about" className="hover:text-white transition-colors">About</Link>
+            <nav className="fixed top-0 inset-x-0 z-50 h-16 border-b border-white/[0.08] bg-zinc-950/80 backdrop-blur-xl">
+                <div className="max-w-6xl mx-auto h-full flex items-center justify-between px-6">
+                    <div className="flex items-center gap-10">
+                        {/* Logo */}
+                        <span className="text-sm font-bold tracking-widest text-white">SOVEREIGN</span>
+
+                        {/* Links */}
+                        <div className="hidden md:flex items-center gap-6 text-sm text-zinc-400">
+                            <a href="#" className="hover:text-white transition-colors">Documentation</a>
+                            <a href="#" className="hover:text-white transition-colors">Changelog</a>
+                            <a href="#" className="hover:text-white transition-colors">Pricing</a>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <Link href="/login" className="text-sm text-slate-400 hover:text-white transition-colors">
-                            Sign in
-                        </Link>
-                        <Link
-                            href="/signup"
-                            className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors"
-                        >
-                            Start Free Trial
-                        </Link>
-                    </div>
+
+                    {/* CTA */}
+                    <button className="px-4 py-2 rounded-lg bg-white/[0.05] backdrop-blur-sm text-sm font-medium text-white ring-1 ring-white/20 hover:bg-white/[0.08] hover:ring-white/30 transition-all">
+                        Deploy Node
+                    </button>
                 </div>
             </nav>
 
             {/* ================================================================ */}
-            {/* HERO SECTION - Command Center Reveal */}
+            {/* HERO SECTION */}
             {/* ================================================================ */}
-            <section ref={heroRef} className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
-                {/* Background Elements */}
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-emerald-500/10 blur-[150px] rounded-full" />
-                    <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-cyan-500/10 blur-[120px] rounded-full" />
-                    {/* Grid pattern */}
-                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
-                </div>
+            <section className="relative pt-32 pb-24 overflow-hidden">
+                {/* Lighting Effect */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-indigo-500/20 blur-[120px] rounded-full pointer-events-none" />
+                <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-violet-500/10 blur-[100px] rounded-full pointer-events-none" />
 
-                <motion.div
-                    style={{ opacity: heroOpacity, scale: heroScale }}
-                    className="relative z-10 max-w-5xl mx-auto px-6 text-center"
-                >
-                    {/* Status Badge */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-8"
-                    >
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                        </span>
-                        <span className="text-xs font-medium text-emerald-400">Now with AI-Powered Contract Analysis</span>
-                    </motion.div>
+                {/* Radial Gradient Overlay */}
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900/0 via-zinc-950/50 to-zinc-950 pointer-events-none" />
+
+                <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
+                    {/* Badge */}
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] mb-8">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-xs font-medium text-zinc-400">v2.4.0 · Now with Multi-Region HA</span>
+                    </div>
 
                     {/* Headline */}
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6"
-                    >
-                        The Operating System
-                        <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-400">
-                            for Elite Freelancers
+                    <h1 className="text-5xl md:text-7xl font-semibold tracking-tight text-balance leading-[1.1] mb-6">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40">
+                            The Operating System
                         </span>
-                    </motion.h1>
+                        <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40">
+                            for Autonomy.
+                        </span>
+                    </h1>
 
-                    {/* Subheadline */}
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="text-lg lg:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed"
-                    >
-                        Sovereign unifies contracts, clients, and cash flow into one autonomous command center.
-                        AI agents handle the busywork while you focus on high-value work.
-                    </motion.p>
+                    {/* Subhead */}
+                    <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto mb-10 text-balance leading-relaxed">
+                        Orchestrate hyper-scale infrastructure with zero human intervention.
+                        Cryptographically verifiable logs. Self-healing state.
+                    </p>
 
-                    {/* CTA Buttons */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="flex flex-col sm:flex-row items-center justify-center gap-4"
-                    >
-                        <Link
-                            href="/signup"
-                            className="group px-8 py-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-medium transition-all flex items-center gap-2"
-                        >
-                            Start Free Trial
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                        <button className="px-8 py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium transition-all flex items-center gap-2">
-                            <Play className="w-4 h-4" />
-                            Watch Demo
-                        </button>
-                    </motion.div>
-
-                    {/* Trust Signals */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.6 }}
-                        className="mt-12 flex items-center justify-center gap-8 text-sm text-slate-500"
-                    >
-                        <div className="flex items-center gap-2">
-                            <Shield className="w-4 h-4 text-emerald-500" />
-                            SOC 2 Compliant
+                    {/* CLI Input Group */}
+                    <div className="max-w-md mx-auto">
+                        <div className="flex items-center gap-2 p-2 rounded-xl bg-zinc-900/50 backdrop-blur-md border border-white/[0.08] ring-1 ring-inset ring-white/[0.05]">
+                            <span className="text-zinc-600 pl-2 font-mono text-sm">&gt;</span>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Enter your work email..."
+                                className="flex-1 bg-transparent text-sm text-white placeholder:text-zinc-500 focus:outline-none font-mono"
+                            />
+                            <button className="px-4 py-2 rounded-lg bg-white text-zinc-900 text-sm font-medium hover:bg-zinc-100 transition-colors">
+                                Request Access
+                            </button>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Check className="w-4 h-4 text-emerald-500" />
-                            256-bit Encryption
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Star className="w-4 h-4 text-amber-500" />
-                            4.9/5 Rating
-                        </div>
-                    </motion.div>
-                </motion.div>
-
-                {/* Product Screenshot */}
-                <motion.div
-                    initial={{ opacity: 0, y: 60 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, duration: 0.8 }}
-                    className="relative z-10 mt-20 max-w-6xl mx-auto px-6"
-                >
-                    <div className="relative rounded-2xl border border-white/10 bg-[#0a0f1a] p-2 shadow-2xl shadow-emerald-500/5">
-                        {/* Browser Chrome */}
-                        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5">
-                            <div className="flex gap-1.5">
-                                <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/40" />
-                                <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/40" />
-                                <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/40" />
-                            </div>
-                            <div className="flex-1 flex justify-center">
-                                <div className="px-4 py-1 rounded-full bg-white/5 text-xs text-slate-500">
-                                    app.sovereign.io/dashboard
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Simulated Dashboard */}
-                        <div className="aspect-[16/9] bg-[#020617] rounded-lg overflow-hidden">
-                            <div className="h-full flex">
-                                {/* Sidebar */}
-                                <div className="w-64 border-r border-white/5 bg-[#0a0f1a] p-4 space-y-4">
-                                    <div className="flex items-center gap-2 p-2">
-                                        <div className="w-6 h-6 rounded bg-emerald-500/20" />
-                                        <div className="h-3 w-20 bg-white/10 rounded" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="h-8 bg-white/5 rounded-lg" />
-                                        <div className="h-8 bg-white/5 rounded-lg" />
-                                        <div className="h-8 bg-emerald-500/10 rounded-lg border border-emerald-500/20" />
-                                        <div className="h-8 bg-white/5 rounded-lg" />
-                                    </div>
-                                </div>
-                                {/* Main Content */}
-                                <div className="flex-1 p-6 grid grid-cols-4 gap-4 auto-rows-[80px]">
-                                    <div className="col-span-2 row-span-2 rounded-xl bg-white/5 border border-white/5 p-4">
-                                        <div className="h-3 w-24 bg-emerald-500/20 rounded mb-3" />
-                                        <div className="h-20 bg-gradient-to-t from-emerald-500/10 to-transparent rounded" />
-                                    </div>
-                                    <div className="col-span-1 row-span-2 rounded-xl bg-white/5 border border-white/5 p-4">
-                                        <div className="h-3 w-16 bg-cyan-500/20 rounded mb-3" />
-                                        <div className="space-y-2">
-                                            <div className="h-4 bg-white/5 rounded" />
-                                            <div className="h-4 bg-white/5 rounded" />
-                                            <div className="h-4 bg-white/5 rounded" />
-                                        </div>
-                                    </div>
-                                    <div className="col-span-1 row-span-2 rounded-xl bg-white/5 border border-white/5 p-4">
-                                        <div className="h-3 w-12 bg-amber-500/20 rounded mb-3" />
-                                        <div className="flex flex-col gap-2 mt-4">
-                                            <div className="h-6 bg-emerald-500/10 rounded" />
-                                            <div className="h-6 bg-red-500/10 rounded" />
-                                        </div>
-                                    </div>
-                                    <div className="col-span-1 rounded-xl bg-white/5 border border-white/5" />
-                                    <div className="col-span-1 rounded-xl bg-white/5 border border-white/5" />
-                                    <div className="col-span-1 rounded-xl bg-white/5 border border-white/5" />
-                                    <div className="col-span-1 rounded-xl bg-white/5 border border-white/5" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Floating Notification */}
-                        <div className="absolute bottom-8 right-8 px-4 py-3 rounded-xl bg-[#0a0f1a] border border-emerald-500/20 shadow-lg">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center">
-                                    <Sparkles className="w-4 h-4 text-cyan-400" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-white">Invoice #1024 paid</p>
-                                    <p className="text-xs text-slate-500">+$4,500 from Apex Corp</p>
-                                </div>
-                            </div>
-                        </div>
+                        <p className="text-xs text-zinc-600 mt-3">
+                            Deploy in &lt;90 seconds. No credit card required.
+                        </p>
                     </div>
-                </motion.div>
+                </div>
             </section>
 
             {/* ================================================================ */}
-            {/* SOCIAL PROOF */}
+            {/* TRUSTED BY STRIP */}
             {/* ================================================================ */}
-            <section className="py-16 border-y border-white/5">
-                <div className="max-w-7xl mx-auto px-6">
-                    <p className="text-center text-sm text-slate-500 mb-8">Trusted by elite freelancers and agencies worldwide</p>
-                    <div className="flex items-center justify-center gap-12 opacity-50">
-                        {["Stripe", "Notion", "Linear", "Vercel", "Figma"].map((brand) => (
-                            <div key={brand} className="text-xl font-semibold text-slate-600">{brand}</div>
+            <section className="py-12 border-y border-white/[0.05]">
+                <div className="max-w-6xl mx-auto px-6">
+                    <p className="text-center text-xs font-medium text-zinc-600 uppercase tracking-wider mb-8">
+                        Trusted by engineering teams at
+                    </p>
+                    <div className="flex items-center justify-center gap-12 md:gap-16">
+                        {["Vercel", "Stripe", "Linear", "Raycast", "Supabase"].map((brand) => (
+                            <span
+                                key={brand}
+                                className="text-lg font-semibold text-zinc-700 tracking-tight opacity-30"
+                            >
+                                {brand}
+                            </span>
                         ))}
                     </div>
                 </div>
             </section>
 
             {/* ================================================================ */}
-            {/* FEATURES - Bento Grid Style */}
-            {/* ================================================================ */}
-            <section id="features" className="py-24">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl lg:text-4xl font-bold tracking-tight mb-4">
-                            Everything you need to run
-                            <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
-                                a modern freelance business
-                            </span>
-                        </h2>
-                        <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-                            From contract analysis to automated invoicing, Sovereign handles the complexity so you can focus on your craft.
-                        </p>
-                    </div>
-
-                    {/* Feature Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <FeatureCard
-                            icon={Shield}
-                            title="Contract Shield"
-                            description="AI-powered contract analysis that identifies risky clauses and suggests negotiation points in seconds."
-                            gradient="from-emerald-500/20 to-cyan-500/20"
-                            iconColor="text-emerald-400"
-                        />
-                        <FeatureCard
-                            icon={Users}
-                            title="Client Radar"
-                            description="360° view of every client relationship. Track health scores, communication history, and revenue."
-                            gradient="from-violet-500/20 to-purple-500/20"
-                            iconColor="text-violet-400"
-                        />
-                        <FeatureCard
-                            icon={FileText}
-                            title="Invoice Forge"
-                            description="Automatic invoice generation, payment tracking, and gentle follow-ups for overdue accounts."
-                            gradient="from-amber-500/20 to-orange-500/20"
-                            iconColor="text-amber-400"
-                        />
-                        <FeatureCard
-                            icon={BarChart3}
-                            title="Financial Pulse"
-                            description="Real-time cash flow tracking, runway calculations, and predictive revenue forecasting."
-                            gradient="from-cyan-500/20 to-blue-500/20"
-                            iconColor="text-cyan-400"
-                        />
-                        <FeatureCard
-                            icon={Sparkles}
-                            title="AI Agents"
-                            description="Autonomous agents that draft emails, schedule meetings, and handle routine tasks on your behalf."
-                            gradient="from-pink-500/20 to-rose-500/20"
-                            iconColor="text-pink-400"
-                        />
-                        <FeatureCard
-                            icon={Zap}
-                            title="Velocity Mode"
-                            description="Keyboard-first design with Cmd+K navigation. Built for speed, not clicks."
-                            gradient="from-emerald-500/20 to-teal-500/20"
-                            iconColor="text-emerald-400"
-                        />
-                    </div>
-                </div>
-            </section>
-
-            {/* ================================================================ */}
-            {/* PRICING */}
-            {/* ================================================================ */}
-            <section id="pricing" className="py-24 border-t border-white/5">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl lg:text-4xl font-bold tracking-tight mb-4">
-                            Simple, transparent pricing
-                        </h2>
-                        <p className="text-lg text-slate-400">
-                            Start free, upgrade when you're ready.
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                        <PricingCard
-                            name="Starter"
-                            price="Free"
-                            description="For freelancers just getting started"
-                            features={["3 Active Clients", "5 Contracts/Month", "Basic Analytics", "Email Support"]}
-                        />
-                        <PricingCard
-                            name="Pro"
-                            price="$29"
-                            description="For established freelancers"
-                            features={["Unlimited Clients", "Unlimited Contracts", "AI Contract Analysis", "Priority Support", "Custom Branding"]}
-                            featured
-                        />
-                        <PricingCard
-                            name="Agency"
-                            price="$99"
-                            description="For teams and agencies"
-                            features={["Everything in Pro", "Team Collaboration", "API Access", "Dedicated Success Manager", "Custom Integrations"]}
-                        />
-                    </div>
-                </div>
-            </section>
-
-            {/* ================================================================ */}
-            {/* CTA */}
+            {/* ARCHITECTURE - BENTO GRID */}
             {/* ================================================================ */}
             <section className="py-24">
-                <div className="max-w-4xl mx-auto px-6 text-center">
-                    <h2 className="text-4xl lg:text-5xl font-bold tracking-tight mb-6">
-                        Ready to take control?
+                <div className="max-w-6xl mx-auto px-6">
+                    {/* Section Header */}
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-balance mb-4">
+                            Infrastructure primitives,
+                            <br />
+                            <span className="text-zinc-500">abstracted.</span>
+                        </h2>
+                        <p className="text-zinc-400 max-w-xl mx-auto">
+                            A unified control plane for governance, observability, and orchestration.
+                            No YAML. No toil.
+                        </p>
+                    </div>
+
+                    {/* Bento Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                        {/* Card 1: Immutable Ledger (Large) */}
+                        <div className="md:col-span-2 p-6 rounded-2xl bg-zinc-900/50 backdrop-blur-md border border-white/[0.08] group hover:border-white/[0.15] transition-colors">
+                            <div className="flex items-start justify-between mb-6">
+                                <div>
+                                    <h3 className="text-lg font-medium tracking-tight text-white mb-1">
+                                        Immutable Ledger
+                                    </h3>
+                                    <p className="text-sm text-zinc-400">
+                                        Cryptographic proof for every state mutation. Audit-ready.
+                                    </p>
+                                </div>
+                                <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.08] flex items-center justify-center">
+                                    <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Abstract UI: Terminal */}
+                            <div className="rounded-lg bg-black/50 border border-white/[0.05] overflow-hidden">
+                                <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/[0.05]">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
+                                    <span className="ml-2 text-[10px] text-zinc-600 font-mono">audit.log</span>
+                                </div>
+                                <div className="p-3 font-mono text-[11px] leading-relaxed">
+                                    <div className="text-zinc-600">{"{"}</div>
+                                    <div className="pl-4">
+                                        <span className="text-indigo-400">"timestamp"</span>
+                                        <span className="text-zinc-600">: </span>
+                                        <span className="text-emerald-400">"2026-01-03T17:14:27.891Z"</span>
+                                        <span className="text-zinc-600">,</span>
+                                    </div>
+                                    <div className="pl-4">
+                                        <span className="text-indigo-400">"action"</span>
+                                        <span className="text-zinc-600">: </span>
+                                        <span className="text-amber-400">"DEPLOY"</span>
+                                        <span className="text-zinc-600">,</span>
+                                    </div>
+                                    <div className="pl-4">
+                                        <span className="text-indigo-400">"node"</span>
+                                        <span className="text-zinc-600">: </span>
+                                        <span className="text-emerald-400">"us-east-1.sovereign.io"</span>
+                                        <span className="text-zinc-600">,</span>
+                                    </div>
+                                    <div className="pl-4">
+                                        <span className="text-indigo-400">"hash"</span>
+                                        <span className="text-zinc-600">: </span>
+                                        <span className="text-zinc-500">"0x8a7f...3e2d"</span>
+                                    </div>
+                                    <div className="text-zinc-600">{"}"}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Card 2: Global Edge (Small) */}
+                        <div className="p-6 rounded-2xl bg-zinc-900/50 backdrop-blur-md border border-white/[0.08] group hover:border-white/[0.15] transition-colors">
+                            <div className="flex items-start justify-between mb-6">
+                                <div>
+                                    <h3 className="text-lg font-medium tracking-tight text-white mb-1">
+                                        Global Edge
+                                    </h3>
+                                    <p className="text-sm text-zinc-400">
+                                        42 regions. &lt;50ms latency.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Abstract UI: Pulsing Nodes */}
+                            <div className="relative h-32 flex items-center justify-center">
+                                <div className="absolute w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-pulse" style={{ top: '20%', left: '30%' }} />
+                                <div className="absolute w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-pulse" style={{ top: '60%', left: '70%', animationDelay: '0.3s' }} />
+                                <div className="absolute w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-pulse" style={{ top: '40%', left: '50%', animationDelay: '0.6s' }} />
+                                <div className="absolute w-1.5 h-1.5 rounded-full bg-zinc-600" style={{ top: '30%', left: '20%' }} />
+                                <div className="absolute w-1.5 h-1.5 rounded-full bg-zinc-600" style={{ top: '70%', left: '40%' }} />
+                                <div className="absolute w-1.5 h-1.5 rounded-full bg-zinc-600" style={{ top: '25%', left: '80%' }} />
+                                {/* Connection Lines */}
+                                <svg className="absolute inset-0 w-full h-full opacity-20">
+                                    <line x1="30%" y1="20%" x2="50%" y2="40%" stroke="currentColor" className="text-zinc-600" strokeWidth="1" />
+                                    <line x1="50%" y1="40%" x2="70%" y2="60%" stroke="currentColor" className="text-zinc-600" strokeWidth="1" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Card 3: RBAC Native (Small) */}
+                        <div className="p-6 rounded-2xl bg-zinc-900/50 backdrop-blur-md border border-white/[0.08] group hover:border-white/[0.15] transition-colors">
+                            <div className="flex items-start justify-between mb-6">
+                                <div>
+                                    <h3 className="text-lg font-medium tracking-tight text-white mb-1">
+                                        RBAC Native
+                                    </h3>
+                                    <p className="text-sm text-zinc-400">
+                                        Zero-trust by default. SSO integrated.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Abstract UI: Shield */}
+                            <div className="flex items-center justify-center h-32">
+                                <div className="relative w-16 h-20">
+                                    <div className="absolute inset-0 rounded-t-full rounded-b-lg border-2 border-zinc-700 bg-zinc-800/50" />
+                                    <div className="absolute inset-2 rounded-t-full rounded-b-md border border-zinc-600 flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Card 4: Telemetry (Tall) */}
+                        <div className="md:row-span-2 p-6 rounded-2xl bg-zinc-900/50 backdrop-blur-md border border-white/[0.08] group hover:border-white/[0.15] transition-colors flex flex-col">
+                            <div className="flex items-start justify-between mb-6">
+                                <div>
+                                    <h3 className="text-lg font-medium tracking-tight text-white mb-1">
+                                        Real-time Telemetry
+                                    </h3>
+                                    <p className="text-sm text-zinc-400">
+                                        Full observability stack. Prometheus-compatible.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Abstract UI: Status Bars */}
+                            <div className="flex-1 space-y-3">
+                                {[
+                                    { label: "API Gateway", value: "99.99%", color: "bg-emerald-500" },
+                                    { label: "Auth Service", value: "99.97%", color: "bg-emerald-500" },
+                                    { label: "Data Plane", value: "100%", color: "bg-emerald-500" },
+                                    { label: "Control Plane", value: "99.98%", color: "bg-emerald-500" },
+                                    { label: "Edge Nodes", value: "99.95%", color: "bg-emerald-500" },
+                                    { label: "Audit Log", value: "100%", color: "bg-emerald-500" },
+                                ].map((item) => (
+                                    <div key={item.label} className="flex items-center gap-3">
+                                        <div className={`w-1.5 h-1.5 rounded-full ${item.color}`} />
+                                        <span className="text-xs text-zinc-500 flex-1">{item.label}</span>
+                                        <span className="text-xs font-mono text-zinc-400">{item.value}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mt-6 pt-4 border-t border-white/[0.05]">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span className="text-xs text-zinc-400">All systems operational</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Card 5: Self-Healing */}
+                        <div className="p-6 rounded-2xl bg-zinc-900/50 backdrop-blur-md border border-white/[0.08] group hover:border-white/[0.15] transition-colors">
+                            <div className="flex items-start justify-between mb-4">
+                                <div>
+                                    <h3 className="text-lg font-medium tracking-tight text-white mb-1">
+                                        Self-Healing
+                                    </h3>
+                                    <p className="text-sm text-zinc-400">
+                                        Automatic remediation. Zero pager alerts.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Abstract UI: Toggle */}
+                            <div className="flex items-center gap-3 mt-6">
+                                <div className="w-10 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 relative">
+                                    <div className="absolute right-1 top-1 w-4 h-4 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
+                                </div>
+                                <span className="text-xs font-mono text-emerald-400">ENABLED</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ================================================================ */}
+            {/* CODE INTERACTION SECTION */}
+            {/* ================================================================ */}
+            <section className="py-24 border-t border-white/[0.05]">
+                <div className="max-w-4xl mx-auto px-6">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
+                            One file. Full governance.
+                        </h2>
+                        <p className="text-zinc-400 max-w-xl mx-auto">
+                            Define your entire infrastructure policy in a single, declarative configuration.
+                        </p>
+                    </div>
+
+                    {/* IDE Window */}
+                    <div className="rounded-2xl bg-black/50 border border-white/[0.08] overflow-hidden">
+                        {/* Window Chrome */}
+                        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05] bg-zinc-900/50">
+                            <div className="flex gap-1.5">
+                                <div className="w-3 h-3 rounded-full bg-zinc-700 hover:bg-red-500/50 transition-colors" />
+                                <div className="w-3 h-3 rounded-full bg-zinc-700 hover:bg-yellow-500/50 transition-colors" />
+                                <div className="w-3 h-3 rounded-full bg-zinc-700 hover:bg-emerald-500/50 transition-colors" />
+                            </div>
+                            <div className="flex-1 flex justify-center">
+                                <span className="text-xs font-mono text-zinc-500">sovereign.config.yaml</span>
+                            </div>
+                        </div>
+
+                        {/* Code Content */}
+                        <div className="p-6 font-mono text-sm leading-relaxed overflow-x-auto">
+                            <div className="text-zinc-500"># Sovereign Control Plane Configuration</div>
+                            <div className="text-zinc-500"># Version: 2.4.0</div>
+                            <br />
+                            <div>
+                                <span className="text-indigo-400">cluster</span>
+                                <span className="text-zinc-500">:</span>
+                            </div>
+                            <div className="pl-4">
+                                <span className="text-zinc-400">name</span>
+                                <span className="text-zinc-500">: </span>
+                                <span className="text-emerald-400">production-us-east</span>
+                            </div>
+                            <div className="pl-4">
+                                <span className="text-zinc-400">regions</span>
+                                <span className="text-zinc-500">: [</span>
+                                <span className="text-amber-400">us-east-1</span>
+                                <span className="text-zinc-500">, </span>
+                                <span className="text-amber-400">eu-west-1</span>
+                                <span className="text-zinc-500">, </span>
+                                <span className="text-amber-400">ap-south-1</span>
+                                <span className="text-zinc-500">]</span>
+                            </div>
+                            <br />
+                            <div>
+                                <span className="text-indigo-400">governance</span>
+                                <span className="text-zinc-500">:</span>
+                            </div>
+                            <div className="pl-4">
+                                <span className="text-zinc-400">immutable_logs</span>
+                                <span className="text-zinc-500">: </span>
+                                <span className="text-emerald-400">true</span>
+                            </div>
+                            <div className="pl-4">
+                                <span className="text-zinc-400">auto_remediation</span>
+                                <span className="text-zinc-500">: </span>
+                                <span className="text-emerald-400">true</span>
+                            </div>
+                            <div className="pl-4">
+                                <span className="text-zinc-400">drift_detection</span>
+                                <span className="text-zinc-500">: </span>
+                                <span className="text-emerald-400">realtime</span>
+                            </div>
+                            <br />
+                            <div>
+                                <span className="text-indigo-400">security</span>
+                                <span className="text-zinc-500">:</span>
+                            </div>
+                            <div className="pl-4">
+                                <span className="text-zinc-400">rbac</span>
+                                <span className="text-zinc-500">: </span>
+                                <span className="text-emerald-400">strict</span>
+                            </div>
+                            <div className="pl-4">
+                                <span className="text-zinc-400">encryption</span>
+                                <span className="text-zinc-500">: </span>
+                                <span className="text-emerald-400">AES-256-GCM</span>
+                            </div>
+                            <div className="pl-4">
+                                <span className="text-zinc-400">attestation</span>
+                                <span className="text-zinc-500">: </span>
+                                <span className="text-emerald-400">cryptographic</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ================================================================ */}
+            {/* CTA SECTION */}
+            {/* ================================================================ */}
+            <section className="py-24">
+                <div className="max-w-2xl mx-auto px-6 text-center">
+                    <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4">
+                        Infrastructure at the
+                        <br />
+                        speed of thought.
                     </h2>
-                    <p className="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                        Join thousands of freelancers who have upgraded from chaos to clarity.
+                    <p className="text-zinc-400 mb-8">
+                        Zero-touch governance. Immutable audit trails. Deploy in 90 seconds.
                     </p>
-                    <Link
-                        href="/signup"
-                        className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-medium transition-all text-lg"
-                    >
-                        Start Your Free Trial
-                        <ChevronRight className="w-5 h-5" />
-                    </Link>
+                    <div className="flex items-center justify-center gap-4">
+                        <button className="px-6 py-3 rounded-lg bg-white text-zinc-900 text-sm font-medium hover:bg-zinc-100 transition-colors">
+                            Request Access
+                        </button>
+                        <button className="px-6 py-3 rounded-lg bg-white/[0.05] text-white text-sm font-medium ring-1 ring-white/20 hover:bg-white/[0.08] transition-colors">
+                            Read Documentation
+                        </button>
+                    </div>
                 </div>
             </section>
 
             {/* ================================================================ */}
             {/* FOOTER */}
             {/* ================================================================ */}
-            <footer className="py-12 border-t border-white/5">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="flex items-center justify-between">
+            <footer className="py-12 bg-black border-t border-white/[0.05]">
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+                        <div>
+                            <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-4">Product</h4>
+                            <ul className="space-y-2">
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">Features</a></li>
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">Pricing</a></li>
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">Changelog</a></li>
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">Roadmap</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-4">Developers</h4>
+                            <ul className="space-y-2">
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">Documentation</a></li>
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">API Reference</a></li>
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">CLI</a></li>
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">SDKs</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-4">Company</h4>
+                            <ul className="space-y-2">
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">About</a></li>
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">Blog</a></li>
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">Careers</a></li>
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">Contact</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-4">Legal</h4>
+                            <ul className="space-y-2">
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">Privacy</a></li>
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">Terms</a></li>
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">Security</a></li>
+                                <li><a href="#" className="text-sm text-zinc-400 hover:text-white transition-colors">DPA</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-8 border-t border-white/[0.05]">
+                        <span className="text-sm font-bold tracking-widest text-zinc-600">SOVEREIGN</span>
                         <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center">
-                                <span className="font-bold text-xs">S</span>
-                            </div>
-                            <span className="font-semibold">Sovereign</span>
+                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                            <span className="text-xs text-zinc-500">System Status: Operational</span>
                         </div>
-                        <div className="flex items-center gap-6 text-sm text-slate-500">
-                            <Link href="#" className="hover:text-white transition-colors">Privacy</Link>
-                            <Link href="#" className="hover:text-white transition-colors">Terms</Link>
-                            <Link href="#" className="hover:text-white transition-colors">Security</Link>
-                        </div>
-                        <p className="text-sm text-slate-600">© 2026 Sovereign. All rights reserved.</p>
+                        <span className="text-xs text-zinc-600">© 2026 Sovereign Systems, Inc.</span>
                     </div>
                 </div>
             </footer>
-        </div>
-    );
-}
-
-// ============================================================================
-// SUB-COMPONENTS
-// ============================================================================
-
-function FeatureCard({
-    icon: Icon,
-    title,
-    description,
-    gradient,
-    iconColor
-}: {
-    icon: React.ElementType;
-    title: string;
-    description: string;
-    gradient: string;
-    iconColor: string;
-}) {
-    return (
-        <div className="group p-6 rounded-2xl bg-[#0a0f1a] border border-white/5 hover:border-white/10 transition-all">
-            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-4`}>
-                <Icon className={`w-6 h-6 ${iconColor}`} />
-            </div>
-            <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
-        </div>
-    );
-}
-
-function PricingCard({
-    name,
-    price,
-    description,
-    features,
-    featured = false
-}: {
-    name: string;
-    price: string;
-    description: string;
-    features: string[];
-    featured?: boolean;
-}) {
-    return (
-        <div className={`p-6 rounded-2xl border transition-all ${featured
-                ? "bg-gradient-to-b from-emerald-500/10 to-[#0a0f1a] border-emerald-500/30"
-                : "bg-[#0a0f1a] border-white/5 hover:border-white/10"
-            }`}>
-            {featured && (
-                <div className="inline-flex px-3 py-1 rounded-full bg-emerald-500/20 text-xs font-medium text-emerald-400 mb-4">
-                    Most Popular
-                </div>
-            )}
-            <h3 className="text-xl font-semibold text-white mb-1">{name}</h3>
-            <p className="text-sm text-slate-500 mb-4">{description}</p>
-            <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold text-white">{price}</span>
-                {price !== "Free" && <span className="text-slate-500">/month</span>}
-            </div>
-            <ul className="space-y-3 mb-6">
-                {features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-sm text-slate-300">
-                        <Check className="w-4 h-4 text-emerald-500" />
-                        {feature}
-                    </li>
-                ))}
-            </ul>
-            <Link
-                href="/signup"
-                className={`block w-full py-3 rounded-lg text-center font-medium transition-colors ${featured
-                        ? "bg-emerald-500 hover:bg-emerald-600 text-white"
-                        : "bg-white/5 hover:bg-white/10 text-white border border-white/10"
-                    }`}
-            >
-                Get Started
-            </Link>
         </div>
     );
 }
