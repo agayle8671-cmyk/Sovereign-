@@ -149,7 +149,7 @@ export const clients = pgTable("clients", {
     address: text("address"),
     avatarUrl: text("avatar_url"),
     healthScore: integer("health_score").default(100),
-    status: varchar("status", { length: 50 }).default("active"),
+    status: varchar("status", { length: 50 }).default("active").notNull(),
     sentimentTrend: sentimentLabelEnum("sentiment_trend").default("NEUTRAL"),
     totalRevenue: decimal("total_revenue", { precision: 12, scale: 2 }).default(
         "0"
