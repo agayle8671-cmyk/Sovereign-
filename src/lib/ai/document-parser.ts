@@ -1,43 +1,53 @@
-// @ts-ignore
-import pdf from "pdf-parse";
+// server-only guarantees this only runs on the server
+import "server-only";
 import mammoth from "mammoth";
 
+// Using dynamic import for pdfjs-dist to avoid build issues
 export async function parseDocument(
-    buffer: Buffer,
-    mimeType: string
+    fileBuffer: Buffer,
+    fileType: string
 ): Promise<string> {
-    switch (mimeType) {
-        case "application/pdf":
-            return parsePDF(buffer);
+    if (fileType === "application/pdf") {
+        // Standard import for Next.js server actions / API routes
+        const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
-        case "application/msword":
-        case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-            return parseWord(buffer);
+        // Convert Buffer to Uint8Array
+        const uint8Array = new Uint8Array(fileBuffer);
 
-        case "text/plain":
-            return buffer.toString("utf-8");
+        // Load document
+        const loadingTask = getDocument({
+            data: uint8Array,
+            useSystemFonts: true,
+            disableFontFace: true,
+            verbosity: 0,
+        });
 
-        default:
-            throw new Error(`Unsupported file type: ${mimeType}`);
+        const pdfDocument = await loadingTask.promise;
+        let fullText = "";
+
+        // Iterate through pages
+        for (let i = 1; i <= pdfDocument.numPages; i++) {
+            const page = await pdfDocument.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+                .map((item: any) => item.str)
+                .join(" ");
+            fullText += pageText + "\n";
+        }
+
+        return fullText;
     }
-}
 
-async function parsePDF(buffer: Buffer): Promise<string> {
-    try {
-        const data = await pdf(buffer);
-        return data.text;
-    } catch (error) {
-        console.error("PDF parsing error:", error);
-        throw new Error("Failed to parse PDF. Please ensure it's a valid PDF file.");
-    }
-}
-
-async function parseWord(buffer: Buffer): Promise<string> {
-    try {
-        const result = await mammoth.extractRawText({ buffer });
+    if (
+        fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
+        const result = await mammoth.extractRawText({ buffer: fileBuffer });
         return result.value;
-    } catch (error) {
-        console.error("Word parsing error:", error);
-        throw new Error("Failed to parse Word document.");
     }
+
+    if (fileType === "text/plain") {
+        return fileBuffer.toString("utf-8");
+    }
+
+    throw new Error(`Unsupported file type: ${fileType}`);
 }
