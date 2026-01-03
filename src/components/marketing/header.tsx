@@ -2,21 +2,19 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, SignedIn, SignedOut } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Menu, X, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navigation = [
-    { name: "Features", href: "/features" },
-    { name: "Pricing", href: "/pricing" },
-    { name: "Customers", href: "/customers" },
-    { name: "Blog", href: "/blog" },
+    { name: "Features", href: "/#features" },
+    { name: "Pricing", href: "/#pricing" },
+    { name: "FAQ", href: "/#faq" },
 ];
 
 export function MarketingHeader() {
-    const { isSignedIn } = useAuth();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -75,20 +73,19 @@ export function MarketingHeader() {
 
                     {/* Desktop CTA */}
                     <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
-                        {isSignedIn ? (
+                        <SignedIn>
                             <Button asChild>
-                                <Link href="/dashboard">Dashboard</Link>
+                                <Link href="/dashboard">Go to Dashboard →</Link>
                             </Button>
-                        ) : (
-                            <>
-                                <Button variant="ghost" asChild>
-                                    <Link href="/login">Log in</Link>
-                                </Button>
-                                <Button asChild>
-                                    <Link href="/signup">Get Started</Link>
-                                </Button>
-                            </>
-                        )}
+                        </SignedIn>
+                        <SignedOut>
+                            <Button variant="ghost" asChild>
+                                <Link href="/login">Log in</Link>
+                            </Button>
+                            <Button asChild>
+                                <Link href="/signup">Get Started Free</Link>
+                            </Button>
+                        </SignedOut>
                     </div>
                 </div>
             </nav>
@@ -102,7 +99,7 @@ export function MarketingHeader() {
                         exit={{ opacity: 0 }}
                         className="lg:hidden"
                     >
-                        <div className="fixed inset-0 z-50 bg-neutral-950/90 backdrop-blur-xl">
+                        <div className="fixed inset-0 z-50 bg-neutral-950/95 backdrop-blur-xl">
                             <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto px-6 py-6">
                                 <div className="flex items-center justify-between">
                                     <Link href="/" className="flex items-center gap-2 -m-1.5 p-1.5">
@@ -135,20 +132,19 @@ export function MarketingHeader() {
                                         ))}
                                     </div>
                                     <div className="border-t border-neutral-800 py-6 space-y-3">
-                                        {isSignedIn ? (
+                                        <SignedIn>
                                             <Button className="w-full" asChild>
-                                                <Link href="/dashboard">Dashboard</Link>
+                                                <Link href="/dashboard">Go to Dashboard</Link>
                                             </Button>
-                                        ) : (
-                                            <>
-                                                <Button variant="outline" className="w-full" asChild>
-                                                    <Link href="/login">Log in</Link>
-                                                </Button>
-                                                <Button className="w-full" asChild>
-                                                    <Link href="/signup">Get Started</Link>
-                                                </Button>
-                                            </>
-                                        )}
+                                        </SignedIn>
+                                        <SignedOut>
+                                            <Button variant="outline" className="w-full" asChild>
+                                                <Link href="/login">Log in</Link>
+                                            </Button>
+                                            <Button className="w-full" asChild>
+                                                <Link href="/signup">Get Started Free</Link>
+                                            </Button>
+                                        </SignedOut>
                                     </div>
                                 </div>
                             </div>

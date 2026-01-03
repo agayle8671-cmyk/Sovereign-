@@ -2,27 +2,31 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { users, contracts, clients, portfolioItems, testimonials } from "@/lib/db/schema";
 import { eq, desc, count, sql } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import { DashboardStats } from "@/components/dashboard/stats";
 import { RecentContracts } from "@/components/dashboard/recent-contracts";
 import { ClientHealth } from "@/components/dashboard/client-health";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { AiInsights } from "@/components/dashboard/ai-insights";
+import { WelcomeCard } from "@/components/dashboard/welcome-card";
 
 export default async function DashboardPage() {
     const { userId: clerkId } = await auth();
 
+    if (!clerkId) {
+        redirect("/login");
+    }
+
     // Get user from database
     const user = await db.query.users.findFirst({
-        where: eq(users.clerkId, clerkId!),
+        where: eq(users.clerkId, clerkId),
     });
 
+    // If no user yet, show loading (SyncUser component will handle creation)
     if (!user) {
-        // In a real app, you might redirect to a setup page or creating the user via webhook
-        // For now, we'll return null or a basic message
         return (
-            <div className="flex items-center justify-center h-[50vh] flex-col gap-4">
-                <h1 className="text-2xl font-bold">Account Setup Required</h1>
-                <p className="text-neutral-400">Please complete your profile to access the dashboard.</p>
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <p className="text-neutral-400">Loading your dashboard...</p>
             </div>
         );
     }
@@ -36,38 +40,33 @@ export default async function DashboardPage() {
         recentContractsList,
         clientHealthList,
     ] = await Promise.all([
-        // Contract stats
         db
             .select({
                 total: count(),
-                active: count(sql`CASE WHEN status = 'active' THEN 1 END`),
-                pendingReview: count(sql`CASE WHEN status = 'pending_review' THEN 1 END`),
+                active: sql<number>`count(case when status = 'active' then 1 end)`.mapWith(Number),
+                pendingReview: sql<number>`count(case when status = 'pending_review' then 1 end)`.mapWith(Number),
             })
             .from(contracts)
             .where(eq(contracts.userId, user.id)),
 
-        // Client stats
         db
             .select({ total: count() })
             .from(clients)
             .where(eq(clients.userId, user.id)),
 
-        // Portfolio stats
         db
             .select({ total: count() })
             .from(portfolioItems)
             .where(eq(portfolioItems.userId, user.id)),
 
-        // Testimonial stats
         db
             .select({
                 total: count(),
-                approved: count(sql`CASE WHEN is_approved = true THEN 1 END`),
+                approved: sql<number>`count(case when is_approved = true then 1 end)`.mapWith(Number),
             })
             .from(testimonials)
             .where(eq(testimonials.userId, user.id)),
 
-        // Recent contracts
         db.query.contracts.findMany({
             where: eq(contracts.userId, user.id),
             orderBy: [desc(contracts.createdAt)],
@@ -77,7 +76,6 @@ export default async function DashboardPage() {
             },
         }),
 
-        // Client health (lowest health scores)
         db.query.clients.findMany({
             where: eq(clients.userId, user.id),
             orderBy: [clients.healthScore],
@@ -89,44 +87,55 @@ export default async function DashboardPage() {
         {
             name: "Active Contracts",
             value: contractStats[0]?.active || 0,
-            change: "+2 this month",
-            changeType: "positive" as const,
+            change: contractStats[0]?.pendingReview
+                ? `${contractStats[0].pendingReview} pending review`
+                : "No pending",
+            changeType: contractStats[0]?.pendingReview ? "warning" as const : "neutral" as const,
             icon: "shield" as const,
         },
         {
             name: "Total Clients",
             value: clientStats[0]?.total || 0,
-            change: "+3 this month",
-            changeType: "positive" as const,
+            change: "Manage relationships",
+            changeType: "neutral" as const,
             icon: "radar" as const,
         },
         {
             name: "Portfolio Items",
             value: portfolioStats[0]?.total || 0,
-            change: "2 pending",
+            change: "Showcase your work",
             changeType: "neutral" as const,
             icon: "magnet" as const,
         },
         {
             name: "Testimonials",
             value: testimonialStats[0]?.approved || 0,
-            change: `${(testimonialStats[0]?.total || 0) - (testimonialStats[0]?.approved || 0)} pending`,
+            change: testimonialStats[0]?.total
+                ? `${(testimonialStats[0]?.total || 0) - (testimonialStats[0]?.approved || 0)} pending`
+                : "Collect reviews",
             changeType: "neutral" as const,
             icon: "magnet" as const,
         },
     ];
 
+    const isNewUser =
+        (contractStats[0]?.total || 0) === 0 &&
+        (clientStats[0]?.total || 0) <= 1;
+
     return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-8">
             {/* Welcome Header */}
             <div>
-                <h1 className="text-3xl font-display font-medium text-neutral-100">
-                    Welcome back, {user.name?.split(" ")[0] || "Sovereign"}
+                <h1 className="text-2xl font-semibold text-neutral-100">
+                    Welcome back, {user.name?.split(" ")[0] || "there"}
                 </h1>
                 <p className="text-neutral-400 mt-1">
                     Here&apos;s what&apos;s happening with your business today.
                 </p>
             </div>
+
+            {/* New User Welcome */}
+            {isNewUser && <WelcomeCard />}
 
             {/* Stats Grid */}
             <DashboardStats stats={stats} />
@@ -142,13 +151,13 @@ export default async function DashboardPage() {
                 </div>
 
                 {/* Client Health */}
-                <div className="space-y-6">
+                <div>
                     <ClientHealth clients={clientHealthList} />
-
-                    {/* AI Insights - Placed here for better layout */}
-                    <AiInsights userId={user.id} />
                 </div>
             </div>
+
+            {/* AI Insights */}
+            <AiInsights userId={user.id} />
         </div>
     );
 }
