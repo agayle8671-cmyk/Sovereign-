@@ -1,0 +1,2867 @@
+# Sovereign: Phase 1 Implementation (Continued)
+## Part 2: Core Features & Pages
+
+Let's continue building. We'll complete the dashboard components, add the authentication pages, build the marketing landing page, and implement the contract analysis feature (Shield Core MVP).
+
+---
+
+## 10. Finishing Dashboard Components
+
+### `src/components/dashboard/ai-insights.tsx` (completed)
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Sparkles, ChevronRight, AlertTriangle, TrendingUp, Clock, RefreshCw } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+interface AiInsightsProps {
+  userId: string;
+}
+
+// Mock insights - in production, these would come from AI analysis
+const mockInsights = [
+  {
+    id: "1",
+    type: "warning" as const,
+    title: "Contract Risk Detected",
+    description: "Your contract with Acme Corp has a NET-90 payment term, which is 3x longer than your average. Consider negotiating to NET-30.",
+    action: "Review Contract",
+    actionHref: "/dashboard/contracts/123",
+    icon: AlertTriangle,
+    priority: "high",
+  },
+  {
+    id: "2",
+    type: "opportunity" as const,
+    title: "Testimonial Opportunity",
+    description: "Project with TechStart finished 3 days ago. This is a great time to request a testimonial while the experience is fresh.",
+    action: "Request Testimonial",
+    actionHref: "/dashboard/testimonials/request",
+    icon: TrendingUp,
+    priority: "medium",
+  },
+  {
+    id: "3",
+    type: "reminder" as const,
+    title: "Invoice Due Soon",
+    description: "Invoice #INV-2024-012 for $4,500 is due in 5 days. Send a friendly reminder to ensure timely payment.",
+    action: "Send Reminder",
+    actionHref: "/dashboard/invoices/012",
+    icon: Clock,
+    priority: "medium",
+  },
+];
+
+const typeColors = {
+  warning: {
+    bg: "bg-warning-muted",
+    border: "border-warning/20",
+    icon: "text-warning",
+    badge: "warning",
+  },
+  opportunity: {
+    bg: "bg-success-muted",
+    border: "border-success/20",
+    icon: "text-success",
+    badge: "success",
+  },
+  reminder: {
+    bg: "bg-info-muted",
+    border: "border-info/20",
+    icon: "text-info",
+    badge: "info",
+  },
+};
+
+export function AiInsights({ userId }: AiInsightsProps) {
+  const [insights, setInsights] = useState(mockInsights);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+
+  const visibleInsights = insights.filter((i) => !dismissedIds.has(i.id));
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setIsRefreshing(false);
+  };
+
+  const handleDismiss = (id: string) => {
+    setDismissedIds((prev) => new Set([...prev, id]));
+  };
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-neutral-800">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-glow">
+            <Sparkles className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <CardTitle>Sovereign Insights</CardTitle>
+            <p className="text-sm text-neutral-400">
+              AI-powered recommendations for your business
+            </p>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+        >
+          <RefreshCw
+            className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </Button>
+      </CardHeader>
+      <CardContent className="p-0">
+        {visibleInsights.length === 0 ? (
+          <div className="p-8 text-center">
+            <Sparkles className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
+            <p className="text-neutral-400">All caught up! No new insights.</p>
+            <p className="text-sm text-neutral-500 mt-1">
+              Check back later for AI-powered recommendations.
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-neutral-800">
+            <AnimatePresence initial={false}>
+              {visibleInsights.map((insight, index) => {
+                const colors = typeColors[insight.type];
+                return (
+                  <motion.div
+                    key={insight.id}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className="p-4 hover:bg-neutral-900/50 transition-colors">
+                      <div className="flex gap-4">
+                        <div
+                          className={`w-10 h-10 rounded-lg ${colors.bg} ${colors.border} border flex items-center justify-center shrink-0`}
+                        >
+                          <insight.icon className={`w-5 h-5 ${colors.icon}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-sm font-medium text-neutral-100">
+                                  {insight.title}
+                                </h3>
+                                <Badge
+                                  variant={colors.badge as any}
+                                  size="sm"
+                                >
+                                  {insight.priority}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-neutral-400 mt-1">
+                                {insight.description}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => handleDismiss(insight.id)}
+                              className="text-neutral-500 hover:text-neutral-300 text-xs shrink-0"
+                            >
+                              Dismiss
+                            </button>
+                          </div>
+                          <div className="mt-3">
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={insight.actionHref}>
+                                {insight.action}
+                                <ChevronRight className="w-4 h-4 ml-1" />
+                              </a>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### `src/components/ui/dialog.tsx`
+
+```typescript
+"use client";
+
+import * as React from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const Dialog = DialogPrimitive.Root;
+
+const DialogTrigger = DialogPrimitive.Trigger;
+
+const DialogPortal = DialogPrimitive.Portal;
+
+const DialogClose = DialogPrimitive.Close;
+
+const DialogOverlay = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Overlay>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Overlay
+    ref={ref}
+    className={cn(
+      "fixed inset-0 z-50 bg-black/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      className
+    )}
+    {...props}
+  />
+));
+DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
+
+const DialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+    showClose?: boolean;
+  }
+>(({ className, children, showClose = true, ...props }, ref) => (
+  <DialogPortal>
+    <DialogOverlay />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-neutral-800 bg-neutral-900 p-6 shadow-xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-xl",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      {showClose && (
+        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
+      )}
+    </DialogPrimitive.Content>
+  </DialogPortal>
+));
+DialogContent.displayName = DialogPrimitive.Content.displayName;
+
+const DialogHeader = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      "flex flex-col space-y-1.5 text-center sm:text-left",
+      className
+    )}
+    {...props}
+  />
+);
+DialogHeader.displayName = "DialogHeader";
+
+const DialogFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+      className
+    )}
+    {...props}
+  />
+);
+DialogFooter.displayName = "DialogFooter";
+
+const DialogTitle = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Title>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Title
+    ref={ref}
+    className={cn(
+      "text-lg font-semibold leading-none tracking-tight text-neutral-100",
+      className
+    )}
+    {...props}
+  />
+));
+DialogTitle.displayName = DialogPrimitive.Title.displayName;
+
+const DialogDescription = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Description>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Description
+    ref={ref}
+    className={cn("text-sm text-neutral-400", className)}
+    {...props}
+  />
+));
+DialogDescription.displayName = DialogPrimitive.Description.displayName;
+
+export {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogClose,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+};
+```
+
+---
+
+## 11. Authentication Pages
+
+### `src/app/(auth)/layout.tsx`
+
+```typescript
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-h-screen bg-neutral-950 flex">
+      {/* Background */}
+      <div className="fixed inset-0 bg-gradient-mesh opacity-50 pointer-events-none" />
+      <div className="fixed inset-0 pattern-dots opacity-20 pointer-events-none" />
+      
+      {/* Left side - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-500/20 via-neutral-900 to-neutral-950" />
+        <div className="relative z-10 flex flex-col justify-between p-12 w-full">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+            </div>
+            <span className="text-xl font-semibold text-white">Sovereign</span>
+          </div>
+
+          {/* Testimonial */}
+          <div className="max-w-md">
+            <blockquote className="text-2xl font-display italic text-white/90 leading-relaxed">
+              "Sovereign saved me from signing a contract with a hidden IP clause that would have cost me my entire portfolio. Worth every penny."
+            </blockquote>
+            <div className="mt-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-neutral-700" />
+              <div>
+                <p className="font-medium text-white">Sarah Chen</p>
+                <p className="text-sm text-neutral-400">Senior UX Designer, Freelance</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-8">
+            <div>
+              <p className="text-3xl font-bold text-white">10K+</p>
+              <p className="text-sm text-neutral-400">Contracts Analyzed</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-white">$2.4M</p>
+              <p className="text-sm text-neutral-400">Risk Prevented</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-white">94%</p>
+              <p className="text-sm text-neutral-400">Time Saved</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right side - Auth */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          {/* Mobile logo */}
+          <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+            </div>
+            <span className="text-xl font-semibold text-white">Sovereign</span>
+          </div>
+          
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### `src/app/(auth)/login/[[...login]]/page.tsx`
+
+```typescript
+import { SignIn } from "@clerk/nextjs";
+
+export default function LoginPage() {
+  return (
+    <SignIn
+      appearance={{
+        elements: {
+          rootBox: "w-full",
+          card: "bg-transparent shadow-none w-full",
+          headerTitle: "text-2xl font-semibold text-white",
+          headerSubtitle: "text-neutral-400",
+          formButtonPrimary:
+            "bg-brand-500 hover:bg-brand-600 text-white border-0 h-11 text-base font-medium",
+          formFieldInput:
+            "bg-neutral-800 border-neutral-700 text-white h-11 rounded-lg",
+          formFieldLabel: "text-neutral-300 font-medium",
+          footerActionLink: "text-brand-500 hover:text-brand-400 font-medium",
+          identityPreviewText: "text-neutral-300",
+          identityPreviewEditButton: "text-brand-500",
+          formFieldAction: "text-brand-500",
+          dividerLine: "bg-neutral-700",
+          dividerText: "text-neutral-400",
+          socialButtonsBlockButton:
+            "bg-neutral-800 border-neutral-700 text-white hover:bg-neutral-750 h-11",
+          socialButtonsBlockButtonText: "font-medium",
+        },
+      }}
+      path="/login"
+      routing="path"
+      signUpUrl="/signup"
+      forceRedirectUrl="/dashboard"
+    />
+  );
+}
+```
+
+### `src/app/(auth)/signup/[[...signup]]/page.tsx`
+
+```typescript
+import { SignUp } from "@clerk/nextjs";
+
+export default function SignUpPage() {
+  return (
+    <SignUp
+      appearance={{
+        elements: {
+          rootBox: "w-full",
+          card: "bg-transparent shadow-none w-full",
+          headerTitle: "text-2xl font-semibold text-white",
+          headerSubtitle: "text-neutral-400",
+          formButtonPrimary:
+            "bg-brand-500 hover:bg-brand-600 text-white border-0 h-11 text-base font-medium",
+          formFieldInput:
+            "bg-neutral-800 border-neutral-700 text-white h-11 rounded-lg",
+          formFieldLabel: "text-neutral-300 font-medium",
+          footerActionLink: "text-brand-500 hover:text-brand-400 font-medium",
+          identityPreviewText: "text-neutral-300",
+          identityPreviewEditButton: "text-brand-500",
+          formFieldAction: "text-brand-500",
+          dividerLine: "bg-neutral-700",
+          dividerText: "text-neutral-400",
+          socialButtonsBlockButton:
+            "bg-neutral-800 border-neutral-700 text-white hover:bg-neutral-750 h-11",
+          socialButtonsBlockButtonText: "font-medium",
+        },
+      }}
+      path="/signup"
+      routing="path"
+      signInUrl="/login"
+      forceRedirectUrl="/dashboard"
+    />
+  );
+}
+```
+
+---
+
+## 12. Marketing Landing Page
+
+### `src/app/(marketing)/layout.tsx`
+
+```typescript
+import { MarketingHeader } from "@/components/marketing/header";
+import { MarketingFooter } from "@/components/marketing/footer";
+
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-h-screen bg-neutral-950">
+      {/* Background */}
+      <div className="fixed inset-0 bg-gradient-mesh opacity-50 pointer-events-none" />
+      
+      <MarketingHeader />
+      <main>{children}</main>
+      <MarketingFooter />
+    </div>
+  );
+}
+```
+
+### `src/components/marketing/header.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Menu, X, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const navigation = [
+  { name: "Features", href: "/features" },
+  { name: "Pricing", href: "/pricing" },
+  { name: "Customers", href: "/customers" },
+  { name: "Blog", href: "/blog" },
+];
+
+export function MarketingHeader() {
+  const { isSignedIn } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <header
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        scrolled
+          ? "bg-neutral-950/80 backdrop-blur-xl border-b border-neutral-800"
+          : "bg-transparent"
+      )}
+    >
+      <nav className="mx-auto max-w-7xl px-6 lg:px-8" aria-label="Global">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <div className="flex lg:flex-1">
+            <Link href="/" className="flex items-center gap-2 -m-1.5 p-1.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-glow">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-lg font-semibold text-white">Sovereign</span>
+            </Link>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="flex lg:hidden">
+            <button
+              type="button"
+              className="p-2 text-neutral-400 hover:text-white"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+          </div>
+
+          {/* Desktop navigation */}
+          <div className="hidden lg:flex lg:gap-x-8">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="text-sm font-medium text-neutral-300 hover:text-white transition-colors"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop CTA */}
+          <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
+            {isSignedIn ? (
+              <Button asChild>
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link href="/login">Log in</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/signup">Get Started</Link>
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="lg:hidden"
+          >
+            <div className="fixed inset-0 z-50 bg-neutral-950/90 backdrop-blur-xl">
+              <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto px-6 py-6">
+                <div className="flex items-center justify-between">
+                  <Link href="/" className="flex items-center gap-2 -m-1.5 p-1.5">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-lg font-semibold text-white">
+                      Sovereign
+                    </span>
+                  </Link>
+                  <button
+                    type="button"
+                    className="p-2 text-neutral-400 hover:text-white"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+                <div className="mt-6 flow-root">
+                  <div className="space-y-2 py-6">
+                    {navigation.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="block rounded-lg px-3 py-2 text-base font-medium text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+                  <div className="border-t border-neutral-800 py-6 space-y-3">
+                    {isSignedIn ? (
+                      <Button className="w-full" asChild>
+                        <Link href="/dashboard">Dashboard</Link>
+                      </Button>
+                    ) : (
+                      <>
+                        <Button variant="outline" className="w-full" asChild>
+                          <Link href="/login">Log in</Link>
+                        </Button>
+                        <Button className="w-full" asChild>
+                          <Link href="/signup">Get Started</Link>
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  );
+}
+```
+
+### `src/app/(marketing)/page.tsx`
+
+```typescript
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { HeroSection } from "@/components/marketing/hero-section";
+import { ProblemSection } from "@/components/marketing/problem-section";
+import { FeaturesSection } from "@/components/marketing/features-section";
+import { HowItWorksSection } from "@/components/marketing/how-it-works";
+import { TestimonialsSection } from "@/components/marketing/testimonials-section";
+import { PricingSection } from "@/components/marketing/pricing-section";
+import { FaqSection } from "@/components/marketing/faq-section";
+import { CtaSection } from "@/components/marketing/cta-section";
+
+export default function HomePage() {
+  return (
+    <>
+      <HeroSection />
+      <ProblemSection />
+      <FeaturesSection />
+      <HowItWorksSection />
+      <TestimonialsSection />
+      <PricingSection />
+      <FaqSection />
+      <CtaSection />
+    </>
+  );
+}
+```
+
+### `src/components/marketing/hero-section.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import { Play, ArrowRight, Shield, Magnet, Radio, Check } from "lucide-react";
+
+const logos = [
+  { name: "Vercel", src: "/logos/vercel.svg" },
+  { name: "Stripe", src: "/logos/stripe.svg" },
+  { name: "Linear", src: "/logos/linear.svg" },
+  { name: "Notion", src: "/logos/notion.svg" },
+  { name: "Figma", src: "/logos/figma.svg" },
+];
+
+export function HeroSection() {
+  return (
+    <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
+      {/* Gradient orbs */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-500/30 rounded-full blur-3xl opacity-20" />
+      <div className="absolute top-20 right-1/4 w-96 h-96 bg-shield/30 rounded-full blur-3xl opacity-20" />
+
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl text-center">
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Badge variant="primary" className="mb-6">
+              <span className="mr-2">✨</span>
+              Now with AI-powered contract negotiation
+              <ArrowRight className="w-3 h-3 ml-2" />
+            </Badge>
+          </motion.div>
+
+          {/* Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white"
+          >
+            The Operating System for{" "}
+            <span className="text-gradient-brand">the Business of One</span>
+          </motion.h1>
+
+          {/* Subheadline */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mt-6 text-lg sm:text-xl text-neutral-300 max-w-2xl mx-auto"
+          >
+            Sovereign automates 50% of your admin work. Defend contracts.
+            Generate leads. Collect proof. All from one intelligent sidebar that
+            lives where you work.
+          </motion.p>
+
+          {/* CTAs */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <Button size="xl" asChild>
+              <Link href="/signup">
+                Get Started Free
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Link>
+            </Button>
+            <Button size="xl" variant="outline" asChild>
+              <Link href="#demo">
+                <Play className="w-5 h-5 mr-2" />
+                Watch Demo
+              </Link>
+            </Button>
+          </motion.div>
+
+          {/* Social proof */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="mt-10 flex flex-col items-center"
+          >
+            <p className="text-sm text-neutral-400 mb-4">
+              Trusted by 10,000+ independent professionals
+            </p>
+            <div className="flex items-center gap-2">
+              <div className="flex -space-x-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className="w-8 h-8 rounded-full bg-neutral-700 border-2 border-neutral-900"
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-1 ml-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <svg
+                    key={i}
+                    className="w-4 h-4 text-yellow-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+                <span className="text-sm font-medium text-white ml-1">4.9</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Hero Image/Demo */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.5 }}
+          className="mt-16 lg:mt-24"
+        >
+          <div className="relative mx-auto max-w-5xl">
+            {/* Browser frame */}
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 backdrop-blur-xl overflow-hidden shadow-2xl">
+              {/* Browser header */}
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-neutral-800 bg-neutral-900/80">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                </div>
+                <div className="flex-1 flex justify-center">
+                  <div className="px-4 py-1 rounded-md bg-neutral-800 text-xs text-neutral-400">
+                    app.sovereign.com/dashboard
+                  </div>
+                </div>
+              </div>
+              {/* Dashboard preview */}
+              <div className="aspect-[16/9] bg-neutral-950 p-4">
+                <div className="h-full rounded-lg bg-gradient-to-br from-neutral-900 to-neutral-950 border border-neutral-800 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 mb-4">
+                      <Shield className="w-8 h-8 text-white" />
+                    </div>
+                    <p className="text-neutral-400">
+                      Interactive demo coming soon
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Floating cards */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              className="absolute -left-4 top-1/4 hidden lg:block"
+            >
+              <div className="p-4 rounded-xl bg-neutral-900/90 backdrop-blur-xl border border-neutral-800 shadow-xl w-64">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-shield/20 flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-shield" />
+                  </div>
+                  <span className="text-sm font-medium text-white">
+                    Contract Scanned
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-400">
+                  Found 3 risk clauses. Auto-generating counter-proposal...
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 1 }}
+              className="absolute -right-4 top-1/2 hidden lg:block"
+            >
+              <div className="p-4 rounded-xl bg-neutral-900/90 backdrop-blur-xl border border-neutral-800 shadow-xl w-64">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-magnet/20 flex items-center justify-center">
+                    <Magnet className="w-4 h-4 text-magnet" />
+                  </div>
+                  <span className="text-sm font-medium text-white">
+                    New Testimonial
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-400">
+                  Video testimonial collected from TechStart. Added to portfolio.
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+```
+
+### `src/components/marketing/problem-section.tsx`
+
+```typescript
+"use client";
+
+import { motion } from "framer-motion";
+import { AlertTriangle, Clock, DollarSign } from "lucide-react";
+
+const stats = [
+  {
+    value: "30-50%",
+    label: "of productive time lost to admin",
+    icon: Clock,
+    color: "text-warning",
+    bgColor: "bg-warning/10",
+  },
+  {
+    value: "65%",
+    label: "sign contracts with risky clauses",
+    icon: AlertTriangle,
+    color: "text-danger",
+    bgColor: "bg-danger/10",
+  },
+  {
+    value: "35%",
+    label: "of income lost to scope creep",
+    icon: DollarSign,
+    color: "text-shield",
+    bgColor: "bg-shield/10",
+  },
+];
+
+export function ProblemSection() {
+  return (
+    <section className="py-20 lg:py-32 relative">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-sm font-medium text-brand-500 mb-4"
+          >
+            THE PROBLEM
+          </motion.p>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-3xl sm:text-4xl font-bold text-white"
+          >
+            You're running a business with tools designed for employees
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="mt-4 text-lg text-neutral-400"
+          >
+            The average freelancer juggles 7+ disconnected apps and loses
+            thousands of dollars annually to administrative overhead.
+          </motion.p>
+        </div>
+
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1 + 0.3 }}
+              className="relative group"
+            >
+              <div className="p-8 rounded-2xl border border-neutral-800 bg-neutral-900/50 hover:border-neutral-700 transition-colors text-center">
+                <div
+                  className={`inline-flex items-center justify-center w-14 h-14 rounded-xl ${stat.bgColor} mb-6`}
+                >
+                  <stat.icon className={`w-7 h-7 ${stat.color}`} />
+                </div>
+                <p className={`text-4xl font-bold ${stat.color} mb-2`}>
+                  {stat.value}
+                </p>
+                <p className="text-neutral-400">{stat.label}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+### `src/components/marketing/features-section.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import {
+  Shield,
+  Magnet,
+  Radio,
+  Hammer,
+  FileText,
+  Users,
+  TrendingUp,
+  Package,
+  Check,
+} from "lucide-react";
+
+const cores = [
+  {
+    id: "shield",
+    name: "Shield Core",
+    tagline: "Your General Counsel + Project Manager",
+    description:
+      "Defend your business from risky contracts and scope creep with AI-powered legal analysis and real-time monitoring.",
+    icon: Shield,
+    color: "shield",
+    features: [
+      "Contract risk analysis in seconds",
+      "Real-time scope creep detection",
+      "Automated change order generation",
+      "Negotiation email drafting",
+      "Payment term benchmarking",
+    ],
+    stats: { value: "$15K+", label: "Average risk prevented per user" },
+  },
+  {
+    id: "magnet",
+    name: "Magnet Core",
+    tagline: "Your CMO + Sales Director",
+    description:
+      "Automate your sales pipeline and social proof collection with AI-personalized portfolios and frictionless testimonials.",
+    icon: Magnet,
+    color: "magnet",
+    features: [
+      "AI-personalized portfolio for every lead",
+      "Automatic testimonial collection",
+      "Video testimonial capture",
+      "Lead enrichment & scoring",
+      "Dynamic pitch page generation",
+    ],
+    stats: { value: "3x", label: "Increase in conversion rate" },
+  },
+  {
+    id: "radar",
+    name: "Radar Core",
+    tagline: "Your Account Manager",
+    description:
+      "Monitor client relationships and predict issues before they happen with sentiment analysis and health scoring.",
+    icon: Radio,
+    color: "radar",
+    features: [
+      "Client sentiment tracking",
+      "Churn risk prediction",
+      "Real-time negotiation coaching",
+      "Response time analytics",
+      "Relationship health scoring",
+    ],
+    stats: { value: "40%", label: "Reduction in client churn" },
+  },
+  {
+    id: "forge",
+    name: "Forge Core",
+    tagline: "Your R&D Lab",
+    description:
+      "Transform your service byproducts into sellable micro-SaaS products with automated packaging and launch optimization.",
+    icon: Hammer,
+    color: "forge",
+    features: [
+      "Asset pattern detection",
+      "One-click productization",
+      "Automated documentation",
+      "Launch timing optimization",
+      "Revenue diversification",
+    ],
+    stats: { value: "$2K+", label: "Average monthly passive income" },
+  },
+];
+
+const colorMap = {
+  shield: {
+    bg: "bg-shield/10",
+    border: "border-shield/30",
+    text: "text-shield",
+    glow: "shadow-glow-shield",
+    gradient: "from-shield to-shield-dark",
+  },
+  magnet: {
+    bg: "bg-magnet/10",
+    border: "border-magnet/30",
+    text: "text-magnet",
+    glow: "shadow-glow-magnet",
+    gradient: "from-magnet to-magnet-dark",
+  },
+  radar: {
+    bg: "bg-radar/10",
+    border: "border-radar/30",
+    text: "text-radar",
+    glow: "shadow-glow-radar",
+    gradient: "from-radar to-radar-dark",
+  },
+  forge: {
+    bg: "bg-forge/10",
+    border: "border-forge/30",
+    text: "text-forge",
+    glow: "shadow-glow-forge",
+    gradient: "from-forge to-forge-dark",
+  },
+};
+
+export function FeaturesSection() {
+  const [activeCore, setActiveCore] = useState(cores[0]);
+  const colors = colorMap[activeCore.color as keyof typeof colorMap];
+
+  return (
+    <section className="py-20 lg:py-32 relative overflow-hidden">
+      {/* Background glow */}
+      <div
+        className={cn(
+          "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl opacity-10 transition-colors duration-500",
+          colors.bg
+        )}
+      />
+
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center mb-16">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-sm font-medium text-brand-500 mb-4"
+          >
+            THE FOUR CORES
+          </motion.p>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-3xl sm:text-4xl font-bold text-white"
+          >
+            One platform. Four intelligent engines.
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="mt-4 text-lg text-neutral-400"
+          >
+            Each core handles a critical aspect of your business, working
+            together as a unified system.
+          </motion.p>
+        </div>
+
+        {/* Core tabs */}
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          {cores.map((core) => {
+            const coreColors = colorMap[core.color as keyof typeof colorMap];
+            const isActive = activeCore.id === core.id;
+            return (
+              <button
+                key={core.id}
+                onClick={() => setActiveCore(core)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                  isActive
+                    ? `${coreColors.bg} ${coreColors.text} ${coreColors.border} border`
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800"
+                )}
+              >
+                <core.icon className="w-4 h-4" />
+                {core.name}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Active core content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeCore.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="grid lg:grid-cols-2 gap-12 items-center"
+          >
+            {/* Left - Info */}
+            <div>
+              <div
+                className={cn(
+                  "inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6",
+                  `bg-gradient-to-br ${colors.gradient}`
+                )}
+              >
+                <activeCore.icon className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">
+                {activeCore.name}
+              </h3>
+              <p className={cn("text-lg font-medium mb-4", colors.text)}>
+                {activeCore.tagline}
+              </p>
+              <p className="text-neutral-400 mb-8">{activeCore.description}</p>
+
+              <ul className="space-y-3 mb-8">
+                {activeCore.features.map((feature) => (
+                  <li key={feature} className="flex items-center gap-3">
+                    <div
+                      className={cn(
+                        "w-5 h-5 rounded-full flex items-center justify-center",
+                        colors.bg
+                      )}
+                    >
+                      <Check className={cn("w-3 h-3", colors.text)} />
+                    </div>
+                    <span className="text-neutral-300">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div
+                className={cn(
+                  "inline-flex items-center gap-4 px-6 py-4 rounded-xl border",
+                  colors.bg,
+                  colors.border
+                )}
+              >
+                <span className={cn("text-3xl font-bold", colors.text)}>
+                  {activeCore.stats.value}
+                </span>
+                <span className="text-neutral-400">
+                  {activeCore.stats.label}
+                </span>
+              </div>
+            </div>
+
+            {/* Right - Visual */}
+            <div className="relative">
+              <div
+                className={cn(
+                  "aspect-square rounded-2xl border backdrop-blur-xl p-8",
+                  colors.border,
+                  "bg-neutral-900/50"
+                )}
+              >
+                {/* Placeholder for feature illustration */}
+                <div className="h-full rounded-xl bg-neutral-800/50 flex items-center justify-center">
+                  <activeCore.icon
+                    className={cn("w-24 h-24 opacity-20", colors.text)}
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </section>
+  );
+}
+```
+
+### `src/components/marketing/pricing-section.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { Check, Sparkles } from "lucide-react";
+
+const tiers = [
+  {
+    name: "Free",
+    id: "free",
+    price: { monthly: 0, annual: 0 },
+    description: "Perfect for getting started with contract analysis.",
+    features: [
+      "5 contract scans per month",
+      "Basic risk detection",
+      "Portfolio builder (3 items)",
+      "Community support",
+    ],
+    cta: "Start Free",
+    highlighted: false,
+  },
+  {
+    name: "Pro",
+    id: "pro",
+    price: { monthly: 49, annual: 39 },
+    description: "Everything you need to run your freelance business.",
+    features: [
+      "Unlimited contract scans",
+      "Real-time scope defense",
+      "Automated testimonial collection",
+      "Client sentiment tracking",
+      "AI negotiation drafts",
+      "Dynamic portfolio pages",
+      "Priority support",
+    ],
+    cta: "Start 14-day trial",
+    highlighted: true,
+    badge: "Most Popular",
+  },
+  {
+    name: "Business",
+    id: "business",
+    price: { monthly: 199, annual: 159 },
+    description: "For agencies and teams of sovereign professionals.",
+    features: [
+      "Everything in Pro",
+      "Real-time negotiation coach",
+      "Forge Core (productization)",
+      "Multi-user seats (up to 5)",
+      "Team analytics dashboard",
+      "Custom integrations",
+      "Dedicated account manager",
+      "SLA guarantee",
+    ],
+    cta: "Contact Sales",
+    highlighted: false,
+  },
+];
+
+export function PricingSection() {
+  const [annual, setAnnual] = useState(true);
+
+  return (
+    <section id="pricing" className="py-20 lg:py-32 relative">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center mb-16">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-sm font-medium text-brand-500 mb-4"
+          >
+            PRICING
+          </motion.p>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-3xl sm:text-4xl font-bold text-white"
+          >
+            Simple, transparent pricing
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="mt-4 text-lg text-neutral-400"
+          >
+            Start free, upgrade when you need more power.
+          </motion.p>
+
+          {/* Billing toggle */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+            className="mt-8 flex items-center justify-center gap-4"
+          >
+            <span
+              className={cn(
+                "text-sm",
+                !annual ? "text-white" : "text-neutral-400"
+              )}
+            >
+              Monthly
+            </span>
+            <button
+              onClick={() => setAnnual(!annual)}
+              className={cn(
+                "relative w-14 h-8 rounded-full transition-colors",
+                annual ? "bg-brand-500" : "bg-neutral-700"
+              )}
+            >
+              <div
+                className={cn(
+                  "absolute top-1 w-6 h-6 rounded-full bg-white transition-transform",
+                  annual ? "left-7" : "left-1"
+                )}
+              />
+            </button>
+            <span
+              className={cn(
+                "text-sm",
+                annual ? "text-white" : "text-neutral-400"
+              )}
+            >
+              Annual
+              <Badge variant="success" size="sm" className="ml-2">
+                Save 20%
+              </Badge>
+            </span>
+          </motion.div>
+        </div>
+
+        {/* Pricing cards */}
+        <div className="grid md:grid-cols-3 gap-8">
+          {tiers.map((tier, index) => (
+            <motion.div
+              key={tier.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1 + 0.4 }}
+              className={cn(
+                "relative rounded-2xl border p-8",
+                tier.highlighted
+                  ? "border-brand-500/50 bg-brand-500/5"
+                  : "border-neutral-800 bg-neutral-900/50"
+              )}
+            >
+              {tier.badge && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <Badge variant="primary">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    {tier.badge}
+                  </Badge>
+                </div>
+              )}
+
+              <div className="text-center mb-8">
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  {tier.name}
+                </h3>
+                <p className="text-sm text-neutral-400 mb-4">
+                  {tier.description}
+                </p>
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-4xl font-bold text-white">
+                    ${annual ? tier.price.annual : tier.price.monthly}
+                  </span>
+                  {tier.price.monthly > 0 && (
+                    <span className="text-neutral-400">/month</span>
+                  )}
+                </div>
+                {annual && tier.price.monthly > 0 && (
+                  <p className="text-sm text-neutral-500 mt-1">
+                    Billed annually (${tier.price.annual * 12}/year)
+                  </p>
+                )}
+              </div>
+
+              <ul className="space-y-3 mb-8">
+                {tier.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm text-neutral-300">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                className="w-full"
+                variant={tier.highlighted ? "default" : "outline"}
+                asChild
+              >
+                <Link href={tier.id === "business" ? "/contact" : "/signup"}>
+                  {tier.cta}
+                </Link>
+              </Button>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+### `src/components/marketing/footer.tsx`
+
+```typescript
+import Link from "next/link";
+import { Sparkles } from "lucide-react";
+
+const navigation = {
+  product: [
+    { name: "Features", href: "/features" },
+    { name: "Pricing", href: "/pricing" },
+    { name: "Changelog", href: "/changelog" },
+    { name: "Roadmap", href: "/roadmap" },
+  ],
+  resources: [
+    { name: "Documentation", href: "/docs" },
+    { name: "Blog", href: "/blog" },
+    { name: "Guides", href: "/guides" },
+    { name: "API Reference", href: "/api" },
+  ],
+  company: [
+    { name: "About", href: "/about" },
+    { name: "Customers", href: "/customers" },
+    { name: "Careers", href: "/careers" },
+    { name: "Contact", href: "/contact" },
+  ],
+  legal: [
+    { name: "Privacy", href: "/privacy" },
+    { name: "Terms", href: "/terms" },
+    { name: "Security", href: "/security" },
+  ],
+  social: [
+    { name: "Twitter", href: "https://twitter.com/sovereign" },
+    { name: "LinkedIn", href: "https://linkedin.com/company/sovereign" },
+    { name: "GitHub", href: "https://github.com/sovereign" },
+  ],
+};
+
+export function MarketingFooter() {
+  return (
+    <footer className="border-t border-neutral-800 bg-neutral-950">
+      <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-16">
+        <div className="xl:grid xl:grid-cols-3 xl:gap-8">
+          {/* Logo and description */}
+          <div className="space-y-4">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-lg font-semibold text-white">Sovereign</span>
+            </Link>
+            <p className="text-sm text-neutral-400 max-w-xs">
+              The Autonomous Commercial Operating System for independent
+              professionals. Defend, attract, grow.
+            </p>
+            <div className="flex gap-4">
+              {navigation.social.map((item) => (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="text-neutral-400 hover:text-white transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="sr-only">{item.name}</span>
+                  <span className="text-sm">{item.name}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Links */}
+          <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
+            <div className="md:grid md:grid-cols-2 md:gap-8">
+              <div>
+                <h3 className="text-sm font-semibold text-white">Product</h3>
+                <ul className="mt-4 space-y-3">
+                  {navigation.product.map((item) => (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className="text-sm text-neutral-400 hover:text-white transition-colors"
+                      >
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mt-10 md:mt-0">
+                <h3 className="text-sm font-semibold text-white">Resources</h3>
+                <ul className="mt-4 space-y-3">
+                  {navigation.resources.map((item) => (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className="text-sm text-neutral-400 hover:text-white transition-colors"
+                      >
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className="md:grid md:grid-cols-2 md:gap-8">
+              <div>
+                <h3 className="text-sm font-semibold text-white">Company</h3>
+                <ul className="mt-4 space-y-3">
+                  {navigation.company.map((item) => (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className="text-sm text-neutral-400 hover:text-white transition-colors"
+                      >
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mt-10 md:mt-0">
+                <h3 className="text-sm font-semibold text-white">Legal</h3>
+                <ul className="mt-4 space-y-3">
+                  {navigation.legal.map((item) => (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className="text-sm text-neutral-400 hover:text-white transition-colors"
+                      >
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-12 border-t border-neutral-800 pt-8">
+          <p className="text-xs text-neutral-500">
+            &copy; {new Date().getFullYear()} Sovereign. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+```
+
+---
+
+## 13. Contract Analysis Feature (Shield Core MVP)
+
+### `src/app/(dashboard)/dashboard/contracts/page.tsx`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
+import { users, contracts } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ContractsList } from "@/components/contracts/contracts-list";
+import { Plus, Upload } from "lucide-react";
+
+export default async function ContractsPage() {
+  const { userId: clerkId } = await auth();
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId!),
+  });
+
+  if (!user) return null;
+
+  const contractsList = await db.query.contracts.findMany({
+    where: eq(contracts.userId, user.id),
+    orderBy: [desc(contracts.createdAt)],
+    with: {
+      client: true,
+    },
+  });
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-neutral-100">Contracts</h1>
+          <p className="text-neutral-400 mt-1">
+            Manage and analyze your contracts with AI-powered risk detection.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/contracts/new">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Contract
+            </Link>
+          </Button>
+          <Button variant="shield" asChild>
+            <Link href="/dashboard/contracts/analyze">
+              <Upload className="w-4 h-4 mr-2" />
+              Analyze Contract
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Contracts List */}
+      <ContractsList contracts={contractsList} />
+    </div>
+  );
+}
+```
+
+### `src/components/contracts/contracts-list.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/ui/avatar";
+import {
+  formatRelativeTime,
+  formatCurrency,
+  getRiskColor,
+  getRiskBgColor,
+} from "@/lib/utils";
+import {
+  Search,
+  Filter,
+  FileText,
+  AlertTriangle,
+  ChevronRight,
+  MoreHorizontal,
+} from "lucide-react";
+
+interface Contract {
+  id: string;
+  title: string;
+  status: string;
+  riskScore: number | null;
+  totalValue: string | null;
+  currency: string | null;
+  createdAt: Date;
+  client: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  } | null;
+}
+
+interface ContractsListProps {
+  contracts: Contract[];
+}
+
+const statusConfig: Record<
+  string,
+  { label: string; variant: string; color: string }
+> = {
+  draft: { label: "Draft", variant: "secondary", color: "text-neutral-400" },
+  pending_review: {
+    label: "Pending Review",
+    variant: "warning",
+    color: "text-warning",
+  },
+  in_negotiation: {
+    label: "In Negotiation",
+    variant: "info",
+    color: "text-info",
+  },
+  active: { label: "Active", variant: "success", color: "text-success" },
+  completed: {
+    label: "Completed",
+    variant: "secondary",
+    color: "text-neutral-400",
+  },
+  cancelled: { label: "Cancelled", variant: "danger", color: "text-danger" },
+};
+
+export function ContractsList({ contracts }: ContractsListProps) {
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+
+  const filteredContracts = contracts.filter((contract) => {
+    const matchesSearch =
+      contract.title.toLowerCase().includes(search.toLowerCase()) ||
+      contract.client?.name.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = !statusFilter || contract.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  if (contracts.length === 0) {
+    return (
+      <Card className="p-12 text-center">
+        <FileText className="w-12 h-12 text-neutral-600 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-neutral-100 mb-2">
+          No contracts yet
+        </h3>
+        <p className="text-neutral-400 mb-6 max-w-sm mx-auto">
+          Upload your first contract to get AI-powered risk analysis and
+          protection.
+        </p>
+        <Button variant="shield" asChild>
+          <Link href="/dashboard/contracts/analyze">
+            Upload & Analyze Contract
+          </Link>
+        </Button>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <Input
+            placeholder="Search contracts..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            icon={<Search className="w-4 h-4" />}
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant={statusFilter === null ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setStatusFilter(null)}
+          >
+            All
+          </Button>
+          <Button
+            variant={statusFilter === "pending_review" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setStatusFilter("pending_review")}
+          >
+            Pending Review
+          </Button>
+          <Button
+            variant={statusFilter === "active" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setStatusFilter("active")}
+          >
+            Active
+          </Button>
+        </div>
+      </div>
+
+      {/* List */}
+      <Card className="divide-y divide-neutral-800">
+        {filteredContracts.map((contract) => {
+          const status = statusConfig[contract.status] || statusConfig.draft;
+          return (
+            <Link
+              key={contract.id}
+              href={`/dashboard/contracts/${contract.id}`}
+              className="block"
+            >
+              <div className="flex items-center gap-4 p-4 hover:bg-neutral-800/50 transition-colors">
+                {/* Client Avatar */}
+                {contract.client ? (
+                  <UserAvatar
+                    user={{
+                      name: contract.client.name,
+                      avatarUrl: contract.client.avatarUrl,
+                    }}
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-neutral-400" />
+                  </div>
+                )}
+
+                {/* Contract Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium text-neutral-100 truncate">
+                      {contract.title}
+                    </h3>
+                    {contract.riskScore !== null && contract.riskScore < 60 && (
+                      <AlertTriangle className="w-4 h-4 text-warning shrink-0" />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-1 text-sm text-neutral-400">
+                    <span>{contract.client?.name || "No client"}</span>
+                    <span>•</span>
+                    <span>{formatRelativeTime(contract.createdAt)}</span>
+                  </div>
+                </div>
+
+                {/* Value */}
+                {contract.totalValue && (
+                  <div className="hidden sm:block text-right">
+                    <p className="font-medium text-neutral-100">
+                      {formatCurrency(
+                        parseFloat(contract.totalValue),
+                        contract.currency || "USD"
+                      )}
+                    </p>
+                    <p className="text-xs text-neutral-500">Contract Value</p>
+                  </div>
+                )}
+
+                {/* Risk Score */}
+                {contract.riskScore !== null && (
+                  <div className="hidden md:flex items-center gap-2">
+                    <div
+                      className={`px-3 py-1.5 rounded-lg ${getRiskBgColor(contract.riskScore)}`}
+                    >
+                      <span
+                        className={`text-sm font-semibold ${getRiskColor(contract.riskScore)}`}
+                      >
+                        {contract.riskScore}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Status */}
+                <Badge variant={status.variant as any} className="hidden sm:flex">
+                  {status.label}
+                </Badge>
+
+                {/* Arrow */}
+                <ChevronRight className="w-5 h-5 text-neutral-600" />
+              </div>
+            </Link>
+          );
+        })}
+      </Card>
+
+      {filteredContracts.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-neutral-400">
+            No contracts match your search criteria.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### `src/app/(dashboard)/dashboard/contracts/analyze/page.tsx`
+
+```typescript
+"use client";
+
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useDropzone } from "react-dropzone";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
+import {
+  Upload,
+  FileText,
+  Shield,
+  AlertTriangle,
+  CheckCircle,
+  Loader2,
+  X,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+
+type AnalysisStep =
+  | "upload"
+  | "processing"
+  | "analyzing"
+  | "results";
+
+export default function ContractAnalyzePage() {
+  const router = useRouter();
+  const [step, setStep] = useState<AnalysisStep>("upload");
+  const [file, setFile] = useState<File | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [analysis, setAnalysis] = useState<any>(null);
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (file) {
+      setFile(file);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "application/pdf": [".pdf"],
+      "application/msword": [".doc"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        [".docx"],
+    },
+    maxFiles: 1,
+    maxSize: 10 * 1024 * 1024, // 10MB
+  });
+
+  const handleAnalyze = async () => {
+    if (!file) return;
+
+    setStep("processing");
+    setProgress(0);
+
+    // Simulate upload progress
+    const uploadInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 30) {
+          clearInterval(uploadInterval);
+          return 30;
+        }
+        return prev + 5;
+      });
+    }, 200);
+
+    try {
+      // Create form data
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Upload and analyze
+      const response = await fetch("/api/contracts/analyze", {
+        method: "POST",
+        body: formData,
+      });
+
+      clearInterval(uploadInterval);
+      setStep("analyzing");
+      setProgress(50);
+
+      // Simulate analysis progress
+      const analysisInterval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(analysisInterval);
+            return 100;
+          }
+          return prev + 10;
+        });
+      }, 300);
+
+      if (!response.ok) {
+        throw new Error("Analysis failed");
+      }
+
+      const result = await response.json();
+
+      clearInterval(analysisInterval);
+      setProgress(100);
+      setAnalysis(result);
+      setStep("results");
+    } catch (error) {
+      toast.error("Failed to analyze contract. Please try again.");
+      setStep("upload");
+      setProgress(0);
+    }
+  };
+
+  const removeFile = () => {
+    setFile(null);
+    setStep("upload");
+    setProgress(0);
+    setAnalysis(null);
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-8">
+      {/* Header */}
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-shield to-shield-dark mb-4">
+          <Shield className="w-8 h-8 text-white" />
+        </div>
+        <h1 className="text-2xl font-semibold text-neutral-100">
+          Contract Analysis
+        </h1>
+        <p className="text-neutral-400 mt-2 max-w-md mx-auto">
+          Upload your contract and let Sovereign&apos;s AI identify risks,
+          unfavorable terms, and suggest improvements.
+        </p>
+      </div>
+
+      {/* Upload Area */}
+      <AnimatePresence mode="wait">
+        {step === "upload" && (
+          <motion.div
+            key="upload"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <Card
+              {...getRootProps()}
+              className={cn(
+                "p-12 border-2 border-dashed cursor-pointer transition-all",
+                isDragActive
+                  ? "border-shield bg-shield/5"
+                  : "border-neutral-700 hover:border-neutral-600"
+              )}
+            >
+              <input {...getInputProps()} />
+              <div className="text-center">
+                {file ? (
+                  <div className="flex items-center justify-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-shield/10 flex items-center justify-center">
+                      <FileText className="w-6 h-6 text-shield" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-neutral-100">{file.name}</p>
+                      <p className="text-sm text-neutral-400">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFile();
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="w-12 h-12 text-neutral-500 mx-auto mb-4" />
+                    <p className="text-neutral-300 mb-2">
+                      {isDragActive
+                        ? "Drop your contract here..."
+                        : "Drag & drop your contract here"}
+                    </p>
+                    <p className="text-sm text-neutral-500">
+                      or click to browse • PDF, DOC, DOCX up to 10MB
+                    </p>
+                  </>
+                )}
+              </div>
+            </Card>
+
+            {file && (
+              <div className="mt-6 flex justify-center">
+                <Button
+                  variant="shield"
+                  size="lg"
+                  onClick={handleAnalyze}
+                  className="min-w-[200px]"
+                >
+                  <Shield className="w-5 h-5 mr-2" />
+                  Analyze Contract
+                </Button>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {(step === "processing" || step === "analyzing") && (
+          <motion.div
+            key="processing"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <Card className="p-12">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-shield/10 mb-6">
+                  <Loader2 className="w-8 h-8 text-shield animate-spin" />
+                </div>
+                <h3 className="text-lg font-medium text-neutral-100 mb-2">
+                  {step === "processing"
+                    ? "Processing document..."
+                    : "Analyzing contract..."}
+                </h3>
+                <p className="text-neutral-400 mb-6 max-w-md mx-auto">
+                  {step === "processing"
+                    ? "Extracting text and structure from your document."
+                    : "AI is reviewing terms, identifying risks, and benchmarking against industry standards."}
+                </p>
+                <div className="max-w-xs mx-auto">
+                  <Progress value={progress} className="h-2" />
+                  <p className="text-sm text-neutral-500 mt-2">{progress}%</p>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
+        {step === "results" && analysis && (
+          <motion.div
+            key="results"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-6"
+          >
+            {/* Risk Score Card */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-neutral-100">
+                    Overall Risk Score
+                  </h3>
+                  <p className="text-neutral-400 text-sm mt-1">
+                    Based on {analysis.risks?.length || 0} factors analyzed
+                  </p>
+                </div>
+                <div
+                  className={cn(
+                    "w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold",
+                    analysis.overallRiskScore >= 80
+                      ? "bg-success-muted text-success"
+                      : analysis.overallRiskScore >= 60
+                        ? "bg-warning-muted text-warning"
+                        : "bg-danger-muted text-danger"
+                  )}
+                >
+                  {analysis.overallRiskScore}
+                </div>
+              </div>
+            </Card>
+
+            {/* Risk Flags */}
+            {analysis.risks && analysis.risks.length > 0 && (
+              <Card className="p-6">
+                <h3 className="text-lg font-medium text-neutral-100 mb-4">
+                  Risk Flags
+                </h3>
+                <div className="space-y-4">
+                  {analysis.risks.map((risk: any, index: number) => (
+                    <div
+                      key={index}
+                      className={cn(
+                        "p-4 rounded-lg border",
+                        risk.severity === "CRITICAL" &&
+                          "bg-danger-muted border-danger/20",
+                        risk.severity === "HIGH" &&
+                          "bg-danger-muted border-danger/20",
+                        risk.severity === "MEDIUM" &&
+                          "bg-warning-muted border-warning/20",
+                        risk.severity === "LOW" &&
+                          "bg-info-muted border-info/20"
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle
+                          className={cn(
+                            "w-5 h-5 mt-0.5 shrink-0",
+                            risk.severity === "CRITICAL" && "text-danger",
+                            risk.severity === "HIGH" && "text-danger",
+                            risk.severity === "MEDIUM" && "text-warning",
+                            risk.severity === "LOW" && "text-info"
+                          )}
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-neutral-100">
+                              {risk.category.replace("_", " ")}
+                            </span>
+                            <span
+                              className={cn(
+                                "text-xs px-2 py-0.5 rounded-full font-medium",
+                                risk.severity === "CRITICAL" &&
+                                  "bg-danger/20 text-danger",
+                                risk.severity === "HIGH" &&
+                                  "bg-danger/20 text-danger",
+                                risk.severity === "MEDIUM" &&
+                                  "bg-warning/20 text-warning",
+                                risk.severity === "LOW" &&
+                                  "bg-info/20 text-info"
+                              )}
+                            >
+                              {risk.severity}
+                            </span>
+                          </div>
+                          <p className="text-sm text-neutral-300 mb-2">
+                            {risk.explanation}
+                          </p>
+                          <p className="text-sm text-neutral-400">
+                            <strong>Recommendation:</strong> {risk.recommendation}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-4">
+              <Button variant="outline" onClick={removeFile} className="flex-1">
+                Upload Different Contract
+              </Button>
+              <Button
+                variant="shield"
+                onClick={() =>
+                  router.push(`/dashboard/contracts/${analysis.contractId}`)
+                }
+                className="flex-1"
+              >
+                View Full Analysis
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+```
+
+### `src/components/ui/progress.tsx`
+
+```typescript
+"use client";
+
+import * as React from "react";
+import * as ProgressPrimitive from "@radix-ui/react-progress";
+import { cn } from "@/lib/utils";
+
+const Progress = React.forwardRef<
+  React.ElementRef<typeof ProgressPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
+>(({ className, value, ...props }, ref) => (
+  <ProgressPrimitive.Root
+    ref={ref}
+    className={cn(
+      "relative h-2 w-full overflow-hidden rounded-full bg-neutral-800",
+      className
+    )}
+    {...props}
+  >
+    <ProgressPrimitive.Indicator
+      className="h-full w-full flex-1 bg-gradient-to-r from-shield to-shield-light transition-all duration-300"
+      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+    />
+  </ProgressPrimitive.Root>
+));
+Progress.displayName = ProgressPrimitive.Root.displayName;
+
+export { Progress };
+```
+
+---
+
+## 14. API Routes
+
+### `src/app/api/contracts/analyze/route.ts`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { users, contracts, scopeItems } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import { createOpenAI } from "@ai-sdk/openai";
+import { generateObject } from "ai";
+import { z } from "zod";
+
+// Contract analysis schema
+const ContractAnalysisSchema = z.object({
+  summary: z.string().describe("Brief summary of the contract"),
+
+  parties: z.object({
+    client: z.object({
+      name: z.string(),
+      address: z.string().optional(),
+    }),
+    contractor: z.object({
+      name: z.string(),
+      address: z.string().optional(),
+    }),
+  }),
+
+  financials: z.object({
+    totalValue: z.number().nullable(),
+    currency: z.string().default("USD"),
+    paymentTerms: z.enum([
+      "NET_15",
+      "NET_30",
+      "NET_45",
+      "NET_60",
+      "NET_90",
+      "ON_COMPLETION",
+      "MILESTONE",
+      "OTHER",
+    ]),
+    paymentTermsRaw: z.string(),
+    depositRequired: z.boolean(),
+    depositAmount: z.number().nullable(),
+  }),
+
+  scope: z.array(
+    z.object({
+      description: z.string(),
+      category: z.string(),
+      deliverableType: z.string(),
+      estimatedHours: z.number().nullable(),
+      revisionLimits: z.number().nullable(),
+    })
+  ),
+
+  dates: z.object({
+    effectiveDate: z.string().nullable(),
+    endDate: z.string().nullable(),
+    milestones: z.array(
+      z.object({
+        name: z.string(),
+        date: z.string(),
+      })
+    ),
+  }),
+
+  risks: z.array(
+    z.object({
+      clause: z.string().describe("The exact clause text"),
+      category: z.enum([
+        "IP_OWNERSHIP",
+        "PAYMENT_TERMS",
+        "SCOPE_AMBIGUITY",
+        "LIABILITY",
+        "TERMINATION",
+        "NON_COMPETE",
+        "INDEMNIFICATION",
+        "CONFIDENTIALITY",
+        "OTHER",
+      ]),
+      severity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
+      explanation: z.string(),
+      recommendation: z.string(),
+      suggestedRevision: z.string().optional(),
+    })
+  ),
+
+  redFlags: z.array(z.string()),
+
+  overallRiskScore: z.number().min(0).max(100),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Get user
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkId),
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Get file from form data
+    const formData = await req.formData();
+    const file = formData.get("file") as File | null;
+
+    if (!file) {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+
+    // Read file content
+    const buffer = Buffer.from(await file.arrayBuffer());
+    
+    // For now, we'll simulate PDF extraction
+    // In production, use pdf-parse or similar library
+    const extractedText = await extractTextFromFile(buffer, file.type);
+
+    // Analyze with AI
+    const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+
+    const { object: analysis } = await generateObject({
+      model: openai("gpt-4o"),
+      schema: ContractAnalysisSchema,
+      system: `You are a contract analysis AI specialized in freelancer and independent contractor agreements.
+
+Your role is to:
+1. Extract all key terms and conditions
+2. Identify risks and unfavorable clauses
+3. Compare against industry standards
+4. Suggest specific revisions for problematic clauses
+
+Industry Benchmarks:
+- Standard payment terms: NET-30
+- IP transfer should only occur AFTER payment
+- Revision limits: 2-3 rounds is standard
+- Non-compete should be limited to 6-12 months max
+- Indemnification should be mutual and capped
+
+Be thorough but concise. Flag anything that deviates significantly from freelancer-friendly terms.
+Calculate a risk score from 0-100 where 100 is safest.`,
+      prompt: `Analyze this contract:\n\n${extractedText}`,
+    });
+
+    // Calculate weighted risk score
+    const riskScore = calculateWeightedRiskScore(analysis.risks);
+    analysis.overallRiskScore = riskScore;
+
+    // Store in database
+    const [contract] = await db
+      .insert(contracts)
+      .values({
+        userId: user.id,
+        title: `Contract - ${analysis.parties.client.name}`,
+        status: "pending_review",
+        originalFileName: file.name,
+        parsedContent: extractedText,
+        extractedTerms: analysis,
+        riskScore: analysis.overallRiskScore,
+        riskFlags: analysis.risks.filter(
+          (r) => r.severity === "HIGH" || r.severity === "CRITICAL"
+        ),
+        paymentTerms: analysis.financials.paymentTerms,
+        totalValue: analysis.financials.totalValue?.toString(),
+        currency: analysis.financials.currency,
+        startDate: analysis.dates.effectiveDate,
+        endDate: analysis.dates.endDate,
+      })
+      .returning();
+
+    // Store scope items
+    if (analysis.scope.length > 0) {
+      await db.insert(scopeItems).values(
+        analysis.scope.map((item) => ({
+          contractId: contract.id,
+          description: item.description,
+          category: item.category,
+          deliverableType: item.deliverableType,
+          estimatedHours: item.estimatedHours?.toString(),
+          revisionLimit: item.revisionLimits,
+          status: "pending" as const,
+        }))
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      contractId: contract.id,
+      ...analysis,
+    });
+  } catch (error) {
+    console.error("Contract analysis error:", error);
+    return NextResponse.json(
+      { error: "Failed to analyze contract" },
+      { status: 500 }
+    );
+  }
+}
+
+// Helper function to extract text from file
+async function extractTextFromFile(
+  buffer: Buffer,
+  mimeType: string
+): Promise<string> {
+  // In production, use proper PDF/DOC parsing libraries
+  // For now, return a placeholder for testing
+  if (mimeType === "application/pdf") {
+    // Use pdf-parse or similar
+    // const pdfParse = require('pdf-parse');
+    // const data = await pdfParse(buffer);
+    // return data.text;
+  }
+
+  // Placeholder for demo
+  return `
+    SERVICE AGREEMENT
+
+    This Agreement is entered into between:
+    Client: Acme Technologies Inc.
+    Contractor: [Your Name]
+
+    SCOPE OF WORK:
+    - Design and development of web application
+    - 5 unique page designs
+    - Responsive implementation
+    - 2 rounds of revisions included
+
+    PAYMENT TERMS:
+    Total Project Fee: $15,000
+    Payment Terms: Net-60 (Payment due 60 days after invoice)
+    Deposit: 25% ($3,750) due upon signing
+
+    INTELLECTUAL PROPERTY:
+    All work product shall become the exclusive property of Client upon creation.
+    Contractor assigns all rights, including copyright, to Client.
+
+    CONFIDENTIALITY:
+    Contractor agrees to maintain confidentiality for a period of 5 years.
+
+    NON-COMPETE:
+    Contractor agrees not to work with competing businesses for 2 years.
+
+    LIABILITY:
+    Contractor shall indemnify and hold harmless Client against any and all claims.
+
+    TERMINATION:
+    Either party may terminate with 7 days written notice.
+    Upon termination, all work product transfers to Client regardless of payment status.
+  `;
+}
+
+function calculateWeightedRiskScore(
+  risks: z.infer<typeof ContractAnalysisSchema>["risks"]
+): number {
+  const severityWeights = {
+    CRITICAL: 30,
+    HIGH: 20,
+    MEDIUM: 10,
+    LOW: 5,
+  };
+
+  const categoryWeights: Record<string, number> = {
+    IP_OWNERSHIP: 1.5,
+    PAYMENT_TERMS: 1.3,
+    LIABILITY: 1.2,
+    INDEMNIFICATION: 1.2,
+    TERMINATION: 1.0,
+    SCOPE_AMBIGUITY: 1.0,
+    NON_COMPETE: 0.8,
+    CONFIDENTIALITY: 0.6,
+    OTHER: 0.5,
+  };
+
+  let score = 100;
+
+  for (const risk of risks) {
+    const baseDeduction = severityWeights[risk.severity];
+    const categoryMultiplier = categoryWeights[risk.category] || 1;
+    score -= baseDeduction * categoryMultiplier;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+```
+
+### `src/app/api/webhooks/clerk/route.ts`
+
+```typescript
+import { Webhook } from "svix";
+import { headers } from "next/headers";
+import { WebhookEvent } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
+import { users, vaults } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+
+export async function POST(req: Request) {
+  const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
+
+  if (!WEBHOOK_SECRET) {
+    throw new Error("Please add CLERK_WEBHOOK_SECRET to .env");
+  }
+
+  // Get the headers
+  const headerPayload = await headers();
+  const svix_id = headerPayload.get("svix-id");
+  const svix_timestamp = headerPayload.get("svix-timestamp");
+  const svix_signature = headerPayload.get("svix-signature");
+
+  if (!svix_id || !svix_timestamp || !svix_signature) {
+    return new Response("Error: Missing svix headers", { status: 400 });
+  }
+
+  // Get the body
+  const payload = await req.json();
+  const body = JSON.stringify(payload);
+
+  // Verify the webhook
+  const wh = new Webhook(WEBHOOK_SECRET);
+  let evt: WebhookEvent;
+
+  try {
+    evt = wh.verify(body, {
+      "svix-id": svix_id,
+      "svix-timestamp": svix_timestamp,
+      "svix-signature": svix_signature,
+    }) as WebhookEvent;
+  } catch (err) {
+    console.error("Error verifying webhook:", err);
+    return new Response("Error: Verification failed", { status: 400 });
+  }
+
+  // Handle the event
+  const eventType = evt.type;
+
+  if (eventType === "user.created") {
+    const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+
+    const email = email_addresses[0]?.email_address;
+    const name = [first_name, last_name].filter(Boolean).join(" ");
+
+    // Create user in database
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        clerkId: id,
+        email: email,
+        name: name || null,
+        avatarUrl: image_url || null,
+      })
+      .returning();
+
+    // Create vault for user
+    await db.insert(vaults).values({
+      userId: newUser.id,
+      settings: {
+        defaultCurrency: "USD",
+        defaultPaymentTerms: "NET_30",
+        autoGenerateChangeOrders: true,
+        scopeCreepSensitivity: "medium",
+      },
+      aiPreferences: {
+        preferredTone: "professional",
+        autoNegotiate: false,
+        riskTolerance: "moderate",
+      },
+    });
+
+    console.log(`Created user: ${newUser.id}`);
+  }
+
+  if (eventType === "user.updated") {
+    const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+
+    const email = email_addresses[0]?.email_address;
+    const name = [first_name, last_name].filter(Boolean).join(" ");
+
+    await db
+      .update(users)
+      .set({
+        email: email,
+        name: name || null,
+        avatarUrl: image_url || null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.clerkId, id));
+
+    console.log(`Updated user: ${id}`);
+  }
+
+  if (eventType === "user.deleted") {
+    const { id } = evt.data;
+
+    if (id) {
+      await db.delete(users).where(eq(users.clerkId, id));
+      console.log(`Deleted user: ${id}`);
+    }
+  }
+
+  return new Response("Webhook processed", { status: 200 });
+}
+```
+
+---
+
+## 15. Environment Variables
+
+### `.env.example`
+
+```bash
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Database (Neon)
+DATABASE_URL=postgresql://user:pass@host/dbname?sslmode=require
+
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxx
+CLERK_SECRET_KEY=sk_test_xxx
+CLERK_WEBHOOK_SECRET=whsec_xxx
+
+# Clerk URLs
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/login
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/signup
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
+
+# OpenAI
+OPENAI_API_KEY=sk-xxx
+
+# Stripe (for billing)
+STRIPE_SECRET_KEY=sk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+
+# Upstash Redis (for caching)
+UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=xxx
+
+# Resend (for emails)
+RESEND_API_KEY=re_xxx
+
+# File Storage (if using S3)
+AWS_ACCESS_KEY_ID=xxx
+AWS_SECRET_ACCESS_KEY=xxx
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=sovereign-uploads
+```
+
+---
+
+## 16. Running the Application
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Set up environment variables
+cp .env.example .env.local
+# Fill in all the values
+
+# 3. Push database schema
+npx drizzle-kit push
+
+# 4. Run development server
+npm run dev
+
+# 5. Open http://localhost:3000
+```
+
+---
+

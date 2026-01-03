@@ -1,0 +1,15 @@
+{
+  "name": "sovereign-brain",
+  "version": "1.0.0",
+  "description": "Backend brain for Sovereign using Gemini 3",
+  "main": "index.js",
+  "scripts": {
+    "start": "functions-framework --target=analyzeFinancials --port=8080"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.0.0",
+    "@google-cloud/vertexai": "^1.10.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  }
+}

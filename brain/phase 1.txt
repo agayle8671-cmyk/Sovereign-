@@ -1,0 +1,3412 @@
+# Sovereign: Phase 1 Implementation
+## Foundation, Design System & Core Infrastructure
+
+Let's build this. I'll provide production-ready code organized into logical sections. Copy each file into your project structure.
+
+---
+
+## 1. Project Initialization
+
+First, create your project and install dependencies:
+
+```bash
+# Create Next.js 15 project
+npx create-next-app@latest sovereign --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
+
+cd sovereign
+
+# Core dependencies
+npm install @clerk/nextjs @tanstack/react-query zustand framer-motion
+npm install drizzle-orm @neondatabase/serverless
+npm install @radix-ui/react-dialog @radix-ui/react-dropdown-menu @radix-ui/react-tooltip @radix-ui/react-tabs @radix-ui/react-accordion @radix-ui/react-avatar @radix-ui/react-checkbox @radix-ui/react-label @radix-ui/react-popover @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-toast
+npm install class-variance-authority clsx tailwind-merge
+npm install lucide-react @phosphor-icons/react
+npm install zod react-hook-form @hookform/resolvers
+npm install sonner cmdk vaul
+npm install date-fns
+npm install ai @ai-sdk/openai
+npm install inngest
+npm install @upstash/redis
+npm install resend
+
+# Dev dependencies
+npm install -D drizzle-kit @types/node
+npm install -D prettier prettier-plugin-tailwindcss
+npm install -D @tailwindcss/typography @tailwindcss/forms
+```
+
+---
+
+## 2. Project Structure
+
+```
+sovereign/
+├── src/
+│   ├── app/
+│   │   ├── (auth)/
+│   │   │   ├── login/[[...login]]/page.tsx
+│   │   │   ├── signup/[[...signup]]/page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── (dashboard)/
+│   │   │   ├── dashboard/
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── contracts/page.tsx
+│   │   │   │   ├── clients/page.tsx
+│   │   │   │   ├── portfolio/page.tsx
+│   │   │   │   └── settings/page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── (marketing)/
+│   │   │   ├── page.tsx
+│   │   │   ├── pricing/page.tsx
+│   │   │   ├── features/page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── api/
+│   │   │   ├── webhooks/clerk/route.ts
+│   │   │   ├── contracts/route.ts
+│   │   │   ├── contracts/[id]/route.ts
+│   │   │   ├── contracts/analyze/route.ts
+│   │   │   └── inngest/route.ts
+│   │   ├── p/[slug]/page.tsx
+│   │   ├── testimonial/[token]/page.tsx
+│   │   ├── layout.tsx
+│   │   └── globals.css
+│   ├── components/
+│   │   ├── ui/
+│   │   ├── dashboard/
+│   │   ├── marketing/
+│   │   └── shared/
+│   ├── lib/
+│   │   ├── db/
+│   │   │   ├── index.ts
+│   │   │   ├── schema.ts
+│   │   │   └── migrations/
+│   │   ├── ai/
+│   │   ├── utils.ts
+│   │   └── constants.ts
+│   ├── hooks/
+│   ├── stores/
+│   └── types/
+├── drizzle.config.ts
+├── tailwind.config.ts
+├── next.config.js
+└── package.json
+```
+
+---
+
+## 3. Configuration Files
+
+### `next.config.js`
+
+```javascript
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'img.clerk.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+      },
+    ],
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
+};
+
+module.exports = nextConfig;
+```
+
+### `tailwind.config.ts`
+
+```typescript
+import type { Config } from "tailwindcss";
+import { fontFamily } from "tailwindcss/defaultTheme";
+
+const config: Config = {
+  darkMode: ["class"],
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
+    extend: {
+      colors: {
+        // Brand Colors
+        brand: {
+          50: "#f0f7ff",
+          100: "#e0efff",
+          200: "#baddff",
+          300: "#7cc2ff",
+          400: "#36a3ff",
+          500: "#0088ff",
+          600: "#0070e0",
+          700: "#0058b3",
+          800: "#004080",
+          900: "#002d5c",
+          950: "#001a38",
+        },
+        // Neutral (Dark Mode First)
+        neutral: {
+          0: "#ffffff",
+          50: "#fafafa",
+          100: "#f4f4f5",
+          200: "#e4e4e7",
+          300: "#d4d4d8",
+          400: "#a1a1aa",
+          500: "#71717a",
+          600: "#52525b",
+          700: "#3f3f46",
+          750: "#323238",
+          800: "#27272a",
+          850: "#1f1f23",
+          900: "#18181b",
+          925: "#131316",
+          950: "#0f0f12",
+        },
+        // Core Accent Colors
+        shield: {
+          DEFAULT: "#8b5cf6",
+          light: "#a78bfa",
+          dark: "#7c3aed",
+        },
+        magnet: {
+          DEFAULT: "#f97316",
+          light: "#fb923c",
+          dark: "#ea580c",
+        },
+        radar: {
+          DEFAULT: "#06b6d4",
+          light: "#22d3ee",
+          dark: "#0891b2",
+        },
+        forge: {
+          DEFAULT: "#22c55e",
+          light: "#4ade80",
+          dark: "#16a34a",
+        },
+        // Semantic Colors
+        success: {
+          DEFAULT: "#22c55e",
+          light: "#4ade80",
+          dark: "#16a34a",
+          muted: "rgba(34, 197, 94, 0.1)",
+        },
+        warning: {
+          DEFAULT: "#f59e0b",
+          light: "#fbbf24",
+          dark: "#d97706",
+          muted: "rgba(245, 158, 11, 0.1)",
+        },
+        danger: {
+          DEFAULT: "#ef4444",
+          light: "#f87171",
+          dark: "#dc2626",
+          muted: "rgba(239, 68, 68, 0.1)",
+        },
+        info: {
+          DEFAULT: "#3b82f6",
+          light: "#60a5fa",
+          dark: "#2563eb",
+          muted: "rgba(59, 130, 246, 0.1)",
+        },
+        // Shadcn compatible
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+      },
+      fontFamily: {
+        sans: ["var(--font-inter)", ...fontFamily.sans],
+        display: ["var(--font-display)", ...fontFamily.serif],
+        mono: ["var(--font-mono)", ...fontFamily.mono],
+      },
+      fontSize: {
+        "2xs": ["0.625rem", { lineHeight: "0.875rem" }],
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        glow: "0 0 40px -10px rgba(0, 136, 255, 0.5)",
+        "glow-shield": "0 0 40px -10px rgba(139, 92, 246, 0.5)",
+        "glow-magnet": "0 0 40px -10px rgba(249, 115, 22, 0.5)",
+        "glow-radar": "0 0 40px -10px rgba(6, 182, 212, 0.5)",
+        "glow-forge": "0 0 40px -10px rgba(34, 197, 94, 0.5)",
+        "inner-glow": "inset 0 1px 0 0 rgba(255, 255, 255, 0.05)",
+      },
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "gradient-mesh":
+          "radial-gradient(at 40% 20%, hsla(228, 84%, 10%, 1) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(228, 84%, 5%, 1) 0px, transparent 50%), radial-gradient(at 0% 50%, hsla(240, 84%, 7%, 1) 0px, transparent 50%), radial-gradient(at 80% 50%, hsla(252, 84%, 5%, 1) 0px, transparent 50%), radial-gradient(at 0% 100%, hsla(228, 84%, 8%, 1) 0px, transparent 50%), radial-gradient(at 80% 100%, hsla(228, 84%, 3%, 1) 0px, transparent 50%), radial-gradient(at 0% 0%, hsla(228, 84%, 8%, 1) 0px, transparent 50%)",
+        "hero-gradient":
+          "linear-gradient(to bottom, rgba(15, 15, 18, 0) 0%, rgba(15, 15, 18, 1) 100%)",
+        "card-gradient":
+          "linear-gradient(to bottom right, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0))",
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.5s ease-out",
+        "fade-up": "fade-up 0.5s ease-out",
+        "slide-in-right": "slide-in-right 0.3s ease-out",
+        "slide-in-left": "slide-in-left 0.3s ease-out",
+        shimmer: "shimmer 2s linear infinite",
+        pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        float: "float 6s ease-in-out infinite",
+        glow: "glow 2s ease-in-out infinite alternate",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "fade-up": {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "slide-in-right": {
+          from: { transform: "translateX(100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        "slide-in-left": {
+          from: { transform: "translateX(-100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        shimmer: {
+          from: { backgroundPosition: "0 0" },
+          to: { backgroundPosition: "-200% 0" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        glow: {
+          from: { boxShadow: "0 0 20px -10px rgba(0, 136, 255, 0.5)" },
+          to: { boxShadow: "0 0 40px -10px rgba(0, 136, 255, 0.8)" },
+        },
+      },
+    },
+  },
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@tailwindcss/typography"),
+    require("@tailwindcss/forms"),
+  ],
+};
+
+export default config;
+```
+
+### `src/app/globals.css`
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 5%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 0 0% 14%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
+    --ring: 210 100% 50%;
+    --radius: 0.75rem;
+  }
+
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 210 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth antialiased;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-neutral-700 hover:bg-neutral-600;
+  }
+
+  ::-webkit-scrollbar-corner {
+    @apply bg-transparent;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-brand-500/30 text-white;
+  }
+}
+
+@layer components {
+  /* Glass Morphism */
+  .glass {
+    @apply border border-white/10 bg-white/5 backdrop-blur-xl;
+  }
+
+  .glass-strong {
+    @apply border border-white/20 bg-white/10 backdrop-blur-2xl;
+  }
+
+  /* Gradient Text */
+  .text-gradient {
+    @apply bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-brand {
+    @apply bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent;
+  }
+
+  /* Card Styles */
+  .card-base {
+    @apply rounded-xl border border-neutral-800 bg-neutral-900/50 backdrop-blur-sm;
+  }
+
+  .card-interactive {
+    @apply card-base transition-all duration-200 hover:border-neutral-700 hover:bg-neutral-900/80;
+  }
+
+  .card-elevated {
+    @apply card-base shadow-lg shadow-black/20;
+  }
+
+  /* Button Gradients */
+  .btn-gradient-brand {
+    @apply bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500;
+  }
+
+  .btn-gradient-shield {
+    @apply bg-gradient-to-r from-shield to-shield-dark hover:from-shield-light hover:to-shield;
+  }
+
+  .btn-gradient-magnet {
+    @apply bg-gradient-to-r from-magnet to-magnet-dark hover:from-magnet-light hover:to-magnet;
+  }
+
+  /* Animated Background */
+  .bg-animated {
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Shimmer Effect */
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.05),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+
+  /* Focus Ring */
+  .focus-ring {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-neutral-900;
+  }
+
+  /* Glow Effects */
+  .glow-brand {
+    @apply shadow-glow;
+  }
+
+  .glow-shield {
+    @apply shadow-glow-shield;
+  }
+
+  .glow-magnet {
+    @apply shadow-glow-magnet;
+  }
+
+  .glow-radar {
+    @apply shadow-glow-radar;
+  }
+
+  .glow-forge {
+    @apply shadow-glow-forge;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar but allow scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Text balance */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Backdrop Patterns */
+  .pattern-dots {
+    background-image: radial-gradient(
+      rgba(255, 255, 255, 0.1) 1px,
+      transparent 1px
+    );
+    background-size: 20px 20px;
+  }
+
+  .pattern-grid {
+    background-image: linear-gradient(
+        rgba(255, 255, 255, 0.05) 1px,
+        transparent 1px
+      ),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Safe area padding for mobile */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Animation delays */
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
+  .animation-delay-700 {
+    animation-delay: 700ms;
+  }
+  .animation-delay-1000 {
+    animation-delay: 1000ms;
+  }
+}
+```
+
+---
+
+## 4. Utility Functions
+
+### `src/lib/utils.ts`
+
+```typescript
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export function formatCurrency(
+  amount: number,
+  currency: string = "USD",
+  locale: string = "en-US"
+): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+export function formatNumber(
+  num: number,
+  options?: Intl.NumberFormatOptions
+): string {
+  return new Intl.NumberFormat("en-US", options).format(num);
+}
+
+export function formatDate(
+  date: Date | string,
+  options?: Intl.DateTimeFormatOptions
+): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    ...options,
+  }).format(d);
+}
+
+export function formatRelativeTime(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffSecs < 60) return "just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return formatDate(d);
+}
+
+export function truncate(str: string, length: number): string {
+  if (str.length <= length) return str;
+  return str.slice(0, length) + "...";
+}
+
+export function slugify(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export function generateId(length: number = 12): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+export function capitalize(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+export function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+export function getRiskColor(score: number): string {
+  if (score >= 80) return "text-success";
+  if (score >= 60) return "text-warning";
+  return "text-danger";
+}
+
+export function getRiskBgColor(score: number): string {
+  if (score >= 80) return "bg-success-muted";
+  if (score >= 60) return "bg-warning-muted";
+  return "bg-danger-muted";
+}
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function debounce<T extends (...args: unknown[]) => unknown>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+}
+
+export function throttle<T extends (...args: unknown[]) => unknown>(
+  func: T,
+  limit: number
+): (...args: Parameters<T>) => void {
+  let inThrottle: boolean;
+  return (...args: Parameters<T>) => {
+    if (!inThrottle) {
+      func(...args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  };
+}
+
+// Ensure absolute URL for API calls
+export function absoluteUrl(path: string): string {
+  if (typeof window !== "undefined") return path;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}${path}`;
+  return `http://localhost:${process.env.PORT ?? 3000}${path}`;
+}
+```
+
+---
+
+## 5. Database Schema
+
+### `drizzle.config.ts`
+
+```typescript
+import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  schema: "./src/lib/db/schema.ts",
+  out: "./src/lib/db/migrations",
+  dialect: "postgresql",
+  dbCredentials: {
+    url: process.env.DATABASE_URL!,
+  },
+});
+```
+
+### `src/lib/db/index.ts`
+
+```typescript
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import * as schema from "./schema";
+
+const sql = neon(process.env.DATABASE_URL!);
+
+export const db = drizzle(sql, { schema });
+
+export type Database = typeof db;
+```
+
+### `src/lib/db/schema.ts`
+
+```typescript
+import {
+  pgTable,
+  uuid,
+  varchar,
+  text,
+  timestamp,
+  boolean,
+  integer,
+  decimal,
+  jsonb,
+  date,
+  pgEnum,
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+
+// ============================================
+// ENUMS
+// ============================================
+
+export const subscriptionTierEnum = pgEnum("subscription_tier", [
+  "free",
+  "pro",
+  "business",
+]);
+
+export const contractStatusEnum = pgEnum("contract_status", [
+  "draft",
+  "pending_review",
+  "in_negotiation",
+  "active",
+  "completed",
+  "cancelled",
+]);
+
+export const paymentTermsEnum = pgEnum("payment_terms", [
+  "NET_15",
+  "NET_30",
+  "NET_45",
+  "NET_60",
+  "NET_90",
+  "ON_COMPLETION",
+  "MILESTONE",
+  "OTHER",
+]);
+
+export const riskSeverityEnum = pgEnum("risk_severity", [
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "CRITICAL",
+]);
+
+export const scopeStatusEnum = pgEnum("scope_status", [
+  "pending",
+  "in_progress",
+  "completed",
+  "cancelled",
+]);
+
+export const changeOrderStatusEnum = pgEnum("change_order_status", [
+  "draft",
+  "pending_approval",
+  "approved",
+  "rejected",
+  "invoiced",
+]);
+
+export const communicationChannelEnum = pgEnum("communication_channel", [
+  "EMAIL",
+  "SLACK",
+  "ZOOM",
+  "OTHER",
+]);
+
+export const sentimentLabelEnum = pgEnum("sentiment_label", [
+  "VERY_NEGATIVE",
+  "NEGATIVE",
+  "NEUTRAL",
+  "POSITIVE",
+  "VERY_POSITIVE",
+]);
+
+export const testimonialTypeEnum = pgEnum("testimonial_type", [
+  "pending",
+  "text",
+  "video",
+]);
+
+export const productStatusEnum = pgEnum("product_status", [
+  "draft",
+  "active",
+  "archived",
+]);
+
+export const agentStatusEnum = pgEnum("agent_status", [
+  "pending",
+  "running",
+  "completed",
+  "failed",
+]);
+
+// ============================================
+// CORE TABLES
+// ============================================
+
+// Users
+export const users = pgTable("users", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clerkId: varchar("clerk_id", { length: 255 }).unique().notNull(),
+  email: varchar("email", { length: 255 }).unique().notNull(),
+  name: varchar("name", { length: 255 }),
+  avatarUrl: text("avatar_url"),
+  timezone: varchar("timezone", { length: 100 }).default("UTC"),
+  onboardingCompleted: boolean("onboarding_completed").default(false),
+  subscriptionTier: subscriptionTierEnum("subscription_tier").default("free"),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Vault (User's Business Context)
+export const vaults = pgTable("vaults", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique()
+    .notNull(),
+  settings: jsonb("settings").default({}).$type<VaultSettings>(),
+  aiPreferences: jsonb("ai_preferences").default({}).$type<AiPreferences>(),
+  brandAssets: jsonb("brand_assets").default({}).$type<BrandAssets>(),
+  defaultRates: jsonb("default_rates").default({}).$type<DefaultRates>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Clients
+export const clients = pgTable("clients", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }),
+  company: varchar("company", { length: 255 }),
+  industry: varchar("industry", { length: 100 }),
+  website: text("website"),
+  avatarUrl: text("avatar_url"),
+  healthScore: integer("health_score").default(100),
+  sentimentTrend: sentimentLabelEnum("sentiment_trend").default("NEUTRAL"),
+  totalRevenue: decimal("total_revenue", { precision: 12, scale: 2 }).default(
+    "0"
+  ),
+  notes: text("notes"),
+  metadata: jsonb("metadata").default({}).$type<ClientMetadata>(),
+  isArchived: boolean("is_archived").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ============================================
+// SHIELD CORE TABLES
+// ============================================
+
+// Contracts
+export const contracts = pgTable("contracts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  clientId: uuid("client_id").references(() => clients.id, {
+    onDelete: "set null",
+  }),
+  title: varchar("title", { length: 255 }).notNull(),
+  status: contractStatusEnum("status").default("draft"),
+  originalFileUrl: text("original_file_url"),
+  originalFileName: varchar("original_file_name", { length: 255 }),
+  parsedContent: text("parsed_content"),
+  extractedTerms: jsonb("extracted_terms").$type<ExtractedTerms>(),
+  riskScore: integer("risk_score"),
+  riskFlags: jsonb("risk_flags").default([]).$type<RiskFlag[]>(),
+  paymentTerms: paymentTermsEnum("payment_terms"),
+  totalValue: decimal("total_value", { precision: 12, scale: 2 }),
+  currency: varchar("currency", { length: 3 }).default("USD"),
+  startDate: date("start_date"),
+  endDate: date("end_date"),
+  signedAt: timestamp("signed_at"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Scope Items
+export const scopeItems = pgTable("scope_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  contractId: uuid("contract_id")
+    .references(() => contracts.id, { onDelete: "cascade" })
+    .notNull(),
+  description: text("description").notNull(),
+  category: varchar("category", { length: 100 }),
+  deliverableType: varchar("deliverable_type", { length: 100 }),
+  estimatedHours: decimal("estimated_hours", { precision: 8, scale: 2 }),
+  rate: decimal("rate", { precision: 10, scale: 2 }),
+  revisionLimit: integer("revision_limit"),
+  status: scopeStatusEnum("status").default("pending"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Change Orders
+export const changeOrders = pgTable("change_orders", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  contractId: uuid("contract_id")
+    .references(() => contracts.id, { onDelete: "cascade" })
+    .notNull(),
+  orderNumber: integer("order_number").notNull(),
+  originalRequest: text("original_request").notNull(),
+  translatedScope: text("translated_scope"),
+  estimatedHours: decimal("estimated_hours", { precision: 8, scale: 2 }),
+  proposedAmount: decimal("proposed_amount", { precision: 10, scale: 2 }),
+  status: changeOrderStatusEnum("status").default("draft"),
+  clientResponse: text("client_response"),
+  respondedAt: timestamp("responded_at"),
+  invoiceId: varchar("invoice_id", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ============================================
+// RADAR CORE TABLES
+// ============================================
+
+// Communications
+export const communications = pgTable("communications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  clientId: uuid("client_id").references(() => clients.id, {
+    onDelete: "set null",
+  }),
+  contractId: uuid("contract_id").references(() => contracts.id, {
+    onDelete: "set null",
+  }),
+  channel: communicationChannelEnum("channel").notNull(),
+  direction: varchar("direction", { length: 20 }).notNull(), // inbound/outbound
+  externalId: varchar("external_id", { length: 255 }),
+  subject: varchar("subject", { length: 500 }),
+  contentPreview: text("content_preview"),
+  fullContent: text("full_content"),
+  sentimentScore: decimal("sentiment_score", { precision: 3, scale: 2 }),
+  sentimentLabel: sentimentLabelEnum("sentiment_label"),
+  flaggedRequests: jsonb("flagged_requests").default([]).$type<FlaggedRequest[]>(),
+  responseTimeMinutes: integer("response_time_minutes"),
+  receivedAt: timestamp("received_at"),
+  analyzedAt: timestamp("analyzed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ============================================
+// MAGNET CORE TABLES
+// ============================================
+
+// Portfolio Items
+export const portfolioItems = pgTable("portfolio_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  clientId: uuid("client_id").references(() => clients.id, {
+    onDelete: "set null",
+  }),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  shortDescription: varchar("short_description", { length: 500 }),
+  category: varchar("category", { length: 100 }),
+  industries: text("industries").array(),
+  tags: text("tags").array(),
+  thumbnailUrl: text("thumbnail_url"),
+  images: jsonb("images").default([]).$type<PortfolioImage[]>(),
+  externalUrl: text("external_url"),
+  caseStudyContent: text("case_study_content"),
+  metrics: jsonb("metrics").default({}).$type<PortfolioMetrics>(),
+  isFeatured: boolean("is_featured").default(false),
+  isPublic: boolean("is_public").default(true),
+  displayOrder: integer("display_order").default(0),
+  projectDate: date("project_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Testimonials
+export const testimonials = pgTable("testimonials", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  clientId: uuid("client_id").references(() => clients.id, {
+    onDelete: "set null",
+  }),
+  portfolioItemId: uuid("portfolio_item_id").references(
+    () => portfolioItems.id,
+    { onDelete: "set null" }
+  ),
+  type: testimonialTypeEnum("type").default("pending"),
+  content: text("content"),
+  videoUrl: text("video_url"),
+  videoThumbnail: text("video_thumbnail"),
+  rating: integer("rating"),
+  clientName: varchar("client_name", { length: 255 }),
+  clientTitle: varchar("client_title", { length: 255 }),
+  clientCompany: varchar("client_company", { length: 255 }),
+  clientAvatar: text("client_avatar"),
+  isApproved: boolean("is_approved").default(false),
+  isFeatured: boolean("is_featured").default(false),
+  magicLinkToken: varchar("magic_link_token", { length: 255 }).unique(),
+  magicLinkExpiresAt: timestamp("magic_link_expires_at"),
+  collectedAt: timestamp("collected_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Dynamic Pitches
+export const pitches = pgTable("pitches", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  leadEmail: varchar("lead_email", { length: 255 }),
+  leadName: varchar("lead_name", { length: 255 }),
+  leadCompany: varchar("lead_company", { length: 255 }),
+  leadIndustry: varchar("lead_industry", { length: 100 }),
+  leadEnrichmentData: jsonb("lead_enrichment_data").$type<LeadEnrichment>(),
+  selectedPortfolioIds: uuid("selected_portfolio_ids").array(),
+  selectedTestimonialIds: uuid("selected_testimonial_ids").array(),
+  customHeadline: text("custom_headline"),
+  customIntro: text("custom_intro"),
+  generatedMockups: jsonb("generated_mockups").default([]).$type<GeneratedMockup[]>(),
+  publicSlug: varchar("public_slug", { length: 100 }).unique().notNull(),
+  isActive: boolean("is_active").default(true),
+  viewCount: integer("view_count").default(0),
+  lastViewedAt: timestamp("last_viewed_at"),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ============================================
+// FORGE CORE TABLES
+// ============================================
+
+// Products (Micro-SaaS)
+export const products = pgTable("products", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 100 }).unique().notNull(),
+  description: text("description"),
+  shortDescription: varchar("short_description", { length: 500 }),
+  type: varchar("type", { length: 50 }), // template, component, tool, etc.
+  sourceRepository: text("source_repository"),
+  sourceFiles: jsonb("source_files").default([]).$type<SourceFile[]>(),
+  pricingType: varchar("pricing_type", { length: 50 }).default("one_time"),
+  price: decimal("price", { precision: 10, scale: 2 }),
+  stripeProductId: varchar("stripe_product_id", { length: 255 }),
+  stripePriceId: varchar("stripe_price_id", { length: 255 }),
+  landingPageContent: text("landing_page_content"),
+  documentation: text("documentation"),
+  downloadUrl: text("download_url"),
+  previewUrl: text("preview_url"),
+  thumbnailUrl: text("thumbnail_url"),
+  images: jsonb("images").default([]).$type<string[]>(),
+  features: jsonb("features").default([]).$type<string[]>(),
+  techStack: text("tech_stack").array(),
+  salesCount: integer("sales_count").default(0),
+  totalRevenue: decimal("total_revenue", { precision: 12, scale: 2 }).default(
+    "0"
+  ),
+  rating: decimal("rating", { precision: 2, scale: 1 }),
+  reviewCount: integer("review_count").default(0),
+  status: productStatusEnum("status").default("draft"),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ============================================
+// AI & SYSTEM TABLES
+// ============================================
+
+// Agent Runs (Audit Trail)
+export const agentRuns = pgTable("agent_runs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  agentType: varchar("agent_type", { length: 100 }).notNull(),
+  trigger: varchar("trigger", { length: 100 }),
+  inputSummary: text("input_summary"),
+  outputSummary: text("output_summary"),
+  confidenceScore: decimal("confidence_score", { precision: 3, scale: 2 }),
+  actionsTaken: jsonb("actions_taken").default([]).$type<AgentAction[]>(),
+  humanOverride: boolean("human_override").default(false),
+  tokensUsed: integer("tokens_used"),
+  durationMs: integer("duration_ms"),
+  status: agentStatusEnum("status").default("pending"),
+  errorMessage: text("error_message"),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Notifications
+export const notifications = pgTable("notifications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  type: varchar("type", { length: 100 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message"),
+  data: jsonb("data").default({}),
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  actionUrl: text("action_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ============================================
+// RELATIONS
+// ============================================
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+  vault: one(vaults, {
+    fields: [users.id],
+    references: [vaults.userId],
+  }),
+  clients: many(clients),
+  contracts: many(contracts),
+  portfolioItems: many(portfolioItems),
+  testimonials: many(testimonials),
+  pitches: many(pitches),
+  products: many(products),
+  communications: many(communications),
+  agentRuns: many(agentRuns),
+  notifications: many(notifications),
+}));
+
+export const clientsRelations = relations(clients, ({ one, many }) => ({
+  user: one(users, {
+    fields: [clients.userId],
+    references: [users.id],
+  }),
+  contracts: many(contracts),
+  communications: many(communications),
+  portfolioItems: many(portfolioItems),
+  testimonials: many(testimonials),
+}));
+
+export const contractsRelations = relations(contracts, ({ one, many }) => ({
+  user: one(users, {
+    fields: [contracts.userId],
+    references: [users.id],
+  }),
+  client: one(clients, {
+    fields: [contracts.clientId],
+    references: [clients.id],
+  }),
+  scopeItems: many(scopeItems),
+  changeOrders: many(changeOrders),
+  communications: many(communications),
+}));
+
+export const scopeItemsRelations = relations(scopeItems, ({ one }) => ({
+  contract: one(contracts, {
+    fields: [scopeItems.contractId],
+    references: [contracts.id],
+  }),
+}));
+
+export const changeOrdersRelations = relations(changeOrders, ({ one }) => ({
+  contract: one(contracts, {
+    fields: [changeOrders.contractId],
+    references: [contracts.id],
+  }),
+}));
+
+export const portfolioItemsRelations = relations(
+  portfolioItems,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [portfolioItems.userId],
+      references: [users.id],
+    }),
+    client: one(clients, {
+      fields: [portfolioItems.clientId],
+      references: [clients.id],
+    }),
+    testimonials: many(testimonials),
+  })
+);
+
+export const testimonialsRelations = relations(testimonials, ({ one }) => ({
+  user: one(users, {
+    fields: [testimonials.userId],
+    references: [users.id],
+  }),
+  client: one(clients, {
+    fields: [testimonials.clientId],
+    references: [clients.id],
+  }),
+  portfolioItem: one(portfolioItems, {
+    fields: [testimonials.portfolioItemId],
+    references: [portfolioItems.id],
+  }),
+}));
+
+// ============================================
+// TYPE DEFINITIONS
+// ============================================
+
+export interface VaultSettings {
+  defaultCurrency?: string;
+  defaultPaymentTerms?: string;
+  autoGenerateChangeOrders?: boolean;
+  scopeCreepSensitivity?: "low" | "medium" | "high";
+  notificationPreferences?: {
+    email?: boolean;
+    push?: boolean;
+    slack?: boolean;
+  };
+}
+
+export interface AiPreferences {
+  preferredTone?: "professional" | "friendly" | "casual";
+  autoNegotiate?: boolean;
+  riskTolerance?: "conservative" | "moderate" | "aggressive";
+}
+
+export interface BrandAssets {
+  logoUrl?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  tagline?: string;
+}
+
+export interface DefaultRates {
+  hourlyRate?: number;
+  dayRate?: number;
+  projectMinimum?: number;
+}
+
+export interface ClientMetadata {
+  source?: string;
+  tags?: string[];
+  customFields?: Record<string, string>;
+}
+
+export interface ExtractedTerms {
+  parties?: {
+    client?: { name: string; address?: string };
+    contractor?: { name: string; address?: string };
+  };
+  financials?: {
+    totalValue?: number;
+    currency?: string;
+    paymentTerms?: string;
+    depositRequired?: boolean;
+    depositAmount?: number;
+  };
+  dates?: {
+    effectiveDate?: string;
+    endDate?: string;
+    milestones?: { name: string; date: string }[];
+  };
+  scope?: {
+    description: string;
+    category: string;
+    deliverableType: string;
+    revisionLimits?: number;
+  }[];
+  ipOwnership?: string;
+  terminationClause?: string;
+  confidentiality?: string;
+}
+
+export interface RiskFlag {
+  clause: string;
+  category: string;
+  severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  explanation: string;
+  recommendation: string;
+  suggestedRevision?: string;
+}
+
+export interface FlaggedRequest {
+  type: string;
+  content: string;
+  detectedAt: string;
+  analysis?: {
+    isOutOfScope: boolean;
+    confidence: number;
+    estimatedHours?: number;
+    estimatedCost?: number;
+  };
+}
+
+export interface PortfolioImage {
+  url: string;
+  alt?: string;
+  caption?: string;
+  order?: number;
+}
+
+export interface PortfolioMetrics {
+  [key: string]: string | number;
+}
+
+export interface LeadEnrichment {
+  company?: string;
+  industry?: string;
+  employeeCount?: number;
+  revenue?: string;
+  technologies?: string[];
+  recentNews?: string[];
+  logoUrl?: string;
+  brandColors?: string[];
+  socialProfiles?: Record<string, string>;
+}
+
+export interface GeneratedMockup {
+  url: string;
+  prompt: string;
+  generatedAt: string;
+}
+
+export interface SourceFile {
+  path: string;
+  type: string;
+  size: number;
+}
+
+export interface AgentAction {
+  type: string;
+  description: string;
+  timestamp: string;
+  result?: string;
+}
+```
+
+---
+
+## 6. Authentication Setup
+
+### `src/middleware.ts`
+
+```typescript
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/pricing",
+  "/features(.*)",
+  "/blog(.*)",
+  "/login(.*)",
+  "/signup(.*)",
+  "/api/webhooks(.*)",
+  "/p/(.*)",
+  "/testimonial/(.*)",
+]);
+
+export default clerkMiddleware(async (auth, req) => {
+  if (!isPublicRoute(req)) {
+    await auth.protect();
+  }
+});
+
+export const config = {
+  matcher: [
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
+  ],
+};
+```
+
+### `src/app/layout.tsx`
+
+```typescript
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import localFont from "next/font/local";
+import { ClerkProvider } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
+import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
+import { QueryProvider } from "@/components/providers/query-provider";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
+
+const displayFont = localFont({
+  src: [
+    {
+      path: "../../public/fonts/InstrumentSerif-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/InstrumentSerif-Italic.ttf",
+      weight: "400",
+      style: "italic",
+    },
+  ],
+  variable: "--font-display",
+});
+
+const monoFont = localFont({
+  src: "../../public/fonts/JetBrainsMono-Regular.ttf",
+  variable: "--font-mono",
+});
+
+export const metadata: Metadata = {
+  title: {
+    default: "Sovereign | The Operating System for the Business of One",
+    template: "%s | Sovereign",
+  },
+  description:
+    "Autonomous Commercial Operating System for independent professionals. Defend contracts, automate reputation, grow revenue.",
+  keywords: [
+    "freelance",
+    "solopreneur",
+    "contract management",
+    "portfolio",
+    "testimonials",
+    "AI",
+  ],
+  authors: [{ name: "Sovereign" }],
+  creator: "Sovereign",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://sovereign.app",
+    title: "Sovereign | The Operating System for the Business of One",
+    description:
+      "Autonomous Commercial Operating System for independent professionals.",
+    siteName: "Sovereign",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Sovereign",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sovereign | The Operating System for the Business of One",
+    description:
+      "Autonomous Commercial Operating System for independent professionals.",
+    images: ["/og-image.png"],
+    creator: "@sovereign",
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <ClerkProvider
+      appearance={{
+        baseTheme: dark,
+        variables: {
+          colorPrimary: "#0088ff",
+          colorBackground: "#0f0f12",
+          colorInputBackground: "#18181b",
+          colorInputText: "#ffffff",
+        },
+        elements: {
+          formButtonPrimary:
+            "bg-brand-500 hover:bg-brand-600 text-white border-0",
+          card: "bg-neutral-900 border border-neutral-800",
+          headerTitle: "text-white",
+          headerSubtitle: "text-neutral-400",
+          socialButtonsBlockButton:
+            "bg-neutral-800 border-neutral-700 text-white hover:bg-neutral-750",
+          formFieldLabel: "text-neutral-300",
+          formFieldInput:
+            "bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500",
+          footerActionLink: "text-brand-500 hover:text-brand-400",
+        },
+      }}
+    >
+      <html lang="en" className="dark">
+        <body
+          className={`${inter.variable} ${displayFont.variable} ${monoFont.variable} font-sans antialiased`}
+        >
+          <QueryProvider>
+            {children}
+            <Toaster />
+          </QueryProvider>
+        </body>
+      </html>
+    </ClerkProvider>
+  );
+}
+```
+
+### `src/components/providers/query-provider.tsx`
+
+```typescript
+"use client";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { useState } from "react";
+
+export function QueryProvider({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 1000,
+            refetchOnWindowFocus: false,
+          },
+        },
+      })
+  );
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  );
+}
+```
+
+---
+
+## 7. Core UI Components
+
+### `src/components/ui/button.tsx`
+
+```typescript
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-brand-500 text-white shadow-sm hover:bg-brand-600 active:bg-brand-700",
+        destructive:
+          "bg-danger text-white shadow-sm hover:bg-danger-dark active:bg-red-700",
+        outline:
+          "border border-neutral-700 bg-transparent text-neutral-100 hover:bg-neutral-800 hover:border-neutral-600",
+        secondary:
+          "bg-neutral-800 text-neutral-100 shadow-sm hover:bg-neutral-750 active:bg-neutral-700",
+        ghost:
+          "text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100",
+        link: "text-brand-500 underline-offset-4 hover:underline",
+        shield:
+          "bg-gradient-to-r from-shield to-shield-dark text-white shadow-sm hover:from-shield-light hover:to-shield",
+        magnet:
+          "bg-gradient-to-r from-magnet to-magnet-dark text-white shadow-sm hover:from-magnet-light hover:to-magnet",
+        radar:
+          "bg-gradient-to-r from-radar to-radar-dark text-white shadow-sm hover:from-radar-light hover:to-radar",
+        forge:
+          "bg-gradient-to-r from-forge to-forge-dark text-white shadow-sm hover:from-forge-light hover:to-forge",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-12 rounded-xl px-6 text-base",
+        xl: "h-14 rounded-xl px-8 text-lg",
+        icon: "h-10 w-10",
+        "icon-sm": "h-8 w-8",
+        "icon-lg": "h-12 w-12",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+);
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+  loading?: boolean;
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, loading, children, disabled, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        disabled={disabled || loading}
+        {...props}
+      >
+        {loading ? (
+          <>
+            <svg
+              className="animate-spin -ml-1 mr-2 h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            Loading...
+          </>
+        ) : (
+          children
+        )}
+      </Comp>
+    );
+  }
+);
+Button.displayName = "Button";
+
+export { Button, buttonVariants };
+```
+
+### `src/components/ui/input.tsx`
+
+```typescript
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  icon?: React.ReactNode;
+  iconPosition?: "left" | "right";
+}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, icon, iconPosition = "left", ...props }, ref) => {
+    if (icon) {
+      return (
+        <div className="relative">
+          {iconPosition === "left" && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">
+              {icon}
+            </div>
+          )}
+          <input
+            type={type}
+            className={cn(
+              "flex h-10 w-full rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 transition-colors",
+              "focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent",
+              "disabled:cursor-not-allowed disabled:opacity-50",
+              "file:border-0 file:bg-transparent file:text-sm file:font-medium",
+              iconPosition === "left" && "pl-10",
+              iconPosition === "right" && "pr-10",
+              className
+            )}
+            ref={ref}
+            {...props}
+          />
+          {iconPosition === "right" && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500">
+              {icon}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <input
+        type={type}
+        className={cn(
+          "flex h-10 w-full rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 transition-colors",
+          "focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent",
+          "disabled:cursor-not-allowed disabled:opacity-50",
+          "file:border-0 file:bg-transparent file:text-sm file:font-medium",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+Input.displayName = "Input";
+
+export { Input };
+```
+
+### `src/components/ui/card.tsx`
+
+```typescript
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    variant?: "default" | "interactive" | "elevated" | "glass";
+  }
+>(({ className, variant = "default", ...props }, ref) => {
+  const variantClasses = {
+    default: "border-neutral-800 bg-neutral-900/50",
+    interactive:
+      "border-neutral-800 bg-neutral-900/50 transition-all duration-200 hover:border-neutral-700 hover:bg-neutral-900/80 cursor-pointer",
+    elevated: "border-neutral-800 bg-neutral-900/50 shadow-lg shadow-black/20",
+    glass: "border-white/10 bg-white/5 backdrop-blur-xl",
+  };
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "rounded-xl border",
+        variantClasses[variant],
+        className
+      )}
+      {...props}
+    />
+  );
+});
+Card.displayName = "Card";
+
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+));
+CardHeader.displayName = "CardHeader";
+
+const CardTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn(
+      "text-lg font-semibold leading-none tracking-tight text-neutral-100",
+      className
+    )}
+    {...props}
+  />
+));
+CardTitle.displayName = "CardTitle";
+
+const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn("text-sm text-neutral-400", className)}
+    {...props}
+  />
+));
+CardDescription.displayName = "CardDescription";
+
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+));
+CardContent.displayName = "CardContent";
+
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props}
+  />
+));
+CardFooter.displayName = "CardFooter";
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+```
+
+### `src/components/ui/badge.tsx`
+
+```typescript
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
+
+const badgeVariants = cva(
+  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors",
+  {
+    variants: {
+      variant: {
+        default: "bg-neutral-800 text-neutral-300 border border-neutral-700",
+        primary: "bg-brand-500/10 text-brand-400 border border-brand-500/20",
+        secondary: "bg-neutral-700 text-neutral-200",
+        success: "bg-success-muted text-success border border-success/20",
+        warning: "bg-warning-muted text-warning border border-warning/20",
+        danger: "bg-danger-muted text-danger border border-danger/20",
+        info: "bg-info-muted text-info border border-info/20",
+        shield: "bg-shield/10 text-shield border border-shield/20",
+        magnet: "bg-magnet/10 text-magnet border border-magnet/20",
+        radar: "bg-radar/10 text-radar border border-radar/20",
+        forge: "bg-forge/10 text-forge border border-forge/20",
+        outline: "bg-transparent border border-neutral-600 text-neutral-300",
+      },
+      size: {
+        default: "px-2.5 py-0.5 text-xs",
+        sm: "px-2 py-0.5 text-2xs",
+        lg: "px-3 py-1 text-sm",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+);
+
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {
+  dot?: boolean;
+  dotColor?: string;
+}
+
+function Badge({
+  className,
+  variant,
+  size,
+  dot,
+  dotColor,
+  children,
+  ...props
+}: BadgeProps) {
+  return (
+    <div
+      className={cn(badgeVariants({ variant, size }), className)}
+      {...props}
+    >
+      {dot && (
+        <span
+          className={cn(
+            "mr-1.5 h-1.5 w-1.5 rounded-full",
+            dotColor || "bg-current"
+          )}
+        />
+      )}
+      {children}
+    </div>
+  );
+}
+
+export { Badge, badgeVariants };
+```
+
+### `src/components/ui/avatar.tsx`
+
+```typescript
+"use client";
+
+import * as React from "react";
+import * as AvatarPrimitive from "@radix-ui/react-avatar";
+import { cn, getInitials } from "@/lib/utils";
+
+const Avatar = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> & {
+    size?: "xs" | "sm" | "default" | "lg" | "xl";
+  }
+>(({ className, size = "default", ...props }, ref) => {
+  const sizeClasses = {
+    xs: "h-6 w-6 text-2xs",
+    sm: "h-8 w-8 text-xs",
+    default: "h-10 w-10 text-sm",
+    lg: "h-12 w-12 text-base",
+    xl: "h-16 w-16 text-lg",
+  };
+
+  return (
+    <AvatarPrimitive.Root
+      ref={ref}
+      className={cn(
+        "relative flex shrink-0 overflow-hidden rounded-full",
+        sizeClasses[size],
+        className
+      )}
+      {...props}
+    />
+  );
+});
+Avatar.displayName = AvatarPrimitive.Root.displayName;
+
+const AvatarImage = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Image>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    className={cn("aspect-square h-full w-full object-cover", className)}
+    {...props}
+  />
+));
+AvatarImage.displayName = AvatarPrimitive.Image.displayName;
+
+const AvatarFallback = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Fallback>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Fallback
+    ref={ref}
+    className={cn(
+      "flex h-full w-full items-center justify-center rounded-full bg-neutral-800 font-medium text-neutral-300",
+      className
+    )}
+    {...props}
+  />
+));
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
+
+// Convenience component
+interface UserAvatarProps {
+  user: {
+    name?: string | null;
+    imageUrl?: string | null;
+    avatarUrl?: string | null;
+  };
+  size?: "xs" | "sm" | "default" | "lg" | "xl";
+  className?: string;
+}
+
+function UserAvatar({ user, size = "default", className }: UserAvatarProps) {
+  return (
+    <Avatar size={size} className={className}>
+      <AvatarImage
+        src={user.imageUrl || user.avatarUrl || undefined}
+        alt={user.name || "User"}
+      />
+      <AvatarFallback>
+        {user.name ? getInitials(user.name) : "?"}
+      </AvatarFallback>
+    </Avatar>
+  );
+}
+
+export { Avatar, AvatarImage, AvatarFallback, UserAvatar };
+```
+
+### `src/components/ui/sonner.tsx`
+
+```typescript
+"use client";
+
+import { Toaster as Sonner } from "sonner";
+
+type ToasterProps = React.ComponentProps<typeof Sonner>;
+
+const Toaster = ({ ...props }: ToasterProps) => {
+  return (
+    <Sonner
+      theme="dark"
+      className="toaster group"
+      toastOptions={{
+        classNames: {
+          toast:
+            "group toast group-[.toaster]:bg-neutral-900 group-[.toaster]:text-neutral-100 group-[.toaster]:border-neutral-800 group-[.toaster]:shadow-lg",
+          description: "group-[.toast]:text-neutral-400",
+          actionButton:
+            "group-[.toast]:bg-brand-500 group-[.toast]:text-white",
+          cancelButton:
+            "group-[.toast]:bg-neutral-800 group-[.toast]:text-neutral-300",
+          error:
+            "group-[.toaster]:bg-danger-muted group-[.toaster]:border-danger/20 group-[.toaster]:text-danger",
+          success:
+            "group-[.toaster]:bg-success-muted group-[.toaster]:border-success/20 group-[.toaster]:text-success",
+          warning:
+            "group-[.toaster]:bg-warning-muted group-[.toaster]:border-warning/20 group-[.toaster]:text-warning",
+          info: "group-[.toaster]:bg-info-muted group-[.toaster]:border-info/20 group-[.toaster]:text-info",
+        },
+      }}
+      {...props}
+    />
+  );
+};
+
+export { Toaster };
+```
+
+---
+
+## 8. Dashboard Layout
+
+### `src/app/(dashboard)/layout.tsx`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { DashboardSidebar } from "@/components/dashboard/sidebar";
+import { DashboardHeader } from "@/components/dashboard/header";
+import { CommandMenu } from "@/components/dashboard/command-menu";
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/login");
+  }
+
+  return (
+    <div className="min-h-screen bg-neutral-950">
+      {/* Background Pattern */}
+      <div className="fixed inset-0 bg-gradient-mesh opacity-50 pointer-events-none" />
+      <div className="fixed inset-0 pattern-dots opacity-30 pointer-events-none" />
+
+      <div className="relative flex h-screen overflow-hidden">
+        {/* Sidebar */}
+        <DashboardSidebar />
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header */}
+          <DashboardHeader />
+
+          {/* Page Content */}
+          <main className="flex-1 overflow-y-auto">
+            <div className="container max-w-7xl mx-auto p-6">{children}</div>
+          </main>
+        </div>
+      </div>
+
+      {/* Command Menu (⌘K) */}
+      <CommandMenu />
+    </div>
+  );
+}
+```
+
+### `src/components/dashboard/sidebar.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+  LayoutDashboard,
+  FileText,
+  Users,
+  Briefcase,
+  BarChart3,
+  Settings,
+  Shield,
+  Magnet,
+  Radio,
+  Hammer,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const navigation = [
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "Contracts",
+    href: "/dashboard/contracts",
+    icon: FileText,
+    badge: "Shield",
+    badgeColor: "shield",
+  },
+  {
+    name: "Clients",
+    href: "/dashboard/clients",
+    icon: Users,
+    badge: "Radar",
+    badgeColor: "radar",
+  },
+  {
+    name: "Portfolio",
+    href: "/dashboard/portfolio",
+    icon: Briefcase,
+    badge: "Magnet",
+    badgeColor: "magnet",
+  },
+  {
+    name: "Products",
+    href: "/dashboard/products",
+    icon: Hammer,
+    badge: "Forge",
+    badgeColor: "forge",
+  },
+  {
+    name: "Analytics",
+    href: "/dashboard/analytics",
+    icon: BarChart3,
+  },
+];
+
+const bottomNavigation = [
+  {
+    name: "Settings",
+    href: "/dashboard/settings",
+    icon: Settings,
+  },
+];
+
+export function DashboardSidebar() {
+  const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <motion.aside
+      initial={false}
+      animate={{ width: collapsed ? 72 : 256 }}
+      transition={{ duration: 0.2, ease: "easeInOut" }}
+      className="relative h-full border-r border-neutral-800 bg-neutral-900/50 backdrop-blur-xl flex flex-col"
+    >
+      {/* Logo */}
+      <div className="h-16 flex items-center px-4 border-b border-neutral-800">
+        <Link href="/dashboard" className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-glow">
+            <Sparkles className="w-5 h-5 text-white" />
+          </div>
+          <AnimatePresence mode="wait">
+            {!collapsed && (
+              <motion.span
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                className="text-lg font-semibold text-neutral-100"
+              >
+                Sovereign
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </Link>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-hide">
+        {navigation.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                isActive
+                  ? "bg-neutral-800 text-neutral-100"
+                  : "text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/50"
+              )}
+            >
+              <item.icon
+                className={cn(
+                  "w-5 h-5 shrink-0",
+                  isActive && item.badgeColor === "shield" && "text-shield",
+                  isActive && item.badgeColor === "magnet" && "text-magnet",
+                  isActive && item.badgeColor === "radar" && "text-radar",
+                  isActive && item.badgeColor === "forge" && "text-forge"
+                )}
+              />
+              <AnimatePresence mode="wait">
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="truncate"
+                  >
+                    {item.name}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              {!collapsed && item.badge && (
+                <span
+                  className={cn(
+                    "ml-auto text-2xs px-1.5 py-0.5 rounded uppercase font-semibold",
+                    item.badgeColor === "shield" &&
+                      "bg-shield/10 text-shield",
+                    item.badgeColor === "magnet" &&
+                      "bg-magnet/10 text-magnet",
+                    item.badgeColor === "radar" && "bg-radar/10 text-radar",
+                    item.badgeColor === "forge" && "bg-forge/10 text-forge"
+                  )}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Bottom Navigation */}
+      <div className="p-3 border-t border-neutral-800 space-y-1">
+        {bottomNavigation.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                isActive
+                  ? "bg-neutral-800 text-neutral-100"
+                  : "text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/50"
+              )}
+            >
+              <item.icon className="w-5 h-5 shrink-0" />
+              <AnimatePresence mode="wait">
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="truncate"
+                  >
+                    {item.name}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Collapse Toggle */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700 transition-colors"
+      >
+        {collapsed ? (
+          <ChevronRight className="w-3.5 h-3.5" />
+        ) : (
+          <ChevronLeft className="w-3.5 h-3.5" />
+        )}
+      </button>
+    </motion.aside>
+  );
+}
+```
+
+### `src/components/dashboard/header.tsx`
+
+```typescript
+"use client";
+
+import { useUser, UserButton } from "@clerk/nextjs";
+import { Bell, Search, Command } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useCommandMenu } from "@/hooks/use-command-menu";
+
+export function DashboardHeader() {
+  const { user } = useUser();
+  const { setOpen } = useCommandMenu();
+
+  return (
+    <header className="h-16 border-b border-neutral-800 bg-neutral-900/50 backdrop-blur-xl flex items-center justify-between px-6">
+      {/* Search */}
+      <div className="flex-1 max-w-md">
+        <button
+          onClick={() => setOpen(true)}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg border border-neutral-800 bg-neutral-900/50 text-neutral-400 hover:border-neutral-700 hover:text-neutral-300 transition-colors"
+        >
+          <Search className="w-4 h-4" />
+          <span className="text-sm">Search or type a command...</span>
+          <kbd className="ml-auto text-xs bg-neutral-800 px-1.5 py-0.5 rounded border border-neutral-700">
+            <Command className="w-3 h-3 inline mr-0.5" />K
+          </kbd>
+        </button>
+      </div>
+
+      {/* Right side */}
+      <div className="flex items-center gap-4">
+        {/* Notifications */}
+        <Button variant="ghost" size="icon-sm" className="relative">
+          <Bell className="w-5 h-5" />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-brand-500 rounded-full" />
+        </Button>
+
+        {/* User */}
+        <div className="flex items-center gap-3">
+          <div className="text-right hidden sm:block">
+            <p className="text-sm font-medium text-neutral-100">
+              {user?.fullName || "User"}
+            </p>
+            <p className="text-xs text-neutral-400">Pro Plan</p>
+          </div>
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: "w-9 h-9",
+              },
+            }}
+          />
+        </div>
+      </div>
+    </header>
+  );
+}
+```
+
+### `src/components/dashboard/command-menu.tsx`
+
+```typescript
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "@/components/ui/command";
+import {
+  FileText,
+  Users,
+  Briefcase,
+  Plus,
+  Settings,
+  Search,
+  LayoutDashboard,
+  Hammer,
+  Sparkles,
+} from "lucide-react";
+import { useCommandMenu } from "@/hooks/use-command-menu";
+
+export function CommandMenu() {
+  const router = useRouter();
+  const { open, setOpen } = useCommandMenu();
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setOpen(!open);
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, [open, setOpen]);
+
+  const runCommand = (command: () => void) => {
+    setOpen(false);
+    command();
+  };
+
+  return (
+    <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandInput placeholder="Type a command or search..." />
+      <CommandList>
+        <CommandEmpty>No results found.</CommandEmpty>
+
+        <CommandGroup heading="Quick Actions">
+          <CommandItem
+            onSelect={() => runCommand(() => router.push("/dashboard/contracts/new"))}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            <span>New Contract</span>
+            <CommandShortcut>⌘N</CommandShortcut>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => runCommand(() => router.push("/dashboard/clients/new"))}
+          >
+            <Users className="mr-2 h-4 w-4" />
+            <span>Add Client</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => runCommand(() => router.push("/dashboard/portfolio/new"))}
+          >
+            <Briefcase className="mr-2 h-4 w-4" />
+            <span>Add Portfolio Item</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Navigation">
+          <CommandItem
+            onSelect={() => runCommand(() => router.push("/dashboard"))}
+          >
+            <LayoutDashboard className="mr-2 h-4 w-4" />
+            <span>Dashboard</span>
+            <CommandShortcut>⌘D</CommandShortcut>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => runCommand(() => router.push("/dashboard/contracts"))}
+          >
+            <FileText className="mr-2 h-4 w-4 text-shield" />
+            <span>Contracts</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => runCommand(() => router.push("/dashboard/clients"))}
+          >
+            <Users className="mr-2 h-4 w-4 text-radar" />
+            <span>Clients</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => runCommand(() => router.push("/dashboard/portfolio"))}
+          >
+            <Briefcase className="mr-2 h-4 w-4 text-magnet" />
+            <span>Portfolio</span>
+          </CommandItem>
+          <CommandItem
+            onSelect={() => runCommand(() => router.push("/dashboard/products"))}
+          >
+            <Hammer className="mr-2 h-4 w-4 text-forge" />
+            <span>Products</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="AI Actions">
+          <CommandItem onSelect={() => runCommand(() => {})}>
+            <Sparkles className="mr-2 h-4 w-4 text-brand-500" />
+            <span>Ask Sovereign...</span>
+          </CommandItem>
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Settings">
+          <CommandItem
+            onSelect={() => runCommand(() => router.push("/dashboard/settings"))}
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Settings</span>
+            <CommandShortcut>⌘,</CommandShortcut>
+          </CommandItem>
+        </CommandGroup>
+      </CommandList>
+    </CommandDialog>
+  );
+}
+```
+
+### `src/components/ui/command.tsx`
+
+```typescript
+"use client";
+
+import * as React from "react";
+import { type DialogProps } from "@radix-ui/react-dialog";
+import { Command as CommandPrimitive } from "cmdk";
+import { Search } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+
+const Command = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive
+    ref={ref}
+    className={cn(
+      "flex h-full w-full flex-col overflow-hidden rounded-lg bg-neutral-900",
+      className
+    )}
+    {...props}
+  />
+));
+Command.displayName = CommandPrimitive.displayName;
+
+interface CommandDialogProps extends DialogProps {}
+
+const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
+  return (
+    <Dialog {...props}>
+      <DialogContent className="overflow-hidden p-0 shadow-2xl border-neutral-800">
+        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-neutral-400 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+          {children}
+        </Command>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const CommandInput = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Input>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
+>(({ className, ...props }, ref) => (
+  <div className="flex items-center border-b border-neutral-800 px-3" cmdk-input-wrapper="">
+    <Search className="mr-2 h-4 w-4 shrink-0 text-neutral-500" />
+    <CommandPrimitive.Input
+      ref={ref}
+      className={cn(
+        "flex h-11 w-full rounded-md bg-transparent py-3 text-sm text-neutral-100 outline-none placeholder:text-neutral-500 disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
+      {...props}
+    />
+  </div>
+));
+
+CommandInput.displayName = CommandPrimitive.Input.displayName;
+
+const CommandList = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.List>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.List
+    ref={ref}
+    className={cn("max-h-[400px] overflow-y-auto overflow-x-hidden", className)}
+    {...props}
+  />
+));
+
+CommandList.displayName = CommandPrimitive.List.displayName;
+
+const CommandEmpty = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Empty>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty>
+>((props, ref) => (
+  <CommandPrimitive.Empty
+    ref={ref}
+    className="py-6 text-center text-sm text-neutral-400"
+    {...props}
+  />
+));
+
+CommandEmpty.displayName = CommandPrimitive.Empty.displayName;
+
+const CommandGroup = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Group>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.Group
+    ref={ref}
+    className={cn(
+      "overflow-hidden p-1 text-neutral-100 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-neutral-400",
+      className
+    )}
+    {...props}
+  />
+));
+
+CommandGroup.displayName = CommandPrimitive.Group.displayName;
+
+const CommandSeparator = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 h-px bg-neutral-800", className)}
+    {...props}
+  />
+));
+CommandSeparator.displayName = CommandPrimitive.Separator.displayName;
+
+const CommandItem = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
+>(({ className, ...props }, ref) => (
+  <CommandPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex cursor-pointer select-none items-center rounded-md px-2 py-1.5 text-sm text-neutral-300 outline-none aria-selected:bg-neutral-800 aria-selected:text-neutral-100 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  />
+));
+
+CommandItem.displayName = CommandPrimitive.Item.displayName;
+
+const CommandShortcut = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <span
+      className={cn(
+        "ml-auto text-xs tracking-widest text-neutral-500",
+        className
+      )}
+      {...props}
+    />
+  );
+};
+CommandShortcut.displayName = "CommandShortcut";
+
+export {
+  Command,
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandShortcut,
+  CommandSeparator,
+};
+```
+
+### `src/hooks/use-command-menu.ts`
+
+```typescript
+import { create } from "zustand";
+
+interface CommandMenuState {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}
+
+export const useCommandMenu = create<CommandMenuState>((set) => ({
+  open: false,
+  setOpen: (open) => set({ open }),
+}));
+```
+
+---
+
+## 9. Dashboard Home Page
+
+### `src/app/(dashboard)/dashboard/page.tsx`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
+import { users, contracts, clients, portfolioItems, testimonials } from "@/lib/db/schema";
+import { eq, desc, count, sql } from "drizzle-orm";
+import { DashboardStats } from "@/components/dashboard/stats";
+import { RecentContracts } from "@/components/dashboard/recent-contracts";
+import { ClientHealth } from "@/components/dashboard/client-health";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+import { AiInsights } from "@/components/dashboard/ai-insights";
+
+export default async function DashboardPage() {
+  const { userId: clerkId } = await auth();
+
+  // Get user from database
+  const user = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId!),
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  // Fetch dashboard stats
+  const [
+    contractStats,
+    clientStats,
+    portfolioStats,
+    testimonialStats,
+    recentContractsList,
+    clientHealthList,
+  ] = await Promise.all([
+    // Contract stats
+    db
+      .select({
+        total: count(),
+        active: count(sql`CASE WHEN status = 'active' THEN 1 END`),
+        pendingReview: count(sql`CASE WHEN status = 'pending_review' THEN 1 END`),
+      })
+      .from(contracts)
+      .where(eq(contracts.userId, user.id)),
+
+    // Client stats
+    db
+      .select({ total: count() })
+      .from(clients)
+      .where(eq(clients.userId, user.id)),
+
+    // Portfolio stats
+    db
+      .select({ total: count() })
+      .from(portfolioItems)
+      .where(eq(portfolioItems.userId, user.id)),
+
+    // Testimonial stats
+    db
+      .select({
+        total: count(),
+        approved: count(sql`CASE WHEN is_approved = true THEN 1 END`),
+      })
+      .from(testimonials)
+      .where(eq(testimonials.userId, user.id)),
+
+    // Recent contracts
+    db.query.contracts.findMany({
+      where: eq(contracts.userId, user.id),
+      orderBy: [desc(contracts.createdAt)],
+      limit: 5,
+      with: {
+        client: true,
+      },
+    }),
+
+    // Client health (lowest health scores)
+    db.query.clients.findMany({
+      where: eq(clients.userId, user.id),
+      orderBy: [clients.healthScore],
+      limit: 5,
+    }),
+  ]);
+
+  const stats = [
+    {
+      name: "Active Contracts",
+      value: contractStats[0]?.active || 0,
+      change: "+2 this month",
+      changeType: "positive" as const,
+      icon: "shield" as const,
+    },
+    {
+      name: "Total Clients",
+      value: clientStats[0]?.total || 0,
+      change: "+3 this month",
+      changeType: "positive" as const,
+      icon: "radar" as const,
+    },
+    {
+      name: "Portfolio Items",
+      value: portfolioStats[0]?.total || 0,
+      change: "2 pending",
+      changeType: "neutral" as const,
+      icon: "magnet" as const,
+    },
+    {
+      name: "Testimonials",
+      value: testimonialStats[0]?.approved || 0,
+      change: `${(testimonialStats[0]?.total || 0) - (testimonialStats[0]?.approved || 0)} pending`,
+      changeType: "neutral" as const,
+      icon: "magnet" as const,
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      {/* Welcome Header */}
+      <div>
+        <h1 className="text-2xl font-semibold text-neutral-100">
+          Welcome back, {user.name?.split(" ")[0] || "there"}
+        </h1>
+        <p className="text-neutral-400 mt-1">
+          Here&apos;s what&apos;s happening with your business today.
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <DashboardStats stats={stats} />
+
+      {/* Quick Actions */}
+      <QuickActions />
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Contracts */}
+        <div className="lg:col-span-2">
+          <RecentContracts contracts={recentContractsList} />
+        </div>
+
+        {/* Client Health */}
+        <div>
+          <ClientHealth clients={clientHealthList} />
+        </div>
+      </div>
+
+      {/* AI Insights */}
+      <AiInsights userId={user.id} />
+    </div>
+  );
+}
+```
+
+### `src/components/dashboard/stats.tsx`
+
+```typescript
+"use client";
+
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { Shield, Radio, Magnet, Hammer, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { motion } from "framer-motion";
+
+interface Stat {
+  name: string;
+  value: number;
+  change: string;
+  changeType: "positive" | "negative" | "neutral";
+  icon: "shield" | "radar" | "magnet" | "forge";
+}
+
+interface DashboardStatsProps {
+  stats: Stat[];
+}
+
+const iconMap = {
+  shield: Shield,
+  radar: Radio,
+  magnet: Magnet,
+  forge: Hammer,
+};
+
+const colorMap = {
+  shield: {
+    bg: "bg-shield/10",
+    text: "text-shield",
+    glow: "shadow-glow-shield",
+  },
+  radar: {
+    bg: "bg-radar/10",
+    text: "text-radar",
+    glow: "shadow-glow-radar",
+  },
+  magnet: {
+    bg: "bg-magnet/10",
+    text: "text-magnet",
+    glow: "shadow-glow-magnet",
+  },
+  forge: {
+    bg: "bg-forge/10",
+    text: "text-forge",
+    glow: "shadow-glow-forge",
+  },
+};
+
+export function DashboardStats({ stats }: DashboardStatsProps) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {stats.map((stat, index) => {
+        const Icon = iconMap[stat.icon];
+        const colors = colorMap[stat.icon];
+
+        return (
+          <motion.div
+            key={stat.name}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <Card className="p-6 hover:border-neutral-700 transition-colors">
+              <div className="flex items-start justify-between">
+                <div
+                  className={cn(
+                    "w-10 h-10 rounded-lg flex items-center justify-center",
+                    colors.bg
+                  )}
+                >
+                  <Icon className={cn("w-5 h-5", colors.text)} />
+                </div>
+                <div
+                  className={cn(
+                    "flex items-center gap-1 text-xs font-medium",
+                    stat.changeType === "positive" && "text-success",
+                    stat.changeType === "negative" && "text-danger",
+                    stat.changeType === "neutral" && "text-neutral-400"
+                  )}
+                >
+                  {stat.changeType === "positive" && (
+                    <TrendingUp className="w-3 h-3" />
+                  )}
+                  {stat.changeType === "negative" && (
+                    <TrendingDown className="w-3 h-3" />
+                  )}
+                  {stat.changeType === "neutral" && (
+                    <Minus className="w-3 h-3" />
+                  )}
+                  {stat.change}
+                </div>
+              </div>
+              <div className="mt-4">
+                <p className="text-3xl font-semibold text-neutral-100">
+                  {stat.value}
+                </p>
+                <p className="text-sm text-neutral-400 mt-1">{stat.name}</p>
+              </div>
+            </Card>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+```
+
+### `src/components/dashboard/quick-actions.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  FileText,
+  Users,
+  Briefcase,
+  Upload,
+  Sparkles,
+  ArrowRight,
+} from "lucide-react";
+import { motion } from "framer-motion";
+
+const actions = [
+  {
+    name: "Analyze Contract",
+    description: "Upload and scan for risks",
+    href: "/dashboard/contracts/analyze",
+    icon: FileText,
+    color: "shield",
+    gradient: "from-shield to-shield-dark",
+  },
+  {
+    name: "Add Client",
+    description: "Start tracking a new client",
+    href: "/dashboard/clients/new",
+    icon: Users,
+    color: "radar",
+    gradient: "from-radar to-radar-dark",
+  },
+  {
+    name: "Create Portfolio",
+    description: "Showcase your work",
+    href: "/dashboard/portfolio/new",
+    icon: Briefcase,
+    color: "magnet",
+    gradient: "from-magnet to-magnet-dark",
+  },
+  {
+    name: "Ask Sovereign",
+    description: "Get AI assistance",
+    href: "#",
+    icon: Sparkles,
+    color: "brand",
+    gradient: "from-brand-500 to-brand-600",
+    special: true,
+  },
+];
+
+export function QuickActions() {
+  return (
+    <Card className="p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-neutral-100">Quick Actions</h2>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {actions.map((action, index) => (
+          <motion.div
+            key={action.name}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.05 }}
+          >
+            <Link href={action.href}>
+              <div
+                className={`
+                  group relative p-4 rounded-xl border border-neutral-800 
+                  hover:border-neutral-700 transition-all duration-200
+                  ${action.special ? "bg-gradient-to-br from-brand-500/10 to-brand-600/5" : ""}
+                `}
+              >
+                <div
+                  className={`
+                    w-10 h-10 rounded-lg bg-gradient-to-br ${action.gradient}
+                    flex items-center justify-center mb-3
+                    group-hover:scale-110 transition-transform
+                  `}
+                >
+                  <action.icon className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="font-medium text-neutral-100 text-sm">
+                  {action.name}
+                </h3>
+                <p className="text-xs text-neutral-400 mt-1">
+                  {action.description}
+                </p>
+                <ArrowRight className="absolute bottom-4 right-4 w-4 h-4 text-neutral-600 group-hover:text-neutral-400 group-hover:translate-x-1 transition-all" />
+              </div>
+            </Link>
+          </motion.div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+```
+
+### `src/components/dashboard/recent-contracts.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/ui/avatar";
+import { formatRelativeTime, formatCurrency, getRiskColor } from "@/lib/utils";
+import { FileText, ArrowRight, AlertTriangle } from "lucide-react";
+
+interface Contract {
+  id: string;
+  title: string;
+  status: string;
+  riskScore: number | null;
+  totalValue: string | null;
+  createdAt: Date;
+  client: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  } | null;
+}
+
+interface RecentContractsProps {
+  contracts: Contract[];
+}
+
+const statusColors: Record<string, string> = {
+  draft: "default",
+  pending_review: "warning",
+  in_negotiation: "info",
+  active: "success",
+  completed: "secondary",
+  cancelled: "danger",
+};
+
+export function RecentContracts({ contracts }: RecentContractsProps) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="flex items-center gap-2">
+          <FileText className="w-5 h-5 text-shield" />
+          Recent Contracts
+        </CardTitle>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/dashboard/contracts">
+            View all
+            <ArrowRight className="w-4 h-4 ml-1" />
+          </Link>
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {contracts.length === 0 ? (
+          <div className="text-center py-8">
+            <FileText className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
+            <p className="text-neutral-400">No contracts yet</p>
+            <Button variant="outline" size="sm" className="mt-4" asChild>
+              <Link href="/dashboard/contracts/new">
+                Upload your first contract
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {contracts.map((contract) => (
+              <Link
+                key={contract.id}
+                href={`/dashboard/contracts/${contract.id}`}
+                className="block"
+              >
+                <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-neutral-800/50 transition-colors">
+                  {contract.client ? (
+                    <UserAvatar
+                      user={{
+                        name: contract.client.name,
+                        avatarUrl: contract.client.avatarUrl,
+                      }}
+                      size="sm"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-neutral-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-neutral-100 truncate">
+                        {contract.title}
+                      </p>
+                      {contract.riskScore !== null && contract.riskScore < 60 && (
+                        <AlertTriangle className="w-4 h-4 text-warning shrink-0" />
+                      )}
+                    </div>
+                    <p className="text-xs text-neutral-400">
+                      {contract.client?.name || "No client"} •{" "}
+                      {formatRelativeTime(contract.createdAt)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {contract.riskScore !== null && (
+                      <span
+                        className={`text-sm font-medium ${getRiskColor(contract.riskScore)}`}
+                      >
+                        {contract.riskScore}%
+                      </span>
+                    )}
+                    <Badge
+                      variant={statusColors[contract.status] as any}
+                      size="sm"
+                    >
+                      {contract.status.replace("_", " ")}
+                    </Badge>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### `src/components/dashboard/client-health.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { UserAvatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Users, ArrowRight, AlertCircle } from "lucide-react";
+
+interface Client {
+  id: string;
+  name: string;
+  company: string | null;
+  avatarUrl: string | null;
+  healthScore: number | null;
+  sentimentTrend: string | null;
+}
+
+interface ClientHealthProps {
+  clients: Client[];
+}
+
+function getHealthColor(score: number | null) {
+  if (score === null) return "bg-neutral-600";
+  if (score >= 80) return "bg-success";
+  if (score >= 60) return "bg-warning";
+  return "bg-danger";
+}
+
+function getHealthLabel(score: number | null) {
+  if (score === null) return "Unknown";
+  if (score >= 80) return "Healthy";
+  if (score >= 60) return "At Risk";
+  return "Critical";
+}
+
+export function ClientHealth({ clients }: ClientHealthProps) {
+  const atRiskClients = clients.filter(
+    (c) => c.healthScore !== null && c.healthScore < 80
+  );
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="flex items-center gap-2">
+          <Users className="w-5 h-5 text-radar" />
+          Client Health
+        </CardTitle>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/dashboard/clients">
+            View all
+            <ArrowRight className="w-4 h-4 ml-1" />
+          </Link>
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {clients.length === 0 ? (
+          <div className="text-center py-8">
+            <Users className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
+            <p className="text-neutral-400">No clients yet</p>
+            <Button variant="outline" size="sm" className="mt-4" asChild>
+              <Link href="/dashboard/clients/new">Add your first client</Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {atRiskClients.length > 0 && (
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-warning-muted border border-warning/20 mb-4">
+                <AlertCircle className="w-4 h-4 text-warning shrink-0" />
+                <p className="text-xs text-warning">
+                  {atRiskClients.length} client{atRiskClients.length > 1 ? "s" : ""}{" "}
+                  need attention
+                </p>
+              </div>
+            )}
+            {clients.map((client) => (
+              <Link
+                key={client.id}
+                href={`/dashboard/clients/${client.id}`}
+                className="block"
+              >
+                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-800/50 transition-colors">
+                  <UserAvatar
+                    user={{
+                      name: client.name,
+                      avatarUrl: client.avatarUrl,
+                    }}
+                    size="sm"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-neutral-100 truncate">
+                      {client.name}
+                    </p>
+                    <p className="text-xs text-neutral-400 truncate">
+                      {client.company || "No company"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-16">
+                      <div className="h-1.5 rounded-full bg-neutral-800 overflow-hidden">
+                        <div
+                          className={cn(
+                            "h-full rounded-full transition-all",
+                            getHealthColor(client.healthScore)
+                          )}
+                          style={{ width: `${client.healthScore || 0}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span
+                      className={cn(
+                        "text-xs font-medium w-12 text-right",
+                        client.healthScore !== null && client.healthScore >= 80
+                          ? "text-success"
+                          : client.healthScore !== null && client.healthScore >= 60
+                            ? "text-warning"
+                            : "text-danger"
+                      )}
+                    >
+                      {client.healthScore || 0}%
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### `src/components/dashboard/ai-insights.tsx`
+
+```typescript
+"use client";
+
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components

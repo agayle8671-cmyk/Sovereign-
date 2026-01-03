@@ -1,0 +1,2902 @@
+# Sovereign: Complete Build
+## Continuing Systematic Implementation
+
+---
+
+## 17. Remaining UI Components
+
+### `src/components/ui/textarea.tsx`
+
+```typescript
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
+
+const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <textarea
+        className={cn(
+          "flex min-h-[120px] w-full rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 transition-colors",
+          "focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent",
+          "disabled:cursor-not-allowed disabled:opacity-50",
+          "resize-none",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+Textarea.displayName = "Textarea";
+
+export { Textarea };
+```
+
+### `src/components/ui/select.tsx`
+
+```typescript
+"use client";
+
+import * as React from "react";
+import * as SelectPrimitive from "@radix-ui/react-select";
+import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const Select = SelectPrimitive.Root;
+
+const SelectGroup = SelectPrimitive.Group;
+
+const SelectValue = SelectPrimitive.Value;
+
+const SelectTrigger = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "flex h-10 w-full items-center justify-between rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500",
+      "focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent",
+      "disabled:cursor-not-allowed disabled:opacity-50",
+      "[&>span]:line-clamp-1",
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <SelectPrimitive.Icon asChild>
+      <ChevronDown className="h-4 w-4 opacity-50" />
+    </SelectPrimitive.Icon>
+  </SelectPrimitive.Trigger>
+));
+SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
+
+const SelectScrollUpButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollUpButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1",
+      className
+    )}
+    {...props}
+  >
+    <ChevronUp className="h-4 w-4" />
+  </SelectPrimitive.ScrollUpButton>
+));
+SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
+
+const SelectScrollDownButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollDownButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1",
+      className
+    )}
+    {...props}
+  >
+    <ChevronDown className="h-4 w-4" />
+  </SelectPrimitive.ScrollDownButton>
+));
+SelectScrollDownButton.displayName =
+  SelectPrimitive.ScrollDownButton.displayName;
+
+const SelectContent = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
+>(({ className, children, position = "popper", ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-lg border border-neutral-700 bg-neutral-800 text-neutral-100 shadow-xl",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        position === "popper" &&
+          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+        className
+      )}
+      position={position}
+      {...props}
+    >
+      <SelectScrollUpButton />
+      <SelectPrimitive.Viewport
+        className={cn(
+          "p-1",
+          position === "popper" &&
+            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+        )}
+      >
+        {children}
+      </SelectPrimitive.Viewport>
+      <SelectScrollDownButton />
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+));
+SelectContent.displayName = SelectPrimitive.Content.displayName;
+
+const SelectLabel = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold text-neutral-400", className)}
+    {...props}
+  />
+));
+SelectLabel.displayName = SelectPrimitive.Label.displayName;
+
+const SelectItem = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex w-full cursor-pointer select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none",
+      "focus:bg-neutral-700 focus:text-neutral-100",
+      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <SelectPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </SelectPrimitive.ItemIndicator>
+    </span>
+
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+  </SelectPrimitive.Item>
+));
+SelectItem.displayName = SelectPrimitive.Item.displayName;
+
+const SelectSeparator = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-neutral-700", className)}
+    {...props}
+  />
+));
+SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+};
+```
+
+### `src/components/ui/tabs.tsx`
+
+```typescript
+"use client";
+
+import * as React from "react";
+import * as TabsPrimitive from "@radix-ui/react-tabs";
+import { cn } from "@/lib/utils";
+
+const Tabs = TabsPrimitive.Root;
+
+const TabsList = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.List>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.List
+    ref={ref}
+    className={cn(
+      "inline-flex h-10 items-center justify-center rounded-lg bg-neutral-800/50 p-1 text-neutral-400",
+      className
+    )}
+    {...props}
+  />
+));
+TabsList.displayName = TabsPrimitive.List.displayName;
+
+const TabsTrigger = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-all",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900",
+      "disabled:pointer-events-none disabled:opacity-50",
+      "data-[state=active]:bg-neutral-900 data-[state=active]:text-neutral-100 data-[state=active]:shadow-sm",
+      className
+    )}
+    {...props}
+  />
+));
+TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
+
+const TabsContent = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Content
+    ref={ref}
+    className={cn(
+      "mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900",
+      className
+    )}
+    {...props}
+  />
+));
+TabsContent.displayName = TabsPrimitive.Content.displayName;
+
+export { Tabs, TabsList, TabsTrigger, TabsContent };
+```
+
+### `src/components/ui/tooltip.tsx`
+
+```typescript
+"use client";
+
+import * as React from "react";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { cn } from "@/lib/utils";
+
+const TooltipProvider = TooltipPrimitive.Provider;
+
+const Tooltip = TooltipPrimitive.Root;
+
+const TooltipTrigger = TooltipPrimitive.Trigger;
+
+const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+>(({ className, sideOffset = 4, ...props }, ref) => (
+  <TooltipPrimitive.Content
+    ref={ref}
+    sideOffset={sideOffset}
+    className={cn(
+      "z-50 overflow-hidden rounded-md border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-sm text-neutral-100 shadow-xl animate-in fade-in-0 zoom-in-95",
+      "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+      "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+      className
+    )}
+    {...props}
+  />
+));
+TooltipContent.displayName = TooltipPrimitive.Content.displayName;
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider };
+```
+
+### `src/components/ui/dropdown-menu.tsx`
+
+```typescript
+"use client";
+
+import * as React from "react";
+import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+import { Check, ChevronRight, Circle } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const DropdownMenu = DropdownMenuPrimitive.Root;
+const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
+const DropdownMenuGroup = DropdownMenuPrimitive.Group;
+const DropdownMenuPortal = DropdownMenuPrimitive.Portal;
+const DropdownMenuSub = DropdownMenuPrimitive.Sub;
+const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
+
+const DropdownMenuSubTrigger = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.SubTrigger>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger> & {
+    inset?: boolean;
+  }
+>(({ className, inset, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.SubTrigger
+    ref={ref}
+    className={cn(
+      "flex cursor-default select-none items-center rounded-md px-2 py-1.5 text-sm outline-none",
+      "focus:bg-neutral-700",
+      "data-[state=open]:bg-neutral-700",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <ChevronRight className="ml-auto h-4 w-4" />
+  </DropdownMenuPrimitive.SubTrigger>
+));
+DropdownMenuSubTrigger.displayName =
+  DropdownMenuPrimitive.SubTrigger.displayName;
+
+const DropdownMenuSubContent = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
+>(({ className, ...props }, ref) => (
+  <DropdownMenuPrimitive.SubContent
+    ref={ref}
+    className={cn(
+      "z-50 min-w-[8rem] overflow-hidden rounded-lg border border-neutral-700 bg-neutral-800 p-1 text-neutral-100 shadow-xl",
+      "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+      className
+    )}
+    {...props}
+  />
+));
+DropdownMenuSubContent.displayName =
+  DropdownMenuPrimitive.SubContent.displayName;
+
+const DropdownMenuContent = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
+>(({ className, sideOffset = 4, ...props }, ref) => (
+  <DropdownMenuPrimitive.Portal>
+    <DropdownMenuPrimitive.Content
+      ref={ref}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 min-w-[8rem] overflow-hidden rounded-lg border border-neutral-700 bg-neutral-800 p-1 text-neutral-100 shadow-xl",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        className
+      )}
+      {...props}
+    />
+  </DropdownMenuPrimitive.Portal>
+));
+DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName;
+
+const DropdownMenuItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
+    inset?: boolean;
+  }
+>(({ className, inset, ...props }, ref) => (
+  <DropdownMenuPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex cursor-pointer select-none items-center rounded-md px-2 py-1.5 text-sm outline-none transition-colors",
+      "focus:bg-neutral-700 focus:text-neutral-100",
+      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  />
+));
+DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName;
+
+const DropdownMenuCheckboxItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.CheckboxItem>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>
+>(({ className, children, checked, ...props }, ref) => (
+  <DropdownMenuPrimitive.CheckboxItem
+    ref={ref}
+    className={cn(
+      "relative flex cursor-pointer select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none transition-colors",
+      "focus:bg-neutral-700 focus:text-neutral-100",
+      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    checked={checked}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <DropdownMenuPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </DropdownMenuPrimitive.ItemIndicator>
+    </span>
+    {children}
+  </DropdownMenuPrimitive.CheckboxItem>
+));
+DropdownMenuCheckboxItem.displayName =
+  DropdownMenuPrimitive.CheckboxItem.displayName;
+
+const DropdownMenuRadioItem = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.RadioItem>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
+>(({ className, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.RadioItem
+    ref={ref}
+    className={cn(
+      "relative flex cursor-pointer select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none transition-colors",
+      "focus:bg-neutral-700 focus:text-neutral-100",
+      "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <DropdownMenuPrimitive.ItemIndicator>
+        <Circle className="h-2 w-2 fill-current" />
+      </DropdownMenuPrimitive.ItemIndicator>
+    </span>
+    {children}
+  </DropdownMenuPrimitive.RadioItem>
+));
+DropdownMenuRadioItem.displayName = DropdownMenuPrimitive.RadioItem.displayName;
+
+const DropdownMenuLabel = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label> & {
+    inset?: boolean;
+  }
+>(({ className, inset, ...props }, ref) => (
+  <DropdownMenuPrimitive.Label
+    ref={ref}
+    className={cn(
+      "px-2 py-1.5 text-sm font-semibold text-neutral-400",
+      inset && "pl-8",
+      className
+    )}
+    {...props}
+  />
+));
+DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName;
+
+const DropdownMenuSeparator = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <DropdownMenuPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-neutral-700", className)}
+    {...props}
+  />
+));
+DropdownMenuSeparator.displayName = DropdownMenuPrimitive.Separator.displayName;
+
+const DropdownMenuShortcut = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => {
+  return (
+    <span
+      className={cn("ml-auto text-xs tracking-widest text-neutral-500", className)}
+      {...props}
+    />
+  );
+};
+DropdownMenuShortcut.displayName = "DropdownMenuShortcut";
+
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuGroup,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuRadioGroup,
+};
+```
+
+### `src/components/ui/label.tsx`
+
+```typescript
+"use client";
+
+import * as React from "react";
+import * as LabelPrimitive from "@radix-ui/react-label";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
+
+const labelVariants = cva(
+  "text-sm font-medium leading-none text-neutral-300 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+);
+
+const Label = React.forwardRef<
+  React.ElementRef<typeof LabelPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
+    VariantProps<typeof labelVariants>
+>(({ className, ...props }, ref) => (
+  <LabelPrimitive.Root
+    ref={ref}
+    className={cn(labelVariants(), className)}
+    {...props}
+  />
+));
+Label.displayName = LabelPrimitive.Root.displayName;
+
+export { Label };
+```
+
+### `src/components/ui/separator.tsx`
+
+```typescript
+"use client";
+
+import * as React from "react";
+import * as SeparatorPrimitive from "@radix-ui/react-separator";
+import { cn } from "@/lib/utils";
+
+const Separator = React.forwardRef<
+  React.ElementRef<typeof SeparatorPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root>
+>(
+  (
+    { className, orientation = "horizontal", decorative = true, ...props },
+    ref
+  ) => (
+    <SeparatorPrimitive.Root
+      ref={ref}
+      decorative={decorative}
+      orientation={orientation}
+      className={cn(
+        "shrink-0 bg-neutral-800",
+        orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
+        className
+      )}
+      {...props}
+    />
+  )
+);
+Separator.displayName = SeparatorPrimitive.Root.displayName;
+
+export { Separator };
+```
+
+### `src/components/ui/switch.tsx`
+
+```typescript
+"use client";
+
+import * as React from "react";
+import * as SwitchPrimitives from "@radix-ui/react-switch";
+import { cn } from "@/lib/utils";
+
+const Switch = React.forwardRef<
+  React.ElementRef<typeof SwitchPrimitives.Root>,
+  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
+>(({ className, ...props }, ref) => (
+  <SwitchPrimitives.Root
+    className={cn(
+      "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900",
+      "disabled:cursor-not-allowed disabled:opacity-50",
+      "data-[state=checked]:bg-brand-500 data-[state=unchecked]:bg-neutral-700",
+      className
+    )}
+    {...props}
+    ref={ref}
+  >
+    <SwitchPrimitives.Thumb
+      className={cn(
+        "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform",
+        "data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0"
+      )}
+    />
+  </SwitchPrimitives.Root>
+));
+Switch.displayName = SwitchPrimitives.Root.displayName;
+
+export { Switch };
+```
+
+### `src/components/ui/skeleton.tsx`
+
+```typescript
+import { cn } from "@/lib/utils";
+
+function Skeleton({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "animate-pulse rounded-md bg-neutral-800",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export { Skeleton };
+```
+
+### `src/components/ui/empty-state.tsx`
+
+```typescript
+import { cn } from "@/lib/utils";
+import { LucideIcon } from "lucide-react";
+import { Button } from "./button";
+
+interface EmptyStateProps {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  action?: {
+    label: string;
+    href?: string;
+    onClick?: () => void;
+  };
+  className?: string;
+}
+
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+  className,
+}: EmptyStateProps) {
+  return (
+    <div className={cn("text-center py-12", className)}>
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-neutral-800 mb-4">
+        <Icon className="w-8 h-8 text-neutral-500" />
+      </div>
+      <h3 className="text-lg font-medium text-neutral-100 mb-2">{title}</h3>
+      <p className="text-neutral-400 max-w-sm mx-auto mb-6">{description}</p>
+      {action && (
+        <Button
+          variant="outline"
+          onClick={action.onClick}
+          asChild={!!action.href}
+        >
+          {action.href ? (
+            <a href={action.href}>{action.label}</a>
+          ) : (
+            action.label
+          )}
+        </Button>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+## 18. Contract Detail Page
+
+### `src/app/(dashboard)/dashboard/contracts/[id]/page.tsx`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation";
+import { db } from "@/lib/db";
+import { users, contracts, scopeItems, changeOrders } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+import { ContractDetail } from "@/components/contracts/contract-detail";
+
+interface ContractPageProps {
+  params: { id: string };
+}
+
+export default async function ContractPage({ params }: ContractPageProps) {
+  const { userId: clerkId } = await auth();
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId!),
+  });
+
+  if (!user) {
+    notFound();
+  }
+
+  const contract = await db.query.contracts.findFirst({
+    where: and(
+      eq(contracts.id, params.id),
+      eq(contracts.userId, user.id)
+    ),
+    with: {
+      client: true,
+      scopeItems: true,
+      changeOrders: {
+        orderBy: (co, { desc }) => [desc(co.createdAt)],
+      },
+    },
+  });
+
+  if (!contract) {
+    notFound();
+  }
+
+  return <ContractDetail contract={contract} />;
+}
+```
+
+### `src/components/contracts/contract-detail.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserAvatar } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import {
+  formatDate,
+  formatCurrency,
+  getRiskColor,
+  getRiskBgColor,
+  cn,
+} from "@/lib/utils";
+import {
+  ArrowLeft,
+  Shield,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  DollarSign,
+  FileText,
+  Edit,
+  Download,
+  Send,
+  Plus,
+  ChevronRight,
+  Sparkles,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { RiskFlagCard } from "./risk-flag-card";
+import { ScopeItemsList } from "./scope-items-list";
+import { ChangeOrdersList } from "./change-orders-list";
+import { ContractNegotiationDialog } from "./contract-negotiation-dialog";
+
+interface ContractDetailProps {
+  contract: {
+    id: string;
+    title: string;
+    status: string;
+    riskScore: number | null;
+    totalValue: string | null;
+    currency: string | null;
+    paymentTerms: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    parsedContent: string | null;
+    extractedTerms: any;
+    riskFlags: any[];
+    createdAt: Date;
+    client: {
+      id: string;
+      name: string;
+      company: string | null;
+      avatarUrl: string | null;
+    } | null;
+    scopeItems: {
+      id: string;
+      description: string;
+      category: string | null;
+      status: string;
+      estimatedHours: string | null;
+    }[];
+    changeOrders: {
+      id: string;
+      orderNumber: number;
+      originalRequest: string;
+      status: string;
+      proposedAmount: string | null;
+      createdAt: Date;
+    }[];
+  };
+}
+
+const statusConfig: Record<string, { label: string; variant: string; icon: any }> = {
+  draft: { label: "Draft", variant: "secondary", icon: FileText },
+  pending_review: { label: "Pending Review", variant: "warning", icon: Clock },
+  in_negotiation: { label: "In Negotiation", variant: "info", icon: Edit },
+  active: { label: "Active", variant: "success", icon: CheckCircle },
+  completed: { label: "Completed", variant: "secondary", icon: CheckCircle },
+  cancelled: { label: "Cancelled", variant: "danger", icon: AlertTriangle },
+};
+
+export function ContractDetail({ contract }: ContractDetailProps) {
+  const [showNegotiationDialog, setShowNegotiationDialog] = useState(false);
+  const status = statusConfig[contract.status] || statusConfig.draft;
+  const StatusIcon = status.icon;
+
+  const criticalRisks = contract.riskFlags?.filter(
+    (r) => r.severity === "CRITICAL" || r.severity === "HIGH"
+  ) || [];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/dashboard/contracts">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+          </Button>
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-semibold text-neutral-100">
+                {contract.title}
+              </h1>
+              <Badge variant={status.variant as any}>
+                <StatusIcon className="w-3 h-3 mr-1" />
+                {status.label}
+              </Badge>
+            </div>
+            {contract.client && (
+              <div className="flex items-center gap-2 mt-2">
+                <UserAvatar
+                  user={{
+                    name: contract.client.name,
+                    avatarUrl: contract.client.avatarUrl,
+                  }}
+                  size="xs"
+                />
+                <span className="text-neutral-400">
+                  {contract.client.name}
+                  {contract.client.company && ` • ${contract.client.company}`}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <Button variant="outline">
+            <Download className="w-4 h-4 mr-2" />
+            Download
+          </Button>
+          {criticalRisks.length > 0 && (
+            <Button variant="shield" onClick={() => setShowNegotiationDialog(true)}>
+              <Sparkles className="w-4 h-4 mr-2" />
+              AI Negotiate
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Risk Alert Banner */}
+      {criticalRisks.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-xl bg-danger-muted border border-danger/20"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-danger/20 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-danger" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-medium text-danger">
+                {criticalRisks.length} High-Risk Clause{criticalRisks.length > 1 ? "s" : ""} Detected
+              </h3>
+              <p className="text-sm text-danger/80">
+                Review and negotiate these terms before signing.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-danger/30 text-danger hover:bg-danger/10"
+              onClick={() => setShowNegotiationDialog(true)}
+            >
+              Fix Risks
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div
+              className={cn(
+                "w-10 h-10 rounded-lg flex items-center justify-center",
+                getRiskBgColor(contract.riskScore || 0)
+              )}
+            >
+              <Shield
+                className={cn("w-5 h-5", getRiskColor(contract.riskScore || 0))}
+              />
+            </div>
+            <div>
+              <p className="text-sm text-neutral-400">Risk Score</p>
+              <p
+                className={cn(
+                  "text-xl font-semibold",
+                  getRiskColor(contract.riskScore || 0)
+                )}
+              >
+                {contract.riskScore ?? "N/A"}%
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-success-muted flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-success" />
+            </div>
+            <div>
+              <p className="text-sm text-neutral-400">Contract Value</p>
+              <p className="text-xl font-semibold text-neutral-100">
+                {contract.totalValue
+                  ? formatCurrency(
+                      parseFloat(contract.totalValue),
+                      contract.currency || "USD"
+                    )
+                  : "N/A"}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-info-muted flex items-center justify-center">
+              <Clock className="w-5 h-5 text-info" />
+            </div>
+            <div>
+              <p className="text-sm text-neutral-400">Payment Terms</p>
+              <p className="text-xl font-semibold text-neutral-100">
+                {contract.paymentTerms?.replace("_", "-") || "N/A"}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-magnet/10 flex items-center justify-center">
+              <FileText className="w-5 h-5 text-magnet" />
+            </div>
+            <div>
+              <p className="text-sm text-neutral-400">Scope Items</p>
+              <p className="text-xl font-semibold text-neutral-100">
+                {contract.scopeItems.length}
+              </p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Main Content */}
+      <Tabs defaultValue="risks" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="risks">
+            Risk Analysis
+            {criticalRisks.length > 0 && (
+              <span className="ml-2 px-1.5 py-0.5 text-xs bg-danger/20 text-danger rounded">
+                {criticalRisks.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="scope">
+            Scope
+            <span className="ml-2 text-xs text-neutral-500">
+              ({contract.scopeItems.length})
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="changes">
+            Change Orders
+            <span className="ml-2 text-xs text-neutral-500">
+              ({contract.changeOrders.length})
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="details">Key Terms</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="risks" className="space-y-4">
+          {contract.riskFlags && contract.riskFlags.length > 0 ? (
+            <div className="grid gap-4">
+              {contract.riskFlags.map((risk, index) => (
+                <RiskFlagCard key={index} risk={risk} />
+              ))}
+            </div>
+          ) : (
+            <Card className="p-8 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success-muted mb-4">
+                <CheckCircle className="w-8 h-8 text-success" />
+              </div>
+              <h3 className="text-lg font-medium text-neutral-100 mb-2">
+                No Major Risks Detected
+              </h3>
+              <p className="text-neutral-400 max-w-md mx-auto">
+                This contract appears to have fair and standard terms. Always
+                review carefully before signing.
+              </p>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="scope">
+          <ScopeItemsList
+            items={contract.scopeItems}
+            contractId={contract.id}
+          />
+        </TabsContent>
+
+        <TabsContent value="changes">
+          <ChangeOrdersList
+            changeOrders={contract.changeOrders}
+            contractId={contract.id}
+          />
+        </TabsContent>
+
+        <TabsContent value="details">
+          <Card>
+            <CardHeader>
+              <CardTitle>Extracted Contract Terms</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {contract.extractedTerms?.parties && (
+                <div>
+                  <h4 className="text-sm font-medium text-neutral-400 mb-2">
+                    Parties
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 rounded-lg bg-neutral-800/50">
+                      <p className="text-xs text-neutral-500 mb-1">Client</p>
+                      <p className="text-neutral-100">
+                        {contract.extractedTerms.parties.client?.name || "N/A"}
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-neutral-800/50">
+                      <p className="text-xs text-neutral-500 mb-1">Contractor</p>
+                      <p className="text-neutral-100">
+                        {contract.extractedTerms.parties.contractor?.name || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {contract.extractedTerms?.dates && (
+                <div>
+                  <h4 className="text-sm font-medium text-neutral-400 mb-2">
+                    Timeline
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 rounded-lg bg-neutral-800/50">
+                      <p className="text-xs text-neutral-500 mb-1">Start Date</p>
+                      <p className="text-neutral-100">
+                        {contract.extractedTerms.dates.effectiveDate
+                          ? formatDate(contract.extractedTerms.dates.effectiveDate)
+                          : "Not specified"}
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-neutral-800/50">
+                      <p className="text-xs text-neutral-500 mb-1">End Date</p>
+                      <p className="text-neutral-100">
+                        {contract.extractedTerms.dates.endDate
+                          ? formatDate(contract.extractedTerms.dates.endDate)
+                          : "Not specified"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <Separator />
+
+              <div>
+                <h4 className="text-sm font-medium text-neutral-400 mb-2">
+                  Original Content
+                </h4>
+                <div className="p-4 rounded-lg bg-neutral-800/50 max-h-96 overflow-y-auto">
+                  <pre className="text-sm text-neutral-300 whitespace-pre-wrap font-mono">
+                    {contract.parsedContent || "No content available"}
+                  </pre>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Negotiation Dialog */}
+      <ContractNegotiationDialog
+        open={showNegotiationDialog}
+        onOpenChange={setShowNegotiationDialog}
+        contract={contract}
+        risks={criticalRisks}
+      />
+    </div>
+  );
+}
+```
+
+### `src/components/contracts/risk-flag-card.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import {
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Check,
+  Sparkles,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+interface RiskFlagCardProps {
+  risk: {
+    clause: string;
+    category: string;
+    severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+    explanation: string;
+    recommendation: string;
+    suggestedRevision?: string;
+  };
+}
+
+const severityConfig = {
+  CRITICAL: {
+    bg: "bg-danger-muted",
+    border: "border-danger/20",
+    text: "text-danger",
+    badge: "danger",
+  },
+  HIGH: {
+    bg: "bg-danger-muted",
+    border: "border-danger/20",
+    text: "text-danger",
+    badge: "danger",
+  },
+  MEDIUM: {
+    bg: "bg-warning-muted",
+    border: "border-warning/20",
+    text: "text-warning",
+    badge: "warning",
+  },
+  LOW: {
+    bg: "bg-info-muted",
+    border: "border-info/20",
+    text: "text-info",
+    badge: "info",
+  },
+};
+
+export function RiskFlagCard({ risk }: RiskFlagCardProps) {
+  const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const config = severityConfig[risk.severity];
+
+  const copyRevision = async () => {
+    if (risk.suggestedRevision) {
+      await navigator.clipboard.writeText(risk.suggestedRevision);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <Card className={cn("border overflow-hidden", config.border, config.bg)}>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full p-4 text-left"
+      >
+        <div className="flex items-start gap-3">
+          <AlertTriangle className={cn("w-5 h-5 mt-0.5 shrink-0", config.text)} />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-medium text-neutral-100">
+                {risk.category.replace(/_/g, " ")}
+              </span>
+              <Badge variant={config.badge as any} size="sm">
+                {risk.severity}
+              </Badge>
+            </div>
+            <p className="text-sm text-neutral-300 line-clamp-2">
+              {risk.explanation}
+            </p>
+          </div>
+          {expanded ? (
+            <ChevronUp className="w-5 h-5 text-neutral-400 shrink-0" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-neutral-400 shrink-0" />
+          )}
+        </div>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="px-4 pb-4 space-y-4">
+              {/* Original Clause */}
+              <div>
+                <p className="text-xs font-medium text-neutral-400 mb-2">
+                  PROBLEMATIC CLAUSE
+                </p>
+                <div className="p-3 rounded-lg bg-neutral-900/50 border border-neutral-700">
+                  <p className="text-sm text-neutral-300 italic">
+                    "{risk.clause}"
+                  </p>
+                </div>
+              </div>
+
+              {/* Recommendation */}
+              <div>
+                <p className="text-xs font-medium text-neutral-400 mb-2">
+                  RECOMMENDATION
+                </p>
+                <p className="text-sm text-neutral-300">{risk.recommendation}</p>
+              </div>
+
+              {/* Suggested Revision */}
+              {risk.suggestedRevision && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-medium text-neutral-400">
+                      SUGGESTED REVISION
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={copyRevision}
+                      className="h-7 px-2"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-3 h-3 mr-1 text-success" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3 mr-1" />
+                          Copy
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="p-3 rounded-lg bg-success-muted border border-success/20">
+                    <p className="text-sm text-success">
+                      "{risk.suggestedRevision}"
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Card>
+  );
+}
+```
+
+### `src/components/contracts/scope-items-list.tsx`
+
+```typescript
+"use client";
+
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { cn } from "@/lib/utils";
+import { Plus, CheckCircle, Clock, Circle, ListChecks } from "lucide-react";
+
+interface ScopeItemsListProps {
+  items: {
+    id: string;
+    description: string;
+    category: string | null;
+    status: string;
+    estimatedHours: string | null;
+  }[];
+  contractId: string;
+}
+
+const statusConfig = {
+  pending: { icon: Circle, color: "text-neutral-400", label: "Pending" },
+  in_progress: { icon: Clock, color: "text-info", label: "In Progress" },
+  completed: { icon: CheckCircle, color: "text-success", label: "Completed" },
+  cancelled: { icon: Circle, color: "text-danger", label: "Cancelled" },
+};
+
+export function ScopeItemsList({ items, contractId }: ScopeItemsListProps) {
+  if (items.length === 0) {
+    return (
+      <Card>
+        <EmptyState
+          icon={ListChecks}
+          title="No scope items"
+          description="Scope items from this contract will appear here."
+        />
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Scope of Work</CardTitle>
+        <Button variant="outline" size="sm">
+          <Plus className="w-4 h-4 mr-2" />
+          Add Item
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {items.map((item) => {
+            const status = statusConfig[item.status as keyof typeof statusConfig] ||
+              statusConfig.pending;
+            const StatusIcon = status.icon;
+
+            return (
+              <div
+                key={item.id}
+                className="flex items-start gap-3 p-3 rounded-lg bg-neutral-800/50 hover:bg-neutral-800 transition-colors"
+              >
+                <StatusIcon className={cn("w-5 h-5 mt-0.5", status.color)} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-neutral-100">{item.description}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {item.category && (
+                      <Badge variant="outline" size="sm">
+                        {item.category}
+                      </Badge>
+                    )}
+                    {item.estimatedHours && (
+                      <span className="text-xs text-neutral-500">
+                        Est. {item.estimatedHours}h
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <Badge variant="secondary" size="sm">
+                  {status.label}
+                </Badge>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### `src/components/contracts/change-orders-list.tsx`
+
+```typescript
+"use client";
+
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { formatRelativeTime, formatCurrency } from "@/lib/utils";
+import { Plus, FileText, ChevronRight } from "lucide-react";
+
+interface ChangeOrdersListProps {
+  changeOrders: {
+    id: string;
+    orderNumber: number;
+    originalRequest: string;
+    status: string;
+    proposedAmount: string | null;
+    createdAt: Date;
+  }[];
+  contractId: string;
+}
+
+const statusConfig = {
+  draft: { label: "Draft", variant: "secondary" },
+  pending_approval: { label: "Pending Approval", variant: "warning" },
+  approved: { label: "Approved", variant: "success" },
+  rejected: { label: "Rejected", variant: "danger" },
+  invoiced: { label: "Invoiced", variant: "info" },
+};
+
+export function ChangeOrdersList({
+  changeOrders,
+  contractId,
+}: ChangeOrdersListProps) {
+  if (changeOrders.length === 0) {
+    return (
+      <Card>
+        <EmptyState
+          icon={FileText}
+          title="No change orders"
+          description="Change orders for out-of-scope requests will appear here."
+          action={{
+            label: "Create Change Order",
+            onClick: () => {},
+          }}
+        />
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Change Orders</CardTitle>
+        <Button variant="outline" size="sm">
+          <Plus className="w-4 h-4 mr-2" />
+          New Change Order
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {changeOrders.map((order) => {
+            const status =
+              statusConfig[order.status as keyof typeof statusConfig] ||
+              statusConfig.draft;
+
+            return (
+              <div
+                key={order.id}
+                className="flex items-center gap-4 p-4 rounded-lg bg-neutral-800/50 hover:bg-neutral-800 transition-colors cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-lg bg-magnet/10 flex items-center justify-center">
+                  <span className="text-sm font-semibold text-magnet">
+                    #{order.orderNumber}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-neutral-100 truncate">
+                    {order.originalRequest}
+                  </p>
+                  <p className="text-sm text-neutral-400">
+                    {formatRelativeTime(order.createdAt)}
+                  </p>
+                </div>
+                {order.proposedAmount && (
+                  <div className="text-right">
+                    <p className="font-medium text-neutral-100">
+                      {formatCurrency(parseFloat(order.proposedAmount))}
+                    </p>
+                  </div>
+                )}
+                <Badge variant={status.variant as any}>{status.label}</Badge>
+                <ChevronRight className="w-5 h-5 text-neutral-600" />
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### `src/components/contracts/contract-negotiation-dialog.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import {
+  Sparkles,
+  Copy,
+  Check,
+  Mail,
+  Download,
+  Loader2,
+  ChevronRight,
+} from "lucide-react";
+import { motion } from "framer-motion";
+
+interface ContractNegotiationDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  contract: any;
+  risks: any[];
+}
+
+export function ContractNegotiationDialog({
+  open,
+  onOpenChange,
+  contract,
+  risks,
+}: ContractNegotiationDialogProps) {
+  const [step, setStep] = useState<"select" | "generating" | "result">("select");
+  const [selectedRisks, setSelectedRisks] = useState<Set<number>>(
+    new Set(risks.map((_, i) => i))
+  );
+  const [generatedEmail, setGeneratedEmail] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const toggleRisk = (index: number) => {
+    const newSelected = new Set(selectedRisks);
+    if (newSelected.has(index)) {
+      newSelected.delete(index);
+    } else {
+      newSelected.add(index);
+    }
+    setSelectedRisks(newSelected);
+  };
+
+  const handleGenerate = async () => {
+    setStep("generating");
+
+    // Simulate AI generation
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const selectedRisksList = risks.filter((_, i) => selectedRisks.has(i));
+    const email = generateNegotiationEmail(contract, selectedRisksList);
+    setGeneratedEmail(email);
+    setStep("result");
+  };
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(generatedEmail);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleReset = () => {
+    setStep("select");
+    setSelectedRisks(new Set(risks.map((_, i) => i)));
+    setGeneratedEmail("");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-shield to-shield-dark flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-white" />
+            </div>
+            AI Contract Negotiation
+          </DialogTitle>
+          <DialogDescription>
+            Generate a professional counter-proposal email addressing the
+            identified risks.
+          </DialogDescription>
+        </DialogHeader>
+
+        {step === "select" && (
+          <div className="space-y-4">
+            <p className="text-sm text-neutral-400">
+              Select which issues to address in your negotiation email:
+            </p>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {risks.map((risk, index) => (
+                <button
+                  key={index}
+                  onClick={() => toggleRisk(index)}
+                  className={cn(
+                    "w-full flex items-start gap-3 p-3 rounded-lg border text-left transition-all",
+                    selectedRisks.has(index)
+                      ? "border-shield bg-shield/5"
+                      : "border-neutral-700 hover:border-neutral-600"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5",
+                      selectedRisks.has(index)
+                        ? "bg-shield border-shield"
+                        : "border-neutral-600"
+                    )}
+                  >
+                    {selectedRisks.has(index) && (
+                      <Check className="w-3 h-3 text-white" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-neutral-100">
+                        {risk.category.replace(/_/g, " ")}
+                      </span>
+                      <Badge
+                        variant={
+                          risk.severity === "CRITICAL" || risk.severity === "HIGH"
+                            ? "danger"
+                            : "warning"
+                        }
+                        size="sm"
+                      >
+                        {risk.severity}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-neutral-400 mt-1">
+                      {risk.recommendation}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="shield"
+                onClick={handleGenerate}
+                disabled={selectedRisks.size === 0}
+              >
+                Generate Email
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === "generating" && (
+          <div className="py-12 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-shield/10 mb-4">
+              <Loader2 className="w-8 h-8 text-shield animate-spin" />
+            </div>
+            <p className="text-neutral-300">
+              Generating professional negotiation email...
+            </p>
+            <p className="text-sm text-neutral-500 mt-1">
+              Crafting persuasive counter-proposals for {selectedRisks.size}{" "}
+              issue(s)
+            </p>
+          </div>
+        )}
+
+        {step === "result" && (
+          <div className="space-y-4">
+            <div className="p-4 rounded-lg bg-neutral-800 max-h-80 overflow-y-auto">
+              <pre className="text-sm text-neutral-300 whitespace-pre-wrap font-sans">
+                {generatedEmail}
+              </pre>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={handleReset} className="flex-1">
+                Regenerate
+              </Button>
+              <Button variant="outline" onClick={handleCopy}>
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2 text-success" />
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy
+                  </>
+                )}
+              </Button>
+              <Button variant="shield">
+                <Mail className="w-4 h-4 mr-2" />
+                Send Email
+              </Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function generateNegotiationEmail(contract: any, risks: any[]): string {
+  const clientName = contract.extractedTerms?.parties?.client?.name || "Client";
+
+  let riskPoints = risks
+    .map((risk, i) => {
+      const revision = risk.suggestedRevision
+        ? `\n   Suggested revision: "${risk.suggestedRevision}"`
+        : "";
+      return `${i + 1}. ${risk.category.replace(/_/g, " ")}: ${risk.recommendation}${revision}`;
+    })
+    .join("\n\n");
+
+  return `Subject: Contract Review - Proposed Amendments
+
+Dear ${clientName},
+
+Thank you for sending over the contract for our upcoming engagement. I've thoroughly reviewed the terms and am excited about the opportunity to work together.
+
+After careful consideration, I'd like to discuss a few clauses that I believe would benefit from some adjustments to ensure a fair and productive working relationship for both parties:
+
+${riskPoints}
+
+These proposed changes align with industry standards and will help ensure a smooth collaboration. I'm confident we can find mutually agreeable terms that protect both of our interests.
+
+I'm happy to schedule a call to discuss these points in detail, or feel free to respond with your thoughts via email.
+
+Looking forward to your response and to moving forward with this project.
+
+Best regards,
+[Your Name]`;
+}
+```
+
+---
+
+## 19. Clients Pages
+
+### `src/app/(dashboard)/dashboard/clients/page.tsx`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
+import { users, clients } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ClientsList } from "@/components/clients/clients-list";
+import { Plus } from "lucide-react";
+
+export default async function ClientsPage() {
+  const { userId: clerkId } = await auth();
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId!),
+  });
+
+  if (!user) return null;
+
+  const clientsList = await db.query.clients.findMany({
+    where: eq(clients.userId, user.id),
+    orderBy: [desc(clients.createdAt)],
+  });
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-neutral-100">Clients</h1>
+          <p className="text-neutral-400 mt-1">
+            Manage your client relationships and track engagement health.
+          </p>
+        </div>
+        <Button variant="radar" asChild>
+          <Link href="/dashboard/clients/new">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Client
+          </Link>
+        </Button>
+      </div>
+
+      <ClientsList clients={clientsList} />
+    </div>
+  );
+}
+```
+
+### `src/components/clients/clients-list.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/ui/avatar";
+import { EmptyState } from "@/components/ui/empty-state";
+import { formatCurrency, formatRelativeTime, cn } from "@/lib/utils";
+import {
+  Search,
+  Users,
+  ChevronRight,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Building,
+} from "lucide-react";
+
+interface Client {
+  id: string;
+  name: string;
+  email: string | null;
+  company: string | null;
+  industry: string | null;
+  avatarUrl: string | null;
+  healthScore: number | null;
+  sentimentTrend: string | null;
+  totalRevenue: string | null;
+  createdAt: Date;
+}
+
+interface ClientsListProps {
+  clients: Client[];
+}
+
+function getHealthColor(score: number | null) {
+  if (score === null) return "text-neutral-400";
+  if (score >= 80) return "text-success";
+  if (score >= 60) return "text-warning";
+  return "text-danger";
+}
+
+function getSentimentIcon(trend: string | null) {
+  switch (trend) {
+    case "VERY_POSITIVE":
+    case "POSITIVE":
+      return <TrendingUp className="w-4 h-4 text-success" />;
+    case "NEGATIVE":
+    case "VERY_NEGATIVE":
+      return <TrendingDown className="w-4 h-4 text-danger" />;
+    default:
+      return <Minus className="w-4 h-4 text-neutral-400" />;
+  }
+}
+
+export function ClientsList({ clients }: ClientsListProps) {
+  const [search, setSearch] = useState("");
+
+  const filteredClients = clients.filter((client) =>
+    client.name.toLowerCase().includes(search.toLowerCase()) ||
+    client.company?.toLowerCase().includes(search.toLowerCase()) ||
+    client.email?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (clients.length === 0) {
+    return (
+      <Card>
+        <EmptyState
+          icon={Users}
+          title="No clients yet"
+          description="Add your first client to start tracking relationship health."
+          action={{
+            label: "Add Client",
+            href: "/dashboard/clients/new",
+          }}
+        />
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <Input
+            placeholder="Search clients..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            icon={<Search className="w-4 h-4" />}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredClients.map((client) => (
+          <Link key={client.id} href={`/dashboard/clients/${client.id}`}>
+            <Card
+              variant="interactive"
+              className="p-4 h-full"
+            >
+              <div className="flex items-start gap-4">
+                <UserAvatar
+                  user={{
+                    name: client.name,
+                    avatarUrl: client.avatarUrl,
+                  }}
+                  size="lg"
+                />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-neutral-100 truncate">
+                    {client.name}
+                  </h3>
+                  {client.company && (
+                    <p className="text-sm text-neutral-400 flex items-center gap-1">
+                      <Building className="w-3 h-3" />
+                      {client.company}
+                    </p>
+                  )}
+                </div>
+                {getSentimentIcon(client.sentimentTrend)}
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-neutral-800 grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-neutral-500">Health Score</p>
+                  <p
+                    className={cn(
+                      "text-lg font-semibold",
+                      getHealthColor(client.healthScore)
+                    )}
+                  >
+                    {client.healthScore ?? "—"}%
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500">Total Revenue</p>
+                  <p className="text-lg font-semibold text-neutral-100">
+                    {client.totalRevenue
+                      ? formatCurrency(parseFloat(client.totalRevenue))
+                      : "—"}
+                  </p>
+                </div>
+              </div>
+
+              {client.industry && (
+                <div className="mt-3">
+                  <Badge variant="outline" size="sm">
+                    {client.industry}
+                  </Badge>
+                </div>
+              )}
+            </Card>
+          </Link>
+        ))}
+      </div>
+
+      {filteredClients.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-neutral-400">
+            No clients match your search.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### `src/app/(dashboard)/dashboard/clients/new/page.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Users, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
+const clientSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  company: z.string().optional(),
+  industry: z.string().optional(),
+  website: z.string().url("Invalid URL").optional().or(z.literal("")),
+  notes: z.string().optional(),
+});
+
+type ClientFormData = z.infer<typeof clientSchema>;
+
+const industries = [
+  "Technology",
+  "Healthcare",
+  "Finance",
+  "E-commerce",
+  "Education",
+  "Marketing",
+  "Real Estate",
+  "Manufacturing",
+  "Entertainment",
+  "Non-profit",
+  "Other",
+];
+
+export default function NewClientPage() {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<ClientFormData>({
+    resolver: zodResolver(clientSchema),
+  });
+
+  const onSubmit = async (data: ClientFormData) => {
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) throw new Error("Failed to create client");
+
+      const client = await response.json();
+      toast.success("Client created successfully");
+      router.push(`/dashboard/clients/${client.id}`);
+    } catch (error) {
+      toast.error("Failed to create client");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/dashboard/clients">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+        </Button>
+        <div>
+          <h1 className="text-2xl font-semibold text-neutral-100">Add Client</h1>
+          <p className="text-neutral-400">
+            Add a new client to track your relationship.
+          </p>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-radar" />
+            Client Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name *</Label>
+                <Input
+                  id="name"
+                  placeholder="John Smith"
+                  {...register("name")}
+                />
+                {errors.name && (
+                  <p className="text-sm text-danger">{errors.name.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="john@company.com"
+                  {...register("email")}
+                />
+                {errors.email && (
+                  <p className="text-sm text-danger">{errors.email.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="company">Company</Label>
+                <Input
+                  id="company"
+                  placeholder="Acme Inc."
+                  {...register("company")}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="industry">Industry</Label>
+                <Select onValueChange={(value) => setValue("industry", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {industries.map((industry) => (
+                      <SelectItem key={industry} value={industry.toLowerCase()}>
+                        {industry}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                placeholder="https://company.com"
+                {...register("website")}
+              />
+              {errors.website && (
+                <p className="text-sm text-danger">{errors.website.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                placeholder="Any additional notes about this client..."
+                {...register("notes")}
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button type="button" variant="outline" asChild>
+                <Link href="/dashboard/clients">Cancel</Link>
+              </Button>
+              <Button type="submit" variant="radar" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Create Client
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+### `src/app/api/clients/route.ts`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { users, clients } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
+import { z } from "zod";
+
+const createClientSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email().optional().nullable(),
+  company: z.string().optional().nullable(),
+  industry: z.string().optional().nullable(),
+  website: z.string().url().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+export async function GET() {
+  try {
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkId),
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const clientsList = await db.query.clients.findMany({
+      where: eq(clients.userId, user.id),
+      orderBy: [desc(clients.createdAt)],
+    });
+
+    return NextResponse.json(clientsList);
+  } catch (error) {
+    console.error("Error fetching clients:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch clients" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkId),
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const body = await req.json();
+    const data = createClientSchema.parse(body);
+
+    const [client] = await db
+      .insert(clients)
+      .values({
+        userId: user.id,
+        name: data.name,
+        email: data.email || null,
+        company: data.company || null,
+        industry: data.industry || null,
+        website: data.website || null,
+        notes: data.notes || null,
+        healthScore: 100,
+        sentimentTrend: "NEUTRAL",
+      })
+      .returning();
+
+    return NextResponse.json(client);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Validation error", details: error.errors },
+        { status: 400 }
+      );
+    }
+    console.error("Error creating client:", error);
+    return NextResponse.json(
+      { error: "Failed to create client" },
+      { status: 500 }
+    );
+  }
+}
+```
+
+---
+
+## 20. Portfolio Pages
+
+### `src/app/(dashboard)/dashboard/portfolio/page.tsx`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
+import { users, portfolioItems } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { PortfolioGrid } from "@/components/portfolio/portfolio-grid";
+import { Plus } from "lucide-react";
+
+export default async function PortfolioPage() {
+  const { userId: clerkId } = await auth();
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId!),
+  });
+
+  if (!user) return null;
+
+  const items = await db.query.portfolioItems.findMany({
+    where: eq(portfolioItems.userId, user.id),
+    orderBy: [desc(portfolioItems.createdAt)],
+    with: {
+      client: true,
+      testimonials: {
+        where: (t, { eq }) => eq(t.isApproved, true),
+        limit: 1,
+      },
+    },
+  });
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-neutral-100">Portfolio</h1>
+          <p className="text-neutral-400 mt-1">
+            Showcase your best work and attract new clients.
+          </p>
+        </div>
+        <Button variant="magnet" asChild>
+          <Link href="/dashboard/portfolio/new">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Project
+          </Link>
+        </Button>
+      </div>
+
+      <PortfolioGrid items={items} />
+    </div>
+  );
+}
+```
+
+### `src/components/portfolio/portfolio-grid.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { cn } from "@/lib/utils";
+import {
+  Search,
+  Briefcase,
+  ExternalLink,
+  Star,
+  MoreHorizontal,
+  Eye,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+
+interface PortfolioItem {
+  id: string;
+  title: string;
+  shortDescription: string | null;
+  category: string | null;
+  thumbnailUrl: string | null;
+  externalUrl: string | null;
+  industries: string[] | null;
+  tags: string[] | null;
+  isFeatured: boolean;
+  client: {
+    name: string;
+    company: string | null;
+  } | null;
+  testimonials: {
+    id: string;
+    rating: number | null;
+  }[];
+}
+
+interface PortfolioGridProps {
+  items: PortfolioItem[];
+}
+
+export function PortfolioGrid({ items }: PortfolioGridProps) {
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+
+  const categories = [...new Set(items.map((i) => i.category).filter(Boolean))];
+
+  const filteredItems = items.filter((item) => {
+    const matchesSearch =
+      item.title.toLowerCase().includes(search.toLowerCase()) ||
+      item.shortDescription?.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = !categoryFilter || item.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
+  if (items.length === 0) {
+    return (
+      <Card>
+        <EmptyState
+          icon={Briefcase}
+          title="No portfolio items yet"
+          description="Add your first project to start building your portfolio."
+          action={{
+            label: "Add Project",
+            href: "/dashboard/portfolio/new",
+          }}
+        />
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <Input
+            placeholder="Search projects..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            icon={<Search className="w-4 h-4" />}
+          />
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
+          <Button
+            variant={categoryFilter === null ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setCategoryFilter(null)}
+          >
+            All
+          </Button>
+          {categories.map((category) => (
+            <Button
+              key={category}
+              variant={categoryFilter === category ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setCategoryFilter(category)}
+            >
+              {category}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredItems.map((item) => (
+          <PortfolioCard key={item.id} item={item} />
+        ))}
+      </div>
+
+      {filteredItems.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-neutral-400">No projects match your search.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PortfolioCard({ item }: { item: PortfolioItem }) {
+  return (
+    <Card variant="interactive" className="overflow-hidden group">
+      <Link href={`/dashboard/portfolio/${item.id}`}>
+        {/* Thumbnail */}
+        <div className="aspect-video relative bg-neutral-800 overflow-hidden">
+          {item.thumbnailUrl ? (
+            <Image
+              src={item.thumbnailUrl}
+              alt={item.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Briefcase className="w-12 h-12 text-neutral-600" />
+            </div>
+          )}
+          {item.isFeatured && (
+            <div className="absolute top-3 left-3">
+              <Badge variant="primary">
+                <Star className="w-3 h-3 mr-1" />
+                Featured
+              </Badge>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button size="sm" variant="secondary">
+              <Eye className="w-4 h-4 mr-1" />
+              View
+            </Button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-4">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-neutral-100 truncate">
+                {item.title}
+              </h3>
+              {item.client && (
+                <p className="text-sm text-neutral-400">
+                  {item.client.company || item.client.name}
+                </p>
+              )}
+            </div>
+            {item.testimonials.length > 0 && item.testimonials[0].rating && (
+              <div className="flex items-center gap-1 text-yellow-500">
+                <Star className="w-4 h-4 fill-current" />
+                <span className="text-sm font-medium">
+                  {item.testimonials[0].rating}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {item.shortDescription && (
+            <p className="text-sm text-neutral-400 mt-2 line-clamp-2">
+              {item.shortDescription}
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-2 mt-3">
+            {item.category && (
+              <Badge variant="outline" size="sm">
+                {item.category}
+              </Badge>
+            )}
+            {item.tags?.slice(0, 2).map((tag) => (
+              <Badge key={tag} variant="secondary" size="sm">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </Link>
+    </Card>
+  );
+}
+```
+
+### `src/app/(dashboard)/dashboard/portfolio/new/page.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Briefcase, Loader2, Upload, X } from "lucide-react";
+import { toast } from "sonner";
+
+const portfolioSchema = z.object({
+  title: z.string().min(2, "Title must be at least 2 characters"),
+  shortDescription: z.string().max(500).optional(),
+  description: z.string().optional(),
+  category: z.string().optional(),
+  externalUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  tags: z.string().optional(),
+  isFeatured: z.boolean().default(false),
+  isPublic: z.boolean().default(true),
+});
+
+type PortfolioFormData = z.infer<typeof portfolioSchema>;
+
+const categories = [
+  "Web Design",
+  "UI/UX Design",
+  "Mobile App",
+  "Brand Identity",
+  "Development",
+  "Consulting",
+  "Marketing",
+  "Other",
+];
+
+export default function NewPortfolioPage() {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<PortfolioFormData>({
+    resolver: zodResolver(portfolioSchema),
+    defaultValues: {
+      isFeatured: false,
+      isPublic: true,
+    },
+  });
+
+  const isFeatured = watch("isFeatured");
+  const isPublic = watch("isPublic");
+
+  const onSubmit = async (data: PortfolioFormData) => {
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/portfolio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          tags: data.tags?.split(",").map((t) => t.trim()).filter(Boolean),
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to create portfolio item");
+
+      const item = await response.json();
+      toast.success("Portfolio item created");
+      router.push(`/dashboard/portfolio/${item.id}`);
+    } catch (error) {
+      toast.error("Failed to create portfolio item");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/dashboard/portfolio">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+        </Button>
+        <div>
+          <h1 className="text-2xl font-semibold text-neutral-100">Add Project</h1>
+          <p className="text-neutral-400">
+            Add a new project to your portfolio.
+          </p>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Briefcase className="w-5 h-5 text-magnet" />
+            Project Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="title">Project Title *</Label>
+              <Input
+                id="title"
+                placeholder="E-commerce Redesign for TechStart"
+                {...register("title")}
+              />
+              {errors.title && (
+                <p className="text-sm text-danger">{errors.title.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="shortDescription">Short Description</Label>
+              <Textarea
+                id="shortDescription"
+                placeholder="A brief summary of the project..."
+                className="h-20"
+                {...register("shortDescription")}
+              />
+              <p className="text-xs text-neutral-500">
+                This appears in portfolio cards. Max 500 characters.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select onValueChange={(value) => setValue("category", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category.toLowerCase()}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="externalUrl">Project URL</Label>
+                <Input
+                  id="externalUrl"
+                  placeholder="https://project.com"
+                  {...register("externalUrl")}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tags">Tags</Label>
+              <Input
+                id="tags"
+                placeholder="React, TypeScript, E-commerce (comma separated)"
+                {...register("tags")}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Full Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Detailed description of the project, your role, technologies used..."
+                className="h-32"
+                {...register("description")}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-lg bg-neutral-800/50">
+              <div>
+                <p className="font-medium text-neutral-100">Featured Project</p>
+                <p className="text-sm text-neutral-400">
+                  Highlight this project in your portfolio
+                </p>
+              </div>
+              <Switch
+                checked={isFeatured}
+                onCheckedChange={(checked) => setValue("isFeatured", checked)}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-lg bg-neutral-800/50">
+              <div>
+                <p className="font-medium text-neutral-100">Public</p>
+                <p className="text-sm text-neutral-400">
+                  Include in public portfolio and pitches
+                </p>
+              </div>
+              <Switch
+                checked={isPublic}
+                onCheckedChange={(checked) => setValue("isPublic", checked)}
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button type="button" variant="outline" asChild>
+                <Link href="/dashboard/portfolio">Cancel</Link>
+              </Button>
+              <Button type="submit" variant="magnet" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Create Project
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+### `src/app/api/portfolio/route.ts`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { users, portfolioItems } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
+import { z } from "zod";
+
+const createPortfolioSchema = z.object({
+  title: z.string().min(2),
+  shortDescription: z.string().max(500).optional().nullable(),
+  description: z.string().optional().nullable(),
+  category: z.string().optional().nullable(),
+  externalUrl: z.string().url().optional().nullable(),
+  tags: z.array(z.string()).optional().nullable(),
+  isFeatured: z.boolean().default(false),
+  isPublic: z.boolean().default(true),
+});
+
+export async function GET() {
+  try {
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkId),
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const items = await db.query.portfolioItems.findMany({
+      where: eq(portfolioItems.userId, user.id),
+      orderBy: [desc(portfolioItems.createdAt)],
+    });
+
+    return NextResponse.json(items);
+  } catch (error) {
+    console.error("Error fetching portfolio:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch portfolio" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkId),
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const body = await req.json();
+    const data = createPortfolioSchema.parse(body);
+
+    const [item] = await db
+      .insert(portfolioItems)
+      .values({
+        userId: user.id,
+        title: data.title,
+        shortDescription: data.shortDescription,
+        description: data.description,
+        category: data.category,
+        externalUrl: data.externalUrl,
+        tags: data.tags,
+        isFeatured: data.isFeatured,
+        isPublic: data.isPublic,
+      })
+      .returning();
+
+    return NextResponse.json(item);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Validation error", details: error.errors },
+        { status: 400 }
+      );
+    }
+    console.error("Error creating portfolio item:", error);
+    return NextResponse.json(
+      { error: "Failed to create portfolio item" },
+      { status: 500 }
+    );
+  }
+}
+```
+
