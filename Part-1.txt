@@ -1,0 +1,2117 @@
+
+
+---
+
+# Complete Premium Redesign
+
+Let me rebuild this properly. This will be substantial.
+
+## 1. Premium Design Tokens
+
+### `src/styles/globals.css` (Complete Rewrite)
+
+```css
+@import "tailwindcss";
+
+@theme {
+  /* Premium Color Palette */
+  --color-black: #000000;
+  --color-white: #ffffff;
+  
+  /* Refined Neutrals - Slightly warm undertone */
+  --color-neutral-950: #09090b;
+  --color-neutral-900: #0c0c0f;
+  --color-neutral-850: #111114;
+  --color-neutral-800: #18181b;
+  --color-neutral-700: #27272a;
+  --color-neutral-600: #3f3f46;
+  --color-neutral-500: #71717a;
+  --color-neutral-400: #a1a1aa;
+  --color-neutral-300: #d4d4d8;
+  --color-neutral-200: #e4e4e7;
+  --color-neutral-100: #f4f4f5;
+  --color-neutral-50: #fafafa;
+
+  /* Primary Brand - Electric Indigo with depth */
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+  --color-brand-800: #3730a3;
+  --color-brand-900: #312e81;
+
+  /* Shield - Protective Cyan */
+  --color-shield-50: #ecfeff;
+  --color-shield-100: #cffafe;
+  --color-shield-200: #a5f3fc;
+  --color-shield-300: #67e8f9;
+  --color-shield-400: #22d3ee;
+  --color-shield-500: #06b6d4;
+  --color-shield-600: #0891b2;
+  --color-shield: #06b6d4;
+
+  /* Magnet - Attractive Purple */
+  --color-magnet-50: #faf5ff;
+  --color-magnet-100: #f3e8ff;
+  --color-magnet-200: #e9d5ff;
+  --color-magnet-300: #d8b4fe;
+  --color-magnet-400: #c084fc;
+  --color-magnet-500: #a855f7;
+  --color-magnet-600: #9333ea;
+  --color-magnet: #a855f7;
+
+  /* Radar - Intelligent Amber */
+  --color-radar-50: #fffbeb;
+  --color-radar-100: #fef3c7;
+  --color-radar-200: #fde68a;
+  --color-radar-300: #fcd34d;
+  --color-radar-400: #fbbf24;
+  --color-radar-500: #f59e0b;
+  --color-radar: #f59e0b;
+
+  /* Forge - Creative Rose */
+  --color-forge-50: #fff1f2;
+  --color-forge-100: #ffe4e6;
+  --color-forge-200: #fecdd3;
+  --color-forge-300: #fda4af;
+  --color-forge-400: #fb7185;
+  --color-forge-500: #f43f5e;
+  --color-forge: #f43f5e;
+
+  /* Success / Warning / Danger */
+  --color-success: #10b981;
+  --color-success-muted: rgba(16, 185, 129, 0.15);
+  --color-warning: #f59e0b;
+  --color-warning-muted: rgba(245, 158, 11, 0.15);
+  --color-danger: #ef4444;
+  --color-danger-muted: rgba(239, 68, 68, 0.15);
+
+  /* Premium Shadows */
+  --shadow-glow-brand: 0 0 60px -15px rgba(99, 102, 241, 0.5);
+  --shadow-glow-shield: 0 0 60px -15px rgba(6, 182, 212, 0.5);
+  --shadow-glow-magnet: 0 0 60px -15px rgba(168, 85, 247, 0.5);
+  --shadow-elevated: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 4px 24px -8px rgba(0, 0, 0, 0.4);
+  --shadow-card-hover: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 8px 40px -12px rgba(0, 0, 0, 0.5);
+
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+
+  /* Animation */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+}
+
+/* Base Styles */
+* {
+  border-color: var(--color-neutral-800);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  @apply bg-neutral-950 text-neutral-100;
+  font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+}
+
+/* Selection */
+::selection {
+  @apply bg-brand-500/30 text-white;
+}
+
+/* Scrollbar - Premium thin style */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-neutral-700/50 rounded-full border-2 border-transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-neutral-600/50;
+}
+
+/* Premium Focus Ring */
+:focus-visible {
+  @apply outline-none ring-2 ring-brand-500/50 ring-offset-2 ring-offset-neutral-950;
+}
+
+/* ============================================
+   PREMIUM BACKGROUNDS
+   ============================================ */
+
+/* Animated gradient mesh background */
+.bg-premium-mesh {
+  background: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(6, 182, 212, 0.1), transparent),
+    radial-gradient(ellipse 50% 30% at 0% 100%, rgba(168, 85, 247, 0.1), transparent);
+}
+
+/* Subtle noise texture overlay */
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/* Grid pattern */
+.bg-grid {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* Dot pattern */
+.bg-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ============================================
+   GLASS MORPHISM
+   ============================================ */
+
+.glass {
+  @apply bg-white/[0.03] backdrop-blur-xl;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-strong {
+  @apply bg-white/[0.06] backdrop-blur-2xl;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  @apply bg-neutral-900/80 backdrop-blur-xl;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 4px 24px -8px rgba(0, 0, 0, 0.4);
+}
+
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 8px 40px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================
+   PREMIUM GRADIENTS
+   ============================================ */
+
+.gradient-text-brand {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(135deg, #818cf8 0%, #6366f1 50%, #4f46e5 100%);
+}
+
+.gradient-text-hero {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(135deg, #fff 0%, #fff 40%, #a5b4fc 100%);
+}
+
+.gradient-text-shield {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(135deg, #67e8f9 0%, #06b6d4 100%);
+}
+
+.gradient-text-magnet {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(135deg, #d8b4fe 0%, #a855f7 100%);
+}
+
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Shimmer effect */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Glow effects */
+.glow-brand {
+  box-shadow: 0 0 60px -15px rgba(99, 102, 241, 0.4);
+}
+
+.glow-shield {
+  box-shadow: 0 0 60px -15px rgba(6, 182, 212, 0.4);
+}
+
+.glow-magnet {
+  box-shadow: 0 0 60px -15px rgba(168, 85, 247, 0.4);
+}
+
+/* ============================================
+   PREMIUM ANIMATIONS
+   ============================================ */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-up {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from { 
+    opacity: 0; 
+    transform: scale(0.95);
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-in-right {
+  from { 
+    opacity: 0; 
+    transform: translateX(20px);
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 40px -10px rgba(99, 102, 241, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 60px -10px rgba(99, 102, 241, 0.5);
+  }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s var(--ease-out-expo);
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s var(--ease-out-expo);
+}
+
+.animate-scale-in {
+  animation: scale-in 0.4s var(--ease-out-expo);
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.5s var(--ease-out-expo);
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Stagger delays */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+
+/* ============================================
+   PREMIUM BUTTON STYLES
+   ============================================ */
+
+.btn-premium {
+  @apply relative overflow-hidden;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+    0 4px 20px -4px rgba(99, 102, 241, 0.5);
+  transition: all 0.3s var(--ease-out-expo);
+}
+
+.btn-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.15) inset,
+    0 8px 30px -4px rgba(99, 102, 241, 0.6);
+}
+
+.btn-premium:active {
+  transform: translateY(0);
+}
+
+.btn-premium::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Glass button */
+.btn-glass {
+  @apply relative bg-white/5 backdrop-blur-xl border border-white/10;
+  transition: all 0.3s var(--ease-out-expo);
+}
+
+.btn-glass:hover {
+  @apply bg-white/10 border-white/20;
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   PREMIUM CARD STYLES
+   ============================================ */
+
+.card-premium {
+  @apply relative bg-neutral-900/50 backdrop-blur-xl rounded-2xl overflow-hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 4px 30px -10px rgba(0, 0, 0, 0.5);
+  transition: all 0.4s var(--ease-out-expo);
+}
+
+.card-premium:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 20px 50px -15px rgba(0, 0, 0, 0.6);
+}
+
+/* Card with colored glow */
+.card-glow-brand {
+  position: relative;
+}
+
+.card-glow-brand::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), transparent 50%);
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.card-glow-brand:hover::before {
+  opacity: 1;
+}
+
+/* ============================================
+   PREMIUM INPUT STYLES
+   ============================================ */
+
+.input-premium {
+  @apply bg-neutral-900/50 border-neutral-800 rounded-xl;
+  @apply focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20;
+  @apply placeholder:text-neutral-500;
+  transition: all 0.2s ease;
+}
+
+.input-premium:hover:not(:focus) {
+  @apply border-neutral-700;
+}
+
+/* ============================================
+   DATA VISUALIZATION
+   ============================================ */
+
+/* Sparkline container */
+.sparkline {
+  @apply h-8 flex items-end gap-0.5;
+}
+
+.sparkline-bar {
+  @apply flex-1 bg-brand-500/30 rounded-sm transition-all duration-300;
+}
+
+.sparkline-bar:hover {
+  @apply bg-brand-500/50;
+}
+
+/* Mini chart */
+.mini-chart {
+  @apply relative h-12 overflow-hidden;
+}
+
+.mini-chart-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mini-chart-area {
+  fill: currentColor;
+  opacity: 0.1;
+}
+
+/* Progress ring */
+.progress-ring {
+  transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+  stroke: rgba(255, 255, 255, 0.1);
+  fill: none;
+}
+
+.progress-ring-fill {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s var(--ease-out-expo);
+}
+
+/* ============================================
+   SIDEBAR STYLES
+   ============================================ */
+
+.sidebar-link {
+  @apply relative flex items-center gap-3 px-3 py-2.5 rounded-xl;
+  @apply text-neutral-400 transition-all duration-200;
+}
+
+.sidebar-link:hover {
+  @apply text-neutral-200 bg-white/5;
+}
+
+.sidebar-link.active {
+  @apply text-white bg-white/10;
+}
+
+.sidebar-link.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  background: linear-gradient(180deg, #6366f1, #4f46e5);
+  border-radius: 0 4px 4px 0;
+}
+
+/* ============================================
+   STAT CARD STYLES
+   ============================================ */
+
+.stat-card {
+  @apply relative p-6 rounded-2xl overflow-hidden;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-card-icon {
+  @apply w-12 h-12 rounded-xl flex items-center justify-center;
+  @apply bg-gradient-to-br from-white/10 to-white/5;
+}
+
+.stat-card-value {
+  @apply text-4xl font-bold tracking-tight;
+  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   SKELETON LOADING
+   ============================================ */
+
+.skeleton {
+  @apply bg-neutral-800/50 rounded-lg animate-pulse;
+}
+
+.skeleton-text {
+  @apply h-4 bg-neutral-800/50 rounded animate-pulse;
+}
+
+.skeleton-heading {
+  @apply h-8 bg-neutral-800/50 rounded animate-pulse;
+}
+
+/* ============================================
+   TOOLTIP STYLES
+   ============================================ */
+
+.tooltip {
+  @apply absolute z-50 px-3 py-2 text-sm;
+  @apply bg-neutral-800 text-neutral-100 rounded-lg shadow-xl;
+  @apply border border-neutral-700;
+  animation: fade-in 0.15s ease;
+}
+
+/* ============================================
+   BADGE STYLES
+   ============================================ */
+
+.badge-premium {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full;
+  @apply bg-brand-500/10 text-brand-400 border border-brand-500/20;
+}
+
+.badge-success {
+  @apply bg-success/10 text-success border-success/20;
+}
+
+.badge-warning {
+  @apply bg-warning/10 text-warning border-warning/20;
+}
+
+.badge-danger {
+  @apply bg-danger/10 text-danger border-danger/20;
+}
+```
+
+---
+
+## 2. Premium Dashboard Layout
+
+### `src/app/(dashboard)/layout.tsx`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import { PremiumSidebar } from "@/components/dashboard/premium-sidebar";
+import { PremiumHeader } from "@/components/dashboard/premium-header";
+import { CommandMenu } from "@/components/dashboard/command-menu";
+import { Toaster } from "sonner";
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { userId: clerkId } = await auth();
+
+  if (!clerkId) {
+    redirect("/login");
+  }
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId),
+  });
+
+  return (
+    <div className="min-h-screen bg-neutral-950 overflow-hidden">
+      {/* Premium Background Layers */}
+      <div className="fixed inset-0 bg-premium-mesh" />
+      <div className="fixed inset-0 bg-noise pointer-events-none" />
+      <div className="fixed inset-0 bg-grid opacity-40 pointer-events-none" />
+      
+      {/* Ambient glow effects */}
+      <div className="fixed top-0 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-magnet/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="relative flex h-screen">
+        {/* Sidebar */}
+        <PremiumSidebar user={user} />
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header */}
+          <PremiumHeader user={user} />
+
+          {/* Page Content */}
+          <main className="flex-1 overflow-y-auto">
+            <div className="max-w-7xl mx-auto px-6 py-8">
+              {children}
+            </div>
+          </main>
+        </div>
+      </div>
+
+      {/* Command Menu */}
+      <CommandMenu />
+
+      {/* Toast Notifications */}
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          className: "glass-card",
+          style: {
+            background: "rgba(23, 23, 23, 0.9)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(255, 255, 255, 0.06)",
+            color: "#fff",
+          },
+        }}
+      />
+    </div>
+  );
+}
+```
+
+### `src/components/dashboard/premium-sidebar.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  LayoutDashboard,
+  FileText,
+  Users,
+  Briefcase,
+  MessageSquare,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  Shield,
+  Zap,
+  Target,
+} from "lucide-react";
+
+interface SidebarProps {
+  user: any;
+}
+
+const navigation = [
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+    gradient: "from-brand-400 to-brand-600",
+  },
+  {
+    name: "Contracts",
+    href: "/dashboard/contracts",
+    icon: Shield,
+    gradient: "from-shield-400 to-shield-600",
+    badge: null,
+  },
+  {
+    name: "Clients",
+    href: "/dashboard/clients",
+    icon: Target,
+    gradient: "from-radar-400 to-radar-600",
+  },
+  {
+    name: "Portfolio",
+    href: "/dashboard/portfolio",
+    icon: Briefcase,
+    gradient: "from-magnet-400 to-magnet-600",
+  },
+  {
+    name: "Testimonials",
+    href: "/dashboard/testimonials",
+    icon: MessageSquare,
+    gradient: "from-forge-400 to-forge-600",
+  },
+];
+
+const bottomNavigation = [
+  {
+    name: "Settings",
+    href: "/dashboard/settings",
+    icon: Settings,
+    gradient: "from-neutral-400 to-neutral-600",
+  },
+];
+
+export function PremiumSidebar({ user }: SidebarProps) {
+  const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <motion.aside
+      initial={false}
+      animate={{ width: collapsed ? 80 : 280 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      className="relative flex flex-col h-full bg-neutral-900/40 backdrop-blur-2xl border-r border-white/5"
+    >
+      {/* Logo */}
+      <div className="flex items-center h-16 px-4 border-b border-white/5">
+        <Link href="/dashboard" className="flex items-center gap-3">
+          <div className="relative">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/30">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div className="absolute inset-0 rounded-xl bg-brand-500/30 blur-lg -z-10" />
+          </div>
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.span
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+                className="text-lg font-semibold text-white"
+              >
+                Sovereign
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </Link>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {navigation.map((item) => {
+          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          const Icon = item.icon;
+
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
+                isActive
+                  ? "text-white"
+                  : "text-neutral-400 hover:text-white hover:bg-white/5"
+              )}
+            >
+              {/* Active indicator */}
+              {isActive && (
+                <motion.div
+                  layoutId="activeIndicator"
+                  className="absolute inset-0 rounded-xl bg-white/10"
+                  transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                />
+              )}
+
+              {/* Active left bar */}
+              {isActive && (
+                <motion.div
+                  layoutId="activeBar"
+                  className={cn(
+                    "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full",
+                    `bg-gradient-to-b ${item.gradient}`
+                  )}
+                  transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                />
+              )}
+
+              {/* Icon with gradient background on active */}
+              <div
+                className={cn(
+                  "relative flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200",
+                  isActive
+                    ? `bg-gradient-to-br ${item.gradient} shadow-lg`
+                    : "bg-white/5 group-hover:bg-white/10"
+                )}
+              >
+                <Icon
+                  className={cn(
+                    "w-5 h-5 transition-colors",
+                    isActive ? "text-white" : "text-neutral-400 group-hover:text-white"
+                  )}
+                />
+                {isActive && (
+                  <div
+                    className={cn(
+                      "absolute inset-0 rounded-lg blur-lg opacity-50 -z-10",
+                      `bg-gradient-to-br ${item.gradient}`
+                    )}
+                  />
+                )}
+              </div>
+
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.15 }}
+                    className="relative text-sm font-medium"
+                  >
+                    {item.name}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+
+              {/* Badge */}
+              {item.badge && !collapsed && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="ml-auto text-xs font-medium px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-400"
+                >
+                  {item.badge}
+                </motion.span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Bottom Navigation */}
+      <div className="px-3 py-4 border-t border-white/5 space-y-1">
+        {bottomNavigation.map((item) => {
+          const isActive = pathname === item.href;
+          const Icon = item.icon;
+
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                "group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
+                isActive
+                  ? "text-white bg-white/10"
+                  : "text-neutral-400 hover:text-white hover:bg-white/5"
+              )}
+            >
+              <div
+                className={cn(
+                  "flex items-center justify-center w-9 h-9 rounded-lg transition-colors",
+                  isActive ? "bg-white/10" : "bg-white/5 group-hover:bg-white/10"
+                )}
+              >
+                <Icon className="w-5 h-5" />
+              </div>
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="text-sm font-medium"
+                  >
+                    {item.name}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Collapse Button */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="absolute top-20 -right-3 w-6 h-6 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors z-10"
+      >
+        {collapsed ? (
+          <ChevronRight className="w-3 h-3" />
+        ) : (
+          <ChevronLeft className="w-3 h-3" />
+        )}
+      </button>
+
+      {/* Upgrade Card */}
+      <AnimatePresence>
+        {!collapsed && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="mx-3 mb-4 p-4 rounded-2xl bg-gradient-to-br from-brand-500/20 to-magnet/20 border border-white/10 overflow-hidden relative"
+          >
+            {/* Glow effect */}
+            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-500/30 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+            
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-2">
+                <Zap className="w-4 h-4 text-brand-400" />
+                <span className="text-xs font-medium text-brand-400">Pro Plan</span>
+              </div>
+              <p className="text-sm text-neutral-300 mb-3">
+                Unlock unlimited contracts and AI features.
+              </p>
+              <button className="w-full py-2 text-sm font-medium rounded-lg bg-white text-neutral-900 hover:bg-neutral-200 transition-colors">
+                Upgrade Now
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.aside>
+  );
+}
+```
+
+### `src/components/dashboard/premium-header.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useUser, useClerk } from "@clerk/nextjs";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import {
+  Search,
+  Command,
+  Bell,
+  ChevronDown,
+  Settings,
+  LogOut,
+  User,
+  HelpCircle,
+  Sparkles,
+} from "lucide-react";
+
+interface HeaderProps {
+  user: any;
+}
+
+export function PremiumHeader({ user }: HeaderProps) {
+  const { user: clerkUser } = useUser();
+  const { signOut } = useClerk();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const notifications = [
+    {
+      id: 1,
+      title: "Contract analyzed",
+      description: "Your NDA with Acme Corp has been reviewed",
+      time: "2 min ago",
+      type: "success",
+    },
+    {
+      id: 2,
+      title: "New testimonial",
+      description: "Sarah left a 5-star review",
+      time: "1 hour ago",
+      type: "info",
+    },
+  ];
+
+  return (
+    <header className="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-neutral-900/30 backdrop-blur-xl">
+      {/* Search Bar */}
+      <button
+        onClick={() => {
+          // Trigger command menu
+          const event = new KeyboardEvent("keydown", {
+            key: "k",
+            metaKey: true,
+          });
+          document.dispatchEvent(event);
+        }}
+        className="flex items-center gap-3 px-4 py-2.5 w-80 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors group"
+      >
+        <Search className="w-4 h-4 text-neutral-500 group-hover:text-neutral-400" />
+        <span className="text-sm text-neutral-500 flex-1 text-left">
+          Search or type a command...
+        </span>
+        <div className="flex items-center gap-1">
+          <kbd className="px-2 py-0.5 text-xs rounded bg-neutral-800 text-neutral-400 border border-neutral-700">
+            ⌘
+          </kbd>
+          <kbd className="px-2 py-0.5 text-xs rounded bg-neutral-800 text-neutral-400 border border-neutral-700">
+            K
+          </kbd>
+        </div>
+      </button>
+
+      {/* Right Side */}
+      <div className="flex items-center gap-2">
+        {/* Plan Badge */}
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-brand-500/10 to-magnet/10 border border-white/10">
+          <Sparkles className="w-3.5 h-3.5 text-brand-400" />
+          <span className="text-xs font-medium text-brand-400">
+            {user?.subscriptionTier === "pro" ? "Pro" : "Free"} Plan
+          </span>
+        </div>
+
+        {/* Notifications */}
+        <div className="relative">
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="relative p-2.5 rounded-xl hover:bg-white/5 transition-colors"
+          >
+            <Bell className="w-5 h-5 text-neutral-400" />
+            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-brand-500 ring-2 ring-neutral-900" />
+          </button>
+
+          <AnimatePresence>
+            {showNotifications && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowNotifications(false)}
+                />
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-2 w-80 z-50 rounded-2xl bg-neutral-900/95 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden"
+                >
+                  <div className="p-4 border-b border-white/5">
+                    <h3 className="font-semibold text-white">Notifications</h3>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        className="p-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer"
+                      >
+                        <p className="text-sm font-medium text-white">
+                          {notification.title}
+                        </p>
+                        <p className="text-xs text-neutral-400 mt-0.5">
+                          {notification.description}
+                        </p>
+                        <p className="text-xs text-neutral-500 mt-1">
+                          {notification.time}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-3 border-t border-white/5">
+                    <button className="w-full py-2 text-sm text-brand-400 hover:text-brand-300 transition-colors">
+                      View all notifications
+                    </button>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* User Menu */}
+        <div className="relative">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="flex items-center gap-3 p-1.5 pr-3 rounded-xl hover:bg-white/5 transition-colors"
+          >
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-magnet overflow-hidden">
+              {clerkUser?.imageUrl ? (
+                <img
+                  src={clerkUser.imageUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-sm font-medium text-white">
+                  {user?.name?.[0] || "U"}
+                </div>
+              )}
+            </div>
+            <div className="hidden sm:block text-left">
+              <p className="text-sm font-medium text-white">
+                {user?.name || clerkUser?.firstName || "User"}
+              </p>
+              <p className="text-xs text-neutral-500">
+                {user?.email || clerkUser?.emailAddresses[0]?.emailAddress}
+              </p>
+            </div>
+            <ChevronDown className="w-4 h-4 text-neutral-500" />
+          </button>
+
+          <AnimatePresence>
+            {showUserMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowUserMenu(false)}
+                />
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-2 w-56 z-50 rounded-2xl bg-neutral-900/95 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden"
+                >
+                  <div className="p-2">
+                    <Link
+                      href="/dashboard/settings"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors"
+                    >
+                      <User className="w-4 h-4 text-neutral-400" />
+                      <span className="text-sm text-neutral-200">Profile</span>
+                    </Link>
+                    <Link
+                      href="/dashboard/settings"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors"
+                    >
+                      <Settings className="w-4 h-4 text-neutral-400" />
+                      <span className="text-sm text-neutral-200">Settings</span>
+                    </Link>
+                    <a
+                      href="#"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors"
+                    >
+                      <HelpCircle className="w-4 h-4 text-neutral-400" />
+                      <span className="text-sm text-neutral-200">Help</span>
+                    </a>
+                  </div>
+                  <div className="border-t border-white/5 p-2">
+                    <button
+                      onClick={() => signOut()}
+                      className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-danger/10 transition-colors text-danger"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span className="text-sm">Sign out</span>
+                    </button>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </header>
+  );
+}
+```
+
+---
+
+## 3. Premium Dashboard Page
+
+### `src/app/(dashboard)/dashboard/page.tsx`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { PremiumDashboard } from "@/components/dashboard/premium-dashboard";
+import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
+
+export default async function DashboardPage() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/login");
+  }
+
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <PremiumDashboard clerkId={userId} />
+    </Suspense>
+  );
+}
+```
+
+### `src/components/dashboard/premium-dashboard.tsx`
+
+```typescript
+import { db } from "@/lib/db";
+import { users, contracts, clients, portfolioItems, testimonials } from "@/lib/db/schema";
+import { eq, desc, sql } from "drizzle-orm";
+import { WelcomeSection } from "./sections/welcome-section";
+import { StatsGrid } from "./sections/stats-grid";
+import { QuickActionsGrid } from "./sections/quick-actions-grid";
+import { RecentActivitySection } from "./sections/recent-activity-section";
+import { CreateUserPrompt } from "./create-user-prompt";
+
+interface PremiumDashboardProps {
+  clerkId: string;
+}
+
+export async function PremiumDashboard({ clerkId }: PremiumDashboardProps) {
+  const user = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId),
+  });
+
+  if (!user) {
+    return <CreateUserPrompt />;
+  }
+
+  // Fetch all data in parallel
+  const [contractCount, clientCount, portfolioCount, testimonialCount, recentContracts, recentClients] =
+    await Promise.all([
+      db
+        .select({ count: sql<number>`count(*)`.mapWith(Number) })
+        .from(contracts)
+        .where(eq(contracts.userId, user.id))
+        .then((r) => r[0]?.count ?? 0),
+
+      db
+        .select({ count: sql<number>`count(*)`.mapWith(Number) })
+        .from(clients)
+        .where(eq(clients.userId, user.id))
+        .then((r) => r[0]?.count ?? 0),
+
+      db
+        .select({ count: sql<number>`count(*)`.mapWith(Number) })
+        .from(portfolioItems)
+        .where(eq(portfolioItems.userId, user.id))
+        .then((r) => r[0]?.count ?? 0),
+
+      db
+        .select({ count: sql<number>`count(*)`.mapWith(Number) })
+        .from(testimonials)
+        .where(eq(testimonials.userId, user.id))
+        .then((r) => r[0]?.count ?? 0),
+
+      db.query.contracts.findMany({
+        where: eq(contracts.userId, user.id),
+        orderBy: [desc(contracts.createdAt)],
+        limit: 5,
+        with: { client: true },
+      }),
+
+      db.query.clients.findMany({
+        where: eq(clients.userId, user.id),
+        orderBy: [desc(clients.createdAt)],
+        limit: 5,
+      }),
+    ]);
+
+  const stats = {
+    contracts: contractCount,
+    clients: clientCount,
+    portfolio: portfolioCount,
+    testimonials: testimonialCount,
+  };
+
+  const isNewUser = contractCount === 0 && clientCount <= 1;
+
+  return (
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <WelcomeSection user={user} isNewUser={isNewUser} />
+
+      {/* Stats Grid */}
+      <StatsGrid stats={stats} />
+
+      {/* Quick Actions */}
+      <QuickActionsGrid />
+
+      {/* Recent Activity */}
+      <RecentActivitySection
+        contracts={recentContracts}
+        clients={recentClients}
+      />
+    </div>
+  );
+}
+```
+
+### `src/components/dashboard/sections/welcome-section.tsx`
+
+```typescript
+"use client";
+
+import { motion } from "framer-motion";
+import Link from "next/link";
+import {
+  Shield,
+  Users,
+  Briefcase,
+  ArrowRight,
+  Sparkles,
+  CheckCircle2,
+} from "lucide-react";
+
+interface WelcomeSectionProps {
+  user: {
+    name: string | null;
+  };
+  isNewUser: boolean;
+}
+
+const onboardingSteps = [
+  {
+    title: "Analyze a Contract",
+    description: "Upload and scan contracts for risks with AI",
+    href: "/dashboard/contracts/analyze",
+    icon: Shield,
+    gradient: "from-cyan-500 to-blue-500",
+    color: "text-cyan-400",
+    bg: "bg-cyan-500/10",
+  },
+  {
+    title: "Add Your Clients",
+    description: "Track relationships and communication",
+    href: "/dashboard/clients/new",
+    icon: Users,
+    gradient: "from-amber-500 to-orange-500",
+    color: "text-amber-400",
+    bg: "bg-amber-500/10",
+  },
+  {
+    title: "Build Your Portfolio",
+    description: "Showcase your best work to attract leads",
+    href: "/dashboard/portfolio/new",
+    icon: Briefcase,
+    gradient: "from-purple-500 to-pink-500",
+    color: "text-purple-400",
+    bg: "bg-purple-500/10",
+  },
+];
+
+export function WelcomeSection({ user, isNewUser }: WelcomeSectionProps) {
+  const firstName = user.name?.split(" ")[0] || "there";
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-3xl font-bold text-white">
+          {greeting}, {firstName}
+        </h1>
+        <p className="text-neutral-400 mt-1">
+          Here's what's happening with your business today.
+        </p>
+      </motion.div>
+
+      {/* Onboarding Card - Only show for new users */}
+      {isNewUser && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="relative rounded-2xl overflow-hidden"
+        >
+          {/* Background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-500/20 via-purple-500/20 to-cyan-500/20" />
+          <div className="absolute inset-0 bg-neutral-900/80 backdrop-blur-xl" />
+
+          {/* Content */}
+          <div className="relative p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-white">
+                  Welcome to Sovereign!
+                </h2>
+                <p className="text-sm text-neutral-400">
+                  Complete these steps to unlock your full potential
+                </p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              {onboardingSteps.map((step, index) => (
+                <Link
+                  key={step.title}
+                  href={step.href}
+                  className="group relative p-4 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 transition-all duration-300"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div
+                      className={`w-8 h-8 rounded-lg ${step.bg} flex items-center justify-center`}
+                    >
+                      <step.icon className={`w-4 h-4 ${step.color}`} />
+                    </div>
+                    <span className="text-xs text-neutral-500">
+                      Step {index + 1}
+                    </span>
+                  </div>
+                  <h3 className="font-medium text-white mb-1">{step.title}</h3>
+                  <p className="text-sm text-neutral-400">{step.description}</p>
+                  <ArrowRight className="absolute bottom-4 right-4 w-4 h-4 text-neutral-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+```
+
+### `src/components/dashboard/sections/stats-grid.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import {
+  Shield,
+  Users,
+  Briefcase,
+  MessageSquare,
+  TrendingUp,
+  ArrowUpRight,
+} from "lucide-react";
+
+interface StatsGridProps {
+  stats: {
+    contracts: number;
+    clients: number;
+    portfolio: number;
+    testimonials: number;
+  };
+}
+
+const statItems = [
+  {
+    key: "contracts",
+    label: "Contracts",
+    href: "/dashboard/contracts",
+    icon: Shield,
+    gradient: "from-cyan-500 to-blue-600",
+    accent: "cyan",
+    trend: "+12%",
+    trendUp: true,
+  },
+  {
+    key: "clients",
+    label: "Clients",
+    href: "/dashboard/clients",
+    icon: Users,
+    gradient: "from-amber-500 to-orange-600",
+    accent: "amber",
+    trend: "+5%",
+    trendUp: true,
+  },
+  {
+    key: "portfolio",
+    label: "Portfolio Items",
+    href: "/dashboard/portfolio",
+    icon: Briefcase,
+    gradient: "from-purple-500 to-pink-600",
+    accent: "purple",
+    trend: "+3",
+    trendUp: true,
+  },
+  {
+    key: "testimonials",
+    label: "Testimonials",
+    href: "/dashboard/testimonials",
+    icon: MessageSquare,
+    gradient: "from-rose-500 to-red-600",
+    accent: "rose",
+    trend: "2 pending",
+    trendUp: null,
+  },
+];
+
+export function StatsGrid({ stats }: StatsGridProps) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {statItems.map((item, index) => {
+        const value = stats[item.key as keyof typeof stats];
+        const Icon = item.icon;
+
+        return (
+          <motion.div
+            key={item.key}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: index * 0.05 }}
+          >
+            <Link href={item.href}>
+              <div className="group relative p-6 rounded-2xl bg-neutral-900/50 backdrop-blur-xl border border-white/5 hover:border-white/10 transition-all duration-300 overflow-hidden">
+                {/* Gradient glow on hover */}
+                <div
+                  className={cn(
+                    "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                    `bg-gradient-to-br ${item.gradient}`
+                  )}
+                  style={{ filter: "blur(40px)", transform: "scale(0.8)" }}
+                />
+
+                {/* Content */}
+                <div className="relative">
+                  <div className="flex items-start justify-between mb-4">
+                    <div
+                      className={cn(
+                        "w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br",
+                        item.gradient
+                      )}
+                    >
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <ArrowUpRight className="w-4 h-4 text-neutral-600 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                  </div>
+
+                  <p className="text-4xl font-bold text-white mb-1">{value}</p>
+                  <p className="text-sm text-neutral-400">{item.label}</p>
+
+                  {/* Trend indicator */}
+                  {item.trend && (
+                    <div className="flex items-center gap-1 mt-3">
+                      {item.trendUp !== null && (
+                        <TrendingUp
+                          className={cn(
+                            "w-3.5 h-3.5",
+                            item.trendUp ? "text-emerald-400" : "text-red-400"
+                          )}
+                        />
+                      )}
+                      <span
+                        className={cn(
+                          "text-xs",
+                          item.trendUp === true
+                            ? "text-emerald-400"
+                            : item.trendUp === false
+                            ? "text-red-400"
+                            : "text-neutral-500"
+                        )}
+                      >
+                        {item.trend}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Link>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+```
+
+### `src/components/dashboard/sections/quick-actions-grid.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  FileText,
+  UserPlus,
+  FolderPlus,
+  Send,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
+
+const actions = [
+  {
+    title: "Analyze Contract",
+    description: "AI-powered risk detection",
+    href: "/dashboard/contracts/analyze",
+    icon: FileText,
+    gradient: "from-cyan-500/20 to-blue-500/20",
+    iconColor: "text-cyan-400",
+    iconBg: "bg-cyan-500/10",
+  },
+  {
+    title: "Add Client",
+    description: "Track a new relationship",
+    href: "/dashboard/clients/new",
+    icon: UserPlus,
+    gradient: "from-amber-500/20 to-orange-500/20",
+    iconColor: "text-amber-400",
+    iconBg: "bg-amber-500/10",
+  },
+  {
+    title: "Add Project",
+    description: "Showcase your work",
+    href: "/dashboard/portfolio/new",
+    icon: FolderPlus,
+    gradient: "from-purple-500/20 to-pink-500/20",
+    iconColor: "text-purple-400",
+    iconBg: "bg-purple-500/10",
+  },
+  {
+    title: "Request Review",
+    description: "Collect testimonials",
+    href: "/dashboard/testimonials",
+    icon: Send,
+    gradient: "from-rose-500/20 to-red-500/20",
+    iconColor: "text-rose-400",
+    iconBg: "bg-rose-500/10",
+  },
+];
+
+export function QuickActionsGrid() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-brand-400" />
+          <h2 className="text-sm font-medium text-neutral-400">Quick Actions</h2>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {actions.map((action, index) => (
+          <motion.div
+            key={action.title}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.25 + index * 0.05 }}
+          >
+            <Link href={action.href}>
+              <div className="group relative p-4 rounded-xl bg-neutral-900/50 border border-white/5 hover:border-white/10 transition-all duration-300 overflow-hidden">
+                {/* Hover gradient */}
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+                />
+
+                <div className="relative">
+                  <div
+                    className={`w-10 h-10 rounded-lg ${action.iconBg} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300`}
+                  >
+                    <action.icon className={`w-5 h-5 ${action.iconColor}`} />
+                  </div>
+                  <h3 className="font-medium text-white text-sm">
+                    {action.title}
+                  </h3>
+                  <p className="text-xs text-neutral-500 mt-0.5">
+                    {action.description}
+                  </p>
+                  <ArrowRight className="absolute bottom-0 right-0 w-4 h-4 text-neutral-700 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                </div>
+              </div>
+            </Link>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+```
+
+### `src/components/dashboard/sections/recent-activity-section.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { formatRelativeTime, cn } from "@/lib/utils";
+import {
+  FileText,
+  Users,
+  ArrowRight,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Building,
+  ChevronRight,
+} from "lucide-react";
+
+interface RecentActivitySectionProps {
+  contracts: any[];
+  clients: any[];
+}
+
+const riskColors = {
+  low: "text-emerald-400 bg-emerald-500/10",
+  medium: "text-amber-400 bg-amber-500/10",
+  high: "text-red-400 bg-red-500/10",
+};
+
+function getRiskLevel(score: number | null) {
+  if (score === null) return null;
+  if (score >= 80) return "low";
+  if (score >= 60) return "medium";
+  return "high";
+}
+
+export function RecentActivitySection({
+  contracts,
+  clients,
+}: RecentActivitySectionProps) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      {/* Recent Contracts - Takes more space */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="lg:col-span-3"
+      >
+        <div className="rounded-2xl bg-neutral-900/50 backdrop-blur-xl border border-white/5 overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-white/5">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                <FileText className="w-4 h-4 text-cyan-400" />
+              </div>
+              <h3 className="font-semibold text-white">Recent Contracts</h3>
+            </div>
+            <Link
+              href="/dashboard/contracts"
+              className="flex items-center gap-1 text-sm text-neutral-400 hover:text-white transition-colors"
+            >
+              View all
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {/* Content */}
+          <div className="p-2">
+            {contracts.length === 0 ? (
+              <div className="py-12 text-center">
+                <div className="w-12 h-12 rounded-xl bg-neutral-800 flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-6 h-6 text-neutral-600" />
+                </div>
+                <p className="text-neutral-400 mb-4">No contracts yet</p>
+                <Link
+                  href="/dashboard/contracts/analyze"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors"
+                >
+                  <FileText className="w-4 h-4" />
+                  Analyze your first contract
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {contracts.map((contract, index) => {
+                  const riskLevel = getRiskLevel(contract.riskScore);
+
+                  return (
+                    <Link
+                      key={contract.id}
+                      href={`/dashboard/contracts/${contract.id}`}
+                      className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors group"
+                    >
+                      {/* Risk indicator */}
+                      <div
+                        className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
+                          riskLevel
+                            ? riskColors[riskLevel]
+                            : "bg-neutral-800 text-neutral-400"
+                        )}
+                      >
+                        {riskLevel === "high" ? (
+                          <AlertTriangle className="w-5 h-5" />
+                        ) : riskLevel === "low" ? (
+                          <CheckCircle className="w-5 h-5" />
+                        ) : (
+                          <Clock className="w-5 h-5" />
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-white truncate">
+                          {contract.title}
+                        </p>
+                        <p className="text-sm text-neutral-500 truncate">
+                          {contract.client?.name || "No client"} •{" "}
+                          {formatRelativeTime(contract.createdAt)}
+                        </p>
+                      </div>
+
+                      {/* Risk score */}
+                      {contract.riskScore !== null && (
+                        <div className="hidden sm:block text-right">
+                          <p
+                            className={cn(
+                              "text-lg font-bold",
+                              riskLevel === "high"
+                                ? "text-red-400"
+                                : riskLevel === "medium"
+                                ? "text-amber-400"
+                                : "text-emerald-400"
+                            )}
+                          >
+                            {contract.riskScore}%
+                          </p>
+                          <p className="text-xs text-neutral-500">Risk Score</p>
+                        </div>
+                      )}
+
+                      <ChevronRight className="w-4 h-4 text-neutral-600 group-hover:text-white transition-colors" />
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Client Health */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.35 }}
+        className="lg:col-span-2"
+      >
+        <div className="rounded-2xl bg-neutral-900/50 backdrop-blur-xl border border-white/5 overflow-hidden h-full">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-white/5">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Users className="w-4 h-4 text-amber-400" />
+              </div>
+              <h3 className="font-semibold text-white">Client Health</h3>
+            </div>
+            <Link
+              href="/dashboard/clients"
+              className="flex items-center gap-1 text-sm text-neutral-400 hover:text-white transition-colors"
+            >
+              View all
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {/* Content */}
+          <div className="p-2">
+            {clients.length === 0 ? (
+              <div className="py-12 text-center">
+                <div className="w-12 h-12 rounded-xl bg-neutral-800 flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-6 h-6 text-neutral-600" />
+                </div>
+                <p className="text-neutral-400 mb-4">No clients yet</p>
+                <Link
+                  href="/dashboard/clients/new"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors"
+                >
+                  <Users className="w-4 h-4" />
+                  Add your first client
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {clients.map((client) => {
+                  const healthScore = client.healthScore || 0;
+                  const healthColor =
+                    healthScore >= 80
+                      ? "bg-emerald-500"
+                      : healthScore >= 60
+                      ? "bg-amber-500"
+                      : "bg-red-500";
+
+                  return (
+                    <Link
+                      key={client.id}
+                      href={`/dashboard/clients/${client.id}`}
+                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors"
+                    >
+                      {/* Avatar */}
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center text-amber-400 font-medium shrink-0">
+                        {client.name[0]}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-white truncate">
+                          {client.name}
+                        </p>
+                        <p className="text-sm text-neutral-500 truncate flex items-center gap-1">
+                          <Building className="w-3 h-3" />
+                          {client.company || "No company"}
+                        </p>
+                      </div>
+
+                      {/* Health bar */}
+                      <div className="w-20">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-neutral-400">
+                            Health
+                          </span>
+                          <span className="text-xs font-medium text-white">
+                            {healthScore}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+                          <div
+                            className={cn("h-full rounded-full", healthColor)}
+                            style={{ width: `${healthScore}%` }}
+                          />
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+```
+
+---
+
+## 4. Premium Skeleton Loading
+
+### `src/components/dashboard/dashboard-skeleton.tsx`
+
+```typescript
+export function DashboardSkeleton() {
+  return (
+    <div className="space-y-8 animate-pulse">
+      {/* Welcome */}
+      <div>
+        <div className="h-9 w-64 bg-neutral-800 rounded-lg" />
+        <div className="h-5 w-96 bg-neutral-800/50 rounded-lg mt-2" />
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="p-6 rounded-2xl bg-neutral-900/50 border border-white/5"
+          >
+            <div className="w-12 h-12 bg-neutral-800 rounded-xl mb-4" />
+            <div className="h-10 w-16 bg-neutral-800 rounded-lg mb-2" />
+            <div className="h-4 w-24 bg-neutral-800/50 rounded" />
+          </div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div>
+        <div className="h-4 w-32 bg-neutral-800/50 rounded mb-4" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="p-4 rounded-xl bg-neutral-900/50 border border-white/5"
+            >
+              <div className="w-10 h-10 bg-neutral-800 rounded-lg mb-3" />
+              <div className="h-4 w-24 bg-neutral-800 rounded mb-1" />
+              <div className="h-3 w-32 bg-neutral-800/50 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3 rounded-2xl bg-neutral-900/50 border border-white/5 p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-neutral-800 rounded-lg" />
+            <div className="h-5 w-32 bg-neutral-800 rounded" />
+          </div>
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-4 p-3">
+                <div className="w-10 h-10 bg-neutral-800 rounded-lg" />
+                <div className="flex-1">
+                  <div className="h-4 w-48 bg-neutral-800 rounded mb-2" />
+                  <div className="h-3 w-32 bg-neutral-800/50 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="lg:col-span-2 rounded-2xl bg-neutral-900/50 border border-white/5 p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-neutral-800 rounded-lg" />
+            <div className="h-5 w-28 bg-neutral-800 rounded" />
+          </div>
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-3 p-3">
+                <div className="w-10 h-10 bg-neutral-800 rounded-lg" />
+                <div className="flex-1">
+                  <div className="h-4 w-32 bg-neutral-800 rounded mb-2" />
+                  <div className="h-3 w-20 bg-neutral-800/50 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+This is Part 1 of the premium redesign. I've rebuilt:
+
+1. ✅ Complete CSS design system with premium effects
+2. ✅ Dashboard layout with glass morphism
+3. ✅ Premium sidebar with animations
+4. ✅ Premium header with dropdowns
+5. ✅ Stats grid with gradients and hover effects
+6. ✅ Quick actions with animated cards
+7. ✅ Recent activity section with proper data viz
+8. ✅ Loading skeletons
+

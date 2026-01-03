@@ -6,10 +6,11 @@ import { eq, and, desc } from "drizzle-orm";
 import { ClientDetail } from "@/components/clients/client-detail";
 
 interface ClientPageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 export default async function ClientPage({ params }: ClientPageProps) {
+    const { id } = await params;
     const { userId: clerkId } = await auth();
 
     if (!clerkId) {
@@ -26,7 +27,7 @@ export default async function ClientPage({ params }: ClientPageProps) {
 
     const client = await db.query.clients.findFirst({
         where: and(
-            eq(clients.id, params.id),
+            eq(clients.id, id),
             eq(clients.userId, user.id)
         ),
     });

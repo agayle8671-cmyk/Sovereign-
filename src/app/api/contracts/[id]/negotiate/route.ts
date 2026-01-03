@@ -7,9 +7,10 @@ import { generateNegotiationEmail, ContractAnalysis } from "@/lib/ai/contract-an
 
 export async function POST(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const { userId: clerkId } = await auth();
 
         if (!clerkId) {
@@ -26,7 +27,7 @@ export async function POST(
 
         const contract = await db.query.contracts.findFirst({
             where: and(
-                eq(contracts.id, params.id),
+                eq(contracts.id, id),
                 eq(contracts.userId, user.id)
             ),
         });

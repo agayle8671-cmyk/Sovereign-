@@ -6,9 +6,10 @@ import { eq, and } from "drizzle-orm";
 
 export async function POST(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const { userId: clerkId } = await auth();
 
         if (!clerkId) {
@@ -29,7 +30,7 @@ export async function POST(
             .set({ isApproved: true })
             .where(
                 and(
-                    eq(testimonials.id, params.id),
+                    eq(testimonials.id, id),
                     eq(testimonials.userId, user.id)
                 )
             )
