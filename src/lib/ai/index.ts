@@ -1,9 +1,11 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
-const apiKey = process.env.GOOGLE_AI_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+const apiKey = process.env.GOOGLE_AI_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "dummy-key";
 
-if (!apiKey) {
-    throw new Error("GOOGLE_AI_KEY is not set");
+// Only throw if we try to use it and it's missing (though createGoogleGenerativeAI might handle that)
+// For build time, we want to avoid crashing
+if (!process.env.GOOGLE_AI_KEY && !process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    console.warn("GOOGLE_AI_KEY is not set. AI features will not work.");
 }
 
 export const google = createGoogleGenerativeAI({
