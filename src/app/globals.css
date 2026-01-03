@@ -5,69 +5,44 @@
 @layer base {
   :root {
     --background: 222.2 84% 4.9%;
-    /* Deep Navy #020617 */
     --foreground: 210 40% 98%;
-
     --card: 217.2 32.6% 6%;
-    /* Slightly lighter for cards */
     --card-foreground: 210 40% 98%;
-
     --popover: 217.2 32.6% 6%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 160 84% 39.4%;
-    /* Emerald-500 */
     --primary-foreground: 210 40% 98%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 55%;
-
     --accent: 188 94% 42.6%;
-    /* Cyan-500 */
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 12%;
     --input: 217.2 32.6% 12%;
     --ring: 160 84% 39.4%;
-
     --radius: 0.75rem;
   }
 
   .dark {
     --background: 222.2 84% 2%;
-    /* #020617 - Deep Navy */
     --foreground: 210 40% 98%;
-
     --card: 217.2 32.6% 4%;
-    /* #0a0f1a */
     --card-foreground: 210 40% 98%;
-
     --popover: 217.2 32.6% 4%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 160 84% 39.4%;
-    /* Emerald-500 */
     --primary-foreground: 210 40% 98%;
-
     --secondary: 217.2 32.6% 10%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 12%;
     --muted-foreground: 215 20.2% 50%;
-
     --accent: 188 94% 42.6%;
-    /* Cyan-500 for AI/Agent */
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 8%;
     --input: 217.2 32.6% 8%;
     --ring: 160 84% 39.4%;
@@ -86,7 +61,10 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Hide scrollbars for cleaner OS feel */
+  ::selection {
+    @apply bg-indigo-500/30;
+  }
+
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -109,5 +87,51 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60;
+  }
+
+  .gradient-text-brand {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-400;
+  }
+}
+
+@layer components {
+  .bento-card {
+    @apply p-6 rounded-2xl bg-zinc-900/50 backdrop-blur-md border border-white/[0.08] hover:border-white/[0.15] transition-all duration-300;
+  }
+
+  .section-label {
+    @apply text-xs font-medium text-zinc-500 uppercase tracking-[0.2em];
+  }
+
+  .section-title {
+    @apply text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-balance;
+  }
+
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .status-dot-success {
+    @apply bg-emerald-500;
+  }
+
+  .status-dot-warning {
+    @apply bg-amber-500;
+  }
+
+  .status-dot-danger {
+    @apply bg-red-500;
+  }
+
+  .status-dot-info {
+    @apply bg-cyan-500;
+  }
+
+  .glass-panel {
+    @apply bg-zinc-900/80 backdrop-blur-xl border border-white/[0.08];
   }
 }
