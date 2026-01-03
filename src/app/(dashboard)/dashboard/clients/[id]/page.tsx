@@ -1,15 +1,15 @@
 import { auth } from "@clerk/nextjs/server";
-import { notFound, redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { users, clients, contracts, communications } from "@/lib/db/schema";
+import { users, clients, contracts, testimonials } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
-import { ClientDetail } from "@/components/clients/client-detail";
+import { PremiumClientDetail } from "@/components/clients/premium-client-detail";
 
-interface ClientPageProps {
+interface Props {
     params: Promise<{ id: string }>;
 }
 
-export default async function ClientPage({ params }: ClientPageProps) {
+export default async function ClientDetailPage({ params }: Props) {
     const { id } = await params;
     const { userId: clerkId } = await auth();
 
@@ -22,29 +22,32 @@ export default async function ClientPage({ params }: ClientPageProps) {
     });
 
     if (!user) {
-        redirect("/dashboard");
+        redirect("/login");
     }
 
     const client = await db.query.clients.findFirst({
-        where: and(
-            eq(clients.id, id),
-            eq(clients.userId, user.id)
-        ),
+        where: and(eq(clients.id, id), eq(clients.userId, user.id)),
     });
 
     if (!client) {
         notFound();
     }
 
-    // Get client's contracts
     const clientContracts = await db.query.contracts.findMany({
-        where: and(
-            eq(contracts.clientId, client.id),
-            eq(contracts.userId, user.id)
-        ),
+        where: eq(contracts.clientId, client.id),
         orderBy: [desc(contracts.createdAt)],
-        limit: 5,
     });
 
-    return <ClientDetail client={client} contracts={clientContracts} />;
+    const clientTestimonials = await db.query.testimonials.findMany({
+        where: eq(testimonials.clientId, client.id),
+        orderBy: [desc(testimonials.createdAt)],
+    });
+
+    return (
+        <PremiumClientDetail
+            client={client}
+            contracts={clientContracts}
+            testimonials={clientTestimonials}
+        />
+    );
 }

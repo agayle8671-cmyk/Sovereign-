@@ -51,7 +51,15 @@ export function formatRelativeTime(date: Date | string): string {
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    return formatDate(d);
+
+    const diffWeeks = Math.floor(diffDays / 7);
+    if (diffWeeks < 4) return `${diffWeeks}w ago`;
+
+    const diffMonths = Math.floor(diffDays / 30);
+    if (diffMonths < 12) return `${diffMonths}mo ago`;
+
+    const diffYears = Math.floor(diffDays / 365);
+    return `${diffYears}y ago`;
 }
 
 export function truncate(str: string, length: number): string {
