@@ -54,37 +54,19 @@ const config: Config = {
                     DEFAULT: "hsl(var(--card))",
                     foreground: "hsl(var(--card-foreground))",
                 },
-                // Custom Brand Colors
-                brand: {
-                    50: "#f0f7ff",
-                    100: "#e0efff",
-                    200: "#baddff",
-                    300: "#7cc2ff",
-                    400: "#36a3ff",
-                    500: "#0088ff",
-                    600: "#0070e0",
-                    700: "#0058b3",
-                    800: "#004080",
-                    900: "#002d5c",
-                    950: "#001a38",
-                },
-                neutral: {
-                    0: "#ffffff",
-                    50: "#fafafa",
-                    100: "#f4f4f5",
-                    200: "#e4e4e7",
-                    300: "#d4d4d8",
-                    400: "#a1a1aa",
-                    500: "#71717a",
-                    600: "#52525b",
-                    700: "#3f3f46",
-                    750: "#323238",
-                    800: "#27272a",
-                    850: "#1f1f23",
-                    900: "#18181b",
-                    925: "#131316",
-                    950: "#0f0f12",
-                },
+                // Wope-inspired Custom Palette
+                wope: {
+                    dark: "#050505", // Deep Obsidian
+                    surface: "#0F0F0F", // Slightly lighter for cards
+                    border: "#1F1F1F", // Subtle borders
+                    primary: "#8b5cf6", // Electric Violet
+                    secondary: "#3b82f6", // Electric Blue
+                    text: {
+                        main: "#ffffff",
+                        muted: "#a1a1aa",
+                        dim: "#52525b"
+                    }
+                }
             },
             borderRadius: {
                 lg: "var(--radius)",
@@ -93,8 +75,7 @@ const config: Config = {
             },
             fontFamily: {
                 sans: ["var(--font-inter)", ...fontFamily.sans],
-                display: ["var(--font-display)", ...fontFamily.serif],
-                mono: ["var(--font-mono)", ...fontFamily.mono],
+                display: ["var(--font-display)", ...fontFamily.sans],
             },
             keyframes: {
                 "accordion-down": {
@@ -106,39 +87,20 @@ const config: Config = {
                     to: { height: "0" },
                 },
                 shimmer: {
-                    from: { backgroundPosition: "0 0" },
-                    to: { backgroundPosition: "-200% 0" },
-                },
-                spotlight: {
-                    "0%": { opacity: "0", transform: "translate(-72%, -62%) scale(0.5)" },
-                    "100%": { opacity: "1", transform: "translate(-50%,-40%) scale(1)" },
-                },
-                meteor: {
-                    "0%": { transform: "rotate(215deg) translateX(0)", opacity: "1" },
-                    "70%": { opacity: "1" },
                     "100%": {
-                        transform: "rotate(215deg) translateX(-500px)",
-                        opacity: "0",
+                        transform: "translateX(100%)",
                     },
                 },
-                "text-reveal": {
-                    "0%": { transform: "translate(0, 100%)" },
-                    "100%": { transform: "translate(0, 0)" },
-                },
-                float: {
-                    "0%, 100%": { transform: "translateY(0)" },
-                    "50%": { transform: "translateY(-10px)" },
-                },
+                "slow-spin": {
+                    from: { transform: "rotate(0deg)" },
+                    to: { transform: "rotate(360deg)" }
+                }
             },
             animation: {
                 "accordion-down": "accordion-down 0.2s ease-out",
                 "accordion-up": "accordion-up 0.2s ease-out",
-                shimmer: "shimmer 2s linear infinite",
-                "spin-slow": "spin 3s linear infinite",
-                spotlight: "spotlight 2s ease .75s 1 forwards",
-                meteor: "meteor 5s linear infinite",
-                "text-reveal": "text-reveal 1.5s cubic-bezier(0.77, 0, 0.175, 1) 0.5s",
-                float: "float 6s ease-in-out infinite",
+                "fade-in": "fade-in 0.5s ease-out",
+                "slide-up": "slide-up 0.5s ease-out",
             },
         },
     },
