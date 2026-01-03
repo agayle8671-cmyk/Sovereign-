@@ -289,7 +289,7 @@ export const portfolioItems = pgTable("portfolio_items", {
     metrics: jsonb("metrics").default({}).$type<PortfolioMetrics>(),
     isFeatured: boolean("is_featured").default(false),
     isPublic: boolean("is_public").default(true),
-    status: varchar("status", { length: 50 }).default("draft"),
+    status: varchar("status", { length: 50 }).default("draft").notNull(),
     displayOrder: integer("display_order").default(0),
     projectDate: date("project_date"),
     completedAt: timestamp("completed_at"),
