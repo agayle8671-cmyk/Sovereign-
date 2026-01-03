@@ -24,7 +24,15 @@ interface SidebarProps {
     user: any;
 }
 
-const navigation = [
+interface NavigationItem {
+    name: string;
+    href: string;
+    icon: any;
+    gradient: string;
+    badge?: string | null;
+}
+
+const navigation: NavigationItem[] = [
     {
         name: "Dashboard",
         href: "/dashboard",
