@@ -1,5 +1,5 @@
 // @ts-ignore
-import pdf from "pdf-parse/lib/pdf-parse.js";
+import pdf from "pdf-parse";
 import mammoth from "mammoth";
 
 export async function parseDocument(
