@@ -46,7 +46,23 @@ export async function POST(
             );
         }
 
-        const analysis = contract.extractedTerms as ContractAnalysis;
+        if (!contract.extractedTerms) {
+            return NextResponse.json(
+                { error: "Contract has not been analyzed yet" },
+                { status: 400 }
+            );
+        }
+
+        // Force cast since we know the structure matches what our AI produces
+        const analysis = contract.extractedTerms as unknown as ContractAnalysis;
+
+        if (!analysis.risks) {
+            return NextResponse.json(
+                { error: "No risks found in contract analysis" },
+                { status: 400 }
+            );
+        }
+
         const selectedRisks = selectedRiskIndices.map(
             (i: number) => analysis.risks[i]
         ).filter(Boolean);
