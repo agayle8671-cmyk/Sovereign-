@@ -15,3 +15,8 @@ export const contractAnalysisModel = google("gemini-2.0-flash-001");
 
 // For longer documents or more complex analysis
 export const contractAnalysisModelPro = google("gemini-1.5-pro");
+
+// OpenRouter configuration if using transforms
+export const openRouterConfig = {
+    transforms: ["middle-out"], // Compress prompts that exceed context size
+};

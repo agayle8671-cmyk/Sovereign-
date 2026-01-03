@@ -1,0 +1,2026 @@
+# Part 3: Premium Contract Analysis Pages
+
+This will create a stunning contract analysis experience with premium visualizations.
+
+---
+
+## 1. Contract Analysis Upload Page
+
+### `src/app/(dashboard)/dashboard/contracts/analyze/page.tsx`
+
+```typescript
+import { PremiumContractUpload } from "@/components/contracts/premium-contract-upload";
+import { Shield, Lock, Zap, FileSearch } from "lucide-react";
+
+export default function ContractAnalyzePage() {
+  return (
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-600 mb-6 shadow-lg shadow-cyan-500/25">
+          <Shield className="w-10 h-10 text-white" />
+        </div>
+        <h1 className="text-3xl font-bold text-white mb-3">
+          Contract Shield Analysis
+        </h1>
+        <p className="text-neutral-400 max-w-lg mx-auto">
+          Upload your contract and let AI identify risks, unfavorable terms, and
+          generate negotiation strategies in seconds.
+        </p>
+      </div>
+
+      {/* Upload Component */}
+      <PremiumContractUpload />
+
+      {/* Trust indicators */}
+      <div className="grid grid-cols-3 gap-6 mt-12">
+        {[
+          {
+            icon: Zap,
+            title: "30-Second Analysis",
+            description: "AI scans every clause instantly",
+          },
+          {
+            icon: FileSearch,
+            title: "50+ Risk Factors",
+            description: "Comprehensive protection check",
+          },
+          {
+            icon: Lock,
+            title: "Bank-Level Security",
+            description: "AES-256 encryption, SOC 2 certified",
+          },
+        ].map((item) => (
+          <div
+            key={item.title}
+            className="text-center p-6 rounded-2xl bg-neutral-900/30 border border-white/5"
+          >
+            <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center mx-auto mb-4">
+              <item.icon className="w-6 h-6 text-cyan-400" />
+            </div>
+            <h3 className="font-medium text-white mb-1">{item.title}</h3>
+            <p className="text-sm text-neutral-500">{item.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+### `src/components/contracts/premium-contract-upload.tsx`
+
+```typescript
+"use client";
+
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useDropzone } from "react-dropzone";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import {
+  Upload,
+  FileText,
+  Shield,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  Sparkles,
+  X,
+  File,
+} from "lucide-react";
+import { toast } from "sonner";
+
+type UploadState = "idle" | "uploading" | "analyzing" | "complete" | "error";
+
+const analysisSteps = [
+  { id: "upload", label: "Uploading document", icon: Upload },
+  { id: "parse", label: "Parsing content", icon: FileText },
+  { id: "analyze", label: "AI analyzing clauses", icon: Sparkles },
+  { id: "risks", label: "Identifying risks", icon: Shield },
+  { id: "complete", label: "Analysis complete", icon: CheckCircle2 },
+];
+
+export function PremiumContractUpload() {
+  const router = useRouter();
+  const [state, setState] = useState<UploadState>("idle");
+  const [file, setFile] = useState<File | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (file) {
+      setFile(file);
+      setError(null);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "application/pdf": [".pdf"],
+      "application/msword": [".doc"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+      "text/plain": [".txt"],
+    },
+    maxFiles: 1,
+    maxSize: 16 * 1024 * 1024,
+    disabled: state !== "idle",
+  });
+
+  const simulateProgress = async () => {
+    for (let i = 0; i < analysisSteps.length - 1; i++) {
+      setCurrentStep(i);
+      await new Promise((r) => setTimeout(r, 800 + Math.random() * 400));
+    }
+  };
+
+  const handleAnalyze = async () => {
+    if (!file) return;
+
+    setState("uploading");
+    setCurrentStep(0);
+    setError(null);
+
+    // Start progress simulation
+    const progressPromise = simulateProgress();
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/contracts/analyze", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      // Wait for progress to catch up
+      await progressPromise;
+
+      if (!response.ok) {
+        throw new Error(data.error || "Analysis failed");
+      }
+
+      setCurrentStep(analysisSteps.length - 1);
+      setState("complete");
+
+      toast.success("Contract analyzed successfully!");
+
+      // Navigate after brief delay to show completion
+      setTimeout(() => {
+        router.push(`/dashboard/contracts/${data.contractId}`);
+      }, 1000);
+    } catch (err) {
+      setState("error");
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      setError(message);
+      toast.error(message);
+    }
+  };
+
+  const reset = () => {
+    setFile(null);
+    setState("idle");
+    setCurrentStep(0);
+    setError(null);
+  };
+
+  return (
+    <div className="relative">
+      {/* Main upload card */}
+      <div className="relative rounded-3xl overflow-hidden">
+        {/* Gradient border effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-3xl" />
+        
+        <div className="relative m-[1px] rounded-3xl bg-neutral-900/90 backdrop-blur-xl overflow-hidden">
+          <AnimatePresence mode="wait">
+            {state === "idle" && (
+              <motion.div
+                key="idle"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                {/* Drop zone */}
+                <div
+                  {...getRootProps()}
+                  className={cn(
+                    "p-12 cursor-pointer transition-all duration-300",
+                    isDragActive && "bg-cyan-500/5"
+                  )}
+                >
+                  <input {...getInputProps()} />
+
+                  <div className="text-center">
+                    {file ? (
+                      <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="space-y-4"
+                      >
+                        <div className="relative inline-block">
+                          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center mx-auto">
+                            <FileText className="w-10 h-10 text-cyan-400" />
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFile(null);
+                            }}
+                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <div>
+                          <p className="font-medium text-white">{file.name}</p>
+                          <p className="text-sm text-neutral-500">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <>
+                        <div
+                          className={cn(
+                            "w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 transition-all duration-300",
+                            isDragActive
+                              ? "bg-cyan-500/20 border-2 border-dashed border-cyan-500"
+                              : "bg-white/5 border-2 border-dashed border-white/10"
+                          )}
+                        >
+                          <Upload
+                            className={cn(
+                              "w-10 h-10 transition-colors",
+                              isDragActive ? "text-cyan-400" : "text-neutral-500"
+                            )}
+                          />
+                        </div>
+                        <p className="text-lg text-white mb-2">
+                          {isDragActive
+                            ? "Drop your contract here..."
+                            : "Drag & drop your contract"}
+                        </p>
+                        <p className="text-sm text-neutral-500">
+                          or click to browse • PDF, DOC, DOCX, TXT up to 16MB
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Analyze button */}
+                {file && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-6 border-t border-white/5"
+                  >
+                    <button
+                      onClick={handleAnalyze}
+                      className="group relative w-full py-4 rounded-xl font-semibold text-white overflow-hidden"
+                    >
+                      {/* Animated gradient background */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-500 bg-[length:200%_100%] animate-gradient" />
+                      
+                      {/* Shine effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                      
+                      {/* Shadow */}
+                      <div className="absolute inset-0 shadow-[0_0_30px_rgba(6,182,212,0.3)] rounded-xl" />
+                      
+                      <span className="relative flex items-center justify-center gap-2">
+                        <Shield className="w-5 h-5" />
+                        Analyze Contract
+                      </span>
+                    </button>
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
+
+            {(state === "uploading" || state === "analyzing") && (
+              <motion.div
+                key="analyzing"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="p-12"
+              >
+                <div className="text-center mb-10">
+                  <div className="relative w-24 h-24 mx-auto mb-6">
+                    {/* Spinning ring */}
+                    <svg className="w-full h-full animate-spin-slow" viewBox="0 0 100 100">
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="45"
+                        fill="none"
+                        stroke="url(#gradient)"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeDasharray="200"
+                        strokeDashoffset="50"
+                      />
+                      <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#06b6d4" />
+                          <stop offset="50%" stopColor="#3b82f6" />
+                          <stop offset="100%" stopColor="#8b5cf6" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    
+                    {/* Center icon */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Shield className="w-10 h-10 text-cyan-400" />
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Analyzing Your Contract
+                  </h3>
+                  <p className="text-neutral-400">
+                    AI is scanning clauses and identifying potential risks...
+                  </p>
+                </div>
+
+                {/* Progress steps */}
+                <div className="max-w-sm mx-auto space-y-3">
+                  {analysisSteps.map((step, index) => {
+                    const Icon = step.icon;
+                    const isComplete = index < currentStep;
+                    const isCurrent = index === currentStep;
+
+                    return (
+                      <motion.div
+                        key={step.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-xl transition-all duration-300",
+                          isComplete && "bg-emerald-500/10",
+                          isCurrent && "bg-cyan-500/10",
+                          !isComplete && !isCurrent && "opacity-40"
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                            isComplete && "bg-emerald-500/20",
+                            isCurrent && "bg-cyan-500/20",
+                            !isComplete && !isCurrent && "bg-white/5"
+                          )}
+                        >
+                          {isComplete ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          ) : isCurrent ? (
+                            <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
+                          ) : (
+                            <Icon className="w-4 h-4 text-neutral-500" />
+                          )}
+                        </div>
+                        <span
+                          className={cn(
+                            "text-sm font-medium",
+                            isComplete && "text-emerald-400",
+                            isCurrent && "text-cyan-400",
+                            !isComplete && !isCurrent && "text-neutral-500"
+                          )}
+                        >
+                          {step.label}
+                        </span>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+
+            {state === "complete" && (
+              <motion.div
+                key="complete"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="p-12 text-center"
+              >
+                <div className="w-20 h-20 rounded-2xl bg-emerald-500/20 flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  Analysis Complete!
+                </h3>
+                <p className="text-neutral-400">Redirecting to results...</p>
+              </motion.div>
+            )}
+
+            {state === "error" && (
+              <motion.div
+                key="error"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="p-12 text-center"
+              >
+                <div className="w-20 h-20 rounded-2xl bg-red-500/20 flex items-center justify-center mx-auto mb-6">
+                  <AlertCircle className="w-10 h-10 text-red-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  Analysis Failed
+                </h3>
+                <p className="text-neutral-400 mb-6">{error}</p>
+                <button
+                  onClick={reset}
+                  className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-colors"
+                >
+                  Try Again
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## 2. Contract Detail Page with Analysis Results
+
+### `src/app/(dashboard)/dashboard/contracts/[id]/page.tsx`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { redirect, notFound } from "next/navigation";
+import { db } from "@/lib/db";
+import { users, contracts, scopeItems } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+import { PremiumContractDetail } from "@/components/contracts/premium-contract-detail";
+
+interface Props {
+  params: { id: string };
+}
+
+export default async function ContractDetailPage({ params }: Props) {
+  const { userId: clerkId } = await auth();
+
+  if (!clerkId) {
+    redirect("/login");
+  }
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId),
+  });
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const contract = await db.query.contracts.findFirst({
+    where: and(
+      eq(contracts.id, params.id),
+      eq(contracts.userId, user.id)
+    ),
+    with: {
+      client: true,
+      scopeItems: true,
+    },
+  });
+
+  if (!contract) {
+    notFound();
+  }
+
+  return <PremiumContractDetail contract={contract} />;
+}
+```
+
+### `src/components/contracts/premium-contract-detail.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import {
+  Shield,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Calendar,
+  DollarSign,
+  FileText,
+  ChevronLeft,
+  Download,
+  Mail,
+  Copy,
+  ExternalLink,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Building,
+  User,
+  Info,
+  Sparkles,
+} from "lucide-react";
+import { RiskScoreRing } from "./risk-score-ring";
+import { RiskDetailsPanel } from "./risk-details-panel";
+import { NegotiationPanel } from "./negotiation-panel";
+import { ContractTimeline } from "./contract-timeline";
+
+interface ContractDetailProps {
+  contract: any;
+}
+
+export function PremiumContractDetail({ contract }: ContractDetailProps) {
+  const [showNegotiation, setShowNegotiation] = useState(false);
+  const [selectedRisks, setSelectedRisks] = useState<number[]>([]);
+
+  const analysis = contract.extractedTerms;
+  const risks = analysis?.risks || [];
+  const positives = analysis?.positives || [];
+  const missingClauses = analysis?.missingClauses || [];
+
+  const riskScore = contract.riskScore ?? 50;
+  const riskLevel = riskScore >= 80 ? "low" : riskScore >= 60 ? "medium" : "high";
+
+  const criticalRisks = risks.filter((r: any) => r.severity === "CRITICAL").length;
+  const highRisks = risks.filter((r: any) => r.severity === "HIGH").length;
+  const mediumRisks = risks.filter((r: any) => r.severity === "MEDIUM").length;
+  const lowRisks = risks.filter((r: any) => r.severity === "LOW").length;
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <Link
+            href="/dashboard/contracts"
+            className="mt-1 p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-neutral-400" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-white">{contract.title}</h1>
+            <div className="flex items-center gap-4 mt-2 text-sm text-neutral-400">
+              {contract.client && (
+                <span className="flex items-center gap-1.5">
+                  <Building className="w-4 h-4" />
+                  {contract.client.name}
+                </span>
+              )}
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4" />
+                {new Date(contract.createdAt).toLocaleDateString()}
+              </span>
+              {contract.totalValue && (
+                <span className="flex items-center gap-1.5">
+                  <DollarSign className="w-4 h-4" />
+                  {parseFloat(contract.totalValue).toLocaleString()}{" "}
+                  {contract.currency}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
+            <Download className="w-5 h-5 text-neutral-400" />
+          </button>
+          <button
+            onClick={() => setShowNegotiation(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium hover:from-cyan-400 hover:to-blue-400 transition-colors shadow-lg shadow-cyan-500/20"
+          >
+            <Mail className="w-4 h-4" />
+            Generate Counter-Offer
+          </button>
+        </div>
+      </div>
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-12 gap-6">
+        {/* Left Column - Risk Overview */}
+        <div className="col-span-12 lg:col-span-4 space-y-6">
+          {/* Risk Score Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative rounded-2xl overflow-hidden"
+          >
+            {/* Gradient background based on risk */}
+            <div
+              className={cn(
+                "absolute inset-0",
+                riskLevel === "low" && "bg-gradient-to-br from-emerald-500/20 to-emerald-600/5",
+                riskLevel === "medium" && "bg-gradient-to-br from-amber-500/20 to-amber-600/5",
+                riskLevel === "high" && "bg-gradient-to-br from-red-500/20 to-red-600/5"
+              )}
+            />
+
+            <div className="relative p-6 backdrop-blur-xl border border-white/5 rounded-2xl">
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-white mb-1">
+                    Risk Score
+                  </h2>
+                  <p className="text-sm text-neutral-400">
+                    Based on {risks.length} identified factors
+                  </p>
+                </div>
+                <div
+                  className={cn(
+                    "px-3 py-1 rounded-full text-sm font-medium",
+                    riskLevel === "low" && "bg-emerald-500/20 text-emerald-400",
+                    riskLevel === "medium" && "bg-amber-500/20 text-amber-400",
+                    riskLevel === "high" && "bg-red-500/20 text-red-400"
+                  )}
+                >
+                  {riskLevel === "low" && "Low Risk"}
+                  {riskLevel === "medium" && "Medium Risk"}
+                  {riskLevel === "high" && "High Risk"}
+                </div>
+              </div>
+
+              {/* Score Ring */}
+              <div className="flex justify-center mb-6">
+                <RiskScoreRing score={riskScore} size={180} />
+              </div>
+
+              {/* Risk breakdown */}
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { label: "Critical", count: criticalRisks, color: "red" },
+                  { label: "High", count: highRisks, color: "orange" },
+                  { label: "Medium", count: mediumRisks, color: "amber" },
+                  { label: "Low", count: lowRisks, color: "emerald" },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="text-center p-3 rounded-xl bg-white/5"
+                  >
+                    <p
+                      className={cn(
+                        "text-2xl font-bold",
+                        item.color === "red" && "text-red-400",
+                        item.color === "orange" && "text-orange-400",
+                        item.color === "amber" && "text-amber-400",
+                        item.color === "emerald" && "text-emerald-400"
+                      )}
+                    >
+                      {item.count}
+                    </p>
+                    <p className="text-xs text-neutral-500">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Contract Summary Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="p-6 rounded-2xl bg-neutral-900/50 border border-white/5"
+          >
+            <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-neutral-400" />
+              Contract Summary
+            </h3>
+            <p className="text-sm text-neutral-400 leading-relaxed mb-4">
+              {analysis?.summary || "No summary available."}
+            </p>
+
+            <div className="space-y-3">
+              {/* Parties */}
+              {analysis?.parties && (
+                <div className="p-3 rounded-xl bg-white/5">
+                  <p className="text-xs text-neutral-500 mb-2">Parties</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-cyan-400" />
+                      <span className="text-sm text-white">
+                        {analysis.parties.client?.name || "Client"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-purple-400" />
+                      <span className="text-sm text-white">
+                        {analysis.parties.contractor?.name || "You"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Payment Terms */}
+              {contract.paymentTerms && (
+                <div className="p-3 rounded-xl bg-white/5">
+                  <p className="text-xs text-neutral-500 mb-1">Payment Terms</p>
+                  <p className="text-sm text-white font-medium">
+                    {contract.paymentTerms.replace(/_/g, " ")}
+                  </p>
+                </div>
+              )}
+
+              {/* Duration */}
+              {analysis?.timeline && (
+                <div className="p-3 rounded-xl bg-white/5">
+                  <p className="text-xs text-neutral-500 mb-1">Duration</p>
+                  <p className="text-sm text-white font-medium">
+                    {analysis.timeline.duration || "Not specified"}
+                  </p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Positives Card */}
+          {positives.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/20"
+            >
+              <h3 className="font-semibold text-emerald-400 mb-4 flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" />
+                Good Clauses ({positives.length})
+              </h3>
+              <div className="space-y-3">
+                {positives.slice(0, 3).map((positive: any, index: number) => (
+                  <div
+                    key={index}
+                    className="p-3 rounded-xl bg-emerald-500/10"
+                  >
+                    <p className="text-sm text-white">{positive.description}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Right Column - Risk Details */}
+        <div className="col-span-12 lg:col-span-8 space-y-6">
+          {/* Negotiation Priority */}
+          {analysis?.negotiationPriority && analysis.negotiationPriority.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-6 rounded-2xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-5 h-5 text-cyan-400" />
+                <h3 className="font-semibold text-white">
+                  Negotiation Priority
+                </h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {analysis.negotiationPriority.map((item: string, index: number) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 text-sm text-white"
+                  >
+                    <span className="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 text-xs flex items-center justify-center font-medium">
+                      {index + 1}
+                    </span>
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Risk Details */}
+          <RiskDetailsPanel
+            risks={risks}
+            selectedRisks={selectedRisks}
+            onSelectRisk={(index) => {
+              setSelectedRisks((prev) =>
+                prev.includes(index)
+                  ? prev.filter((i) => i !== index)
+                  : [...prev, index]
+              );
+            }}
+            onGenerateEmail={() => setShowNegotiation(true)}
+          />
+
+          {/* Missing Clauses */}
+          {missingClauses.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="p-6 rounded-2xl bg-amber-500/5 border border-amber-500/20"
+            >
+              <h3 className="font-semibold text-amber-400 mb-4 flex items-center gap-2">
+                <Info className="w-4 h-4" />
+                Missing Clauses ({missingClauses.length})
+              </h3>
+              <div className="space-y-3">
+                {missingClauses.map((clause: any, index: number) => (
+                  <div
+                    key={index}
+                    className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/10"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-medium text-white">{clause.clause}</p>
+                      <span
+                        className={cn(
+                          "px-2 py-0.5 rounded text-xs font-medium",
+                          clause.importance === "CRITICAL" && "bg-red-500/20 text-red-400",
+                          clause.importance === "IMPORTANT" && "bg-amber-500/20 text-amber-400",
+                          clause.importance === "RECOMMENDED" && "bg-blue-500/20 text-blue-400"
+                        )}
+                      >
+                        {clause.importance}
+                      </span>
+                    </div>
+                    <p className="text-sm text-neutral-400">
+                      Suggested: {clause.suggestedLanguage}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Scope Items */}
+          {contract.scopeItems && contract.scopeItems.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="p-6 rounded-2xl bg-neutral-900/50 border border-white/5"
+            >
+              <h3 className="font-semibold text-white mb-4">
+                Scope & Deliverables ({contract.scopeItems.length})
+              </h3>
+              <div className="space-y-2">
+                {contract.scopeItems.map((item: any) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-white/5"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-white">{item.description}</p>
+                      {item.category && (
+                        <span className="text-xs text-neutral-500">
+                          {item.category}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Negotiation Modal */}
+      <NegotiationPanel
+        open={showNegotiation}
+        onClose={() => setShowNegotiation(false)}
+        contractId={contract.id}
+        analysis={analysis}
+        selectedRisks={selectedRisks}
+        risks={risks}
+      />
+    </div>
+  );
+}
+```
+
+---
+
+### `src/components/contracts/risk-score-ring.tsx`
+
+```typescript
+"use client";
+
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+
+interface RiskScoreRingProps {
+  score: number;
+  size?: number;
+}
+
+export function RiskScoreRing({ score, size = 160 }: RiskScoreRingProps) {
+  const [animatedScore, setAnimatedScore] = useState(0);
+
+  const strokeWidth = 8;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (animatedScore / 100) * circumference;
+
+  const getColor = (score: number) => {
+    if (score >= 80) return { main: "#10b981", glow: "rgba(16, 185, 129, 0.3)" };
+    if (score >= 60) return { main: "#f59e0b", glow: "rgba(245, 158, 11, 0.3)" };
+    return { main: "#ef4444", glow: "rgba(239, 68, 68, 0.3)" };
+  };
+
+  const color = getColor(score);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimatedScore(score);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [score]);
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      {/* Glow effect */}
+      <div
+        className="absolute inset-0 rounded-full blur-xl opacity-50"
+        style={{ backgroundColor: color.glow }}
+      />
+
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className="transform -rotate-90"
+      >
+        {/* Background circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="rgba(255, 255, 255, 0.1)"
+          strokeWidth={strokeWidth}
+        />
+
+        {/* Animated progress */}
+        <motion.circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color.main}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            filter: `drop-shadow(0 0 8px ${color.glow})`,
+          }}
+        />
+      </svg>
+
+      {/* Center content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <motion.span
+          className="text-5xl font-bold text-white"
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          {animatedScore}
+        </motion.span>
+        <span className="text-sm text-neutral-400">out of 100</span>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+### `src/components/contracts/risk-details-panel.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import {
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  ChevronDown,
+  ChevronUp,
+  CheckSquare,
+  Square,
+  Lightbulb,
+  FileEdit,
+} from "lucide-react";
+
+interface Risk {
+  clause: string;
+  category: string;
+  severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  explanation: string;
+  recommendation: string;
+  suggestedRevision: string | null;
+}
+
+interface RiskDetailsPanelProps {
+  risks: Risk[];
+  selectedRisks: number[];
+  onSelectRisk: (index: number) => void;
+  onGenerateEmail: () => void;
+}
+
+const severityConfig = {
+  CRITICAL: {
+    icon: AlertTriangle,
+    color: "text-red-400",
+    bg: "bg-red-500/10",
+    border: "border-red-500/30",
+    badge: "bg-red-500/20 text-red-400",
+  },
+  HIGH: {
+    icon: AlertTriangle,
+    color: "text-orange-400",
+    bg: "bg-orange-500/10",
+    border: "border-orange-500/30",
+    badge: "bg-orange-500/20 text-orange-400",
+  },
+  MEDIUM: {
+    icon: AlertCircle,
+    color: "text-amber-400",
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/30",
+    badge: "bg-amber-500/20 text-amber-400",
+  },
+  LOW: {
+    icon: Info,
+    color: "text-blue-400",
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/30",
+    badge: "bg-blue-500/20 text-blue-400",
+  },
+};
+
+export function RiskDetailsPanel({
+  risks,
+  selectedRisks,
+  onSelectRisk,
+  onGenerateEmail,
+}: RiskDetailsPanelProps) {
+  const [expandedRisks, setExpandedRisks] = useState<number[]>([0]);
+
+  const toggleExpand = (index: number) => {
+    setExpandedRisks((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
+  };
+
+  if (risks.length === 0) {
+    return (
+      <div className="p-12 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+          <CheckSquare className="w-8 h-8 text-emerald-400" />
+        </div>
+        <h3 className="text-xl font-semibold text-white mb-2">
+          No significant risks detected
+        </h3>
+        <p className="text-neutral-400">
+          This contract appears to have fair and balanced terms.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+      className="rounded-2xl bg-neutral-900/50 border border-white/5 overflow-hidden"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-white/5">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="w-5 h-5 text-red-400" />
+          <h3 className="font-semibold text-white">
+            Risk Analysis ({risks.length} issues)
+          </h3>
+        </div>
+        {selectedRisks.length > 0 && (
+          <button
+            onClick={onGenerateEmail}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 text-sm font-medium hover:bg-cyan-500/20 transition-colors"
+          >
+            <FileEdit className="w-4 h-4" />
+            Address {selectedRisks.length} selected
+          </button>
+        )}
+      </div>
+
+      {/* Risk list */}
+      <div className="divide-y divide-white/5">
+        {risks.map((risk, index) => {
+          const config = severityConfig[risk.severity];
+          const Icon = config.icon;
+          const isExpanded = expandedRisks.includes(index);
+          const isSelected = selectedRisks.includes(index);
+
+          return (
+            <div key={index} className={cn("transition-colors", isExpanded && config.bg)}>
+              {/* Risk header */}
+              <div className="flex items-start gap-3 p-4">
+                {/* Checkbox */}
+                <button
+                  onClick={() => onSelectRisk(index)}
+                  className="mt-0.5 shrink-0"
+                >
+                  {isSelected ? (
+                    <CheckSquare className="w-5 h-5 text-cyan-400" />
+                  ) : (
+                    <Square className="w-5 h-5 text-neutral-600 hover:text-neutral-400" />
+                  )}
+                </button>
+
+                {/* Icon */}
+                <div
+                  className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                    config.bg
+                  )}
+                >
+                  <Icon className={cn("w-5 h-5", config.color)} />
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span
+                      className={cn(
+                        "px-2 py-0.5 rounded text-xs font-medium",
+                        config.badge
+                      )}
+                    >
+                      {risk.severity}
+                    </span>
+                    <span className="text-xs text-neutral-500">
+                      {risk.category.replace(/_/g, " ")}
+                    </span>
+                  </div>
+                  <p className="text-white font-medium line-clamp-2">
+                    {risk.explanation}
+                  </p>
+                </div>
+
+                {/* Expand button */}
+                <button
+                  onClick={() => toggleExpand(index)}
+                  className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+                >
+                  {isExpanded ? (
+                    <ChevronUp className="w-4 h-4 text-neutral-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-neutral-400" />
+                  )}
+                </button>
+              </div>
+
+              {/* Expanded content */}
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-4 pb-4 ml-[68px] space-y-4">
+                      {/* Original clause */}
+                      <div className="p-3 rounded-xl bg-white/5 border-l-2 border-red-500/50">
+                        <p className="text-xs text-neutral-500 mb-1">
+                          Problematic Clause
+                        </p>
+                        <p className="text-sm text-neutral-300 italic">
+                          "{risk.clause}"
+                        </p>
+                      </div>
+
+                      {/* Recommendation */}
+                      <div className="flex items-start gap-3 p-3 rounded-xl bg-cyan-500/5 border border-cyan-500/20">
+                        <Lightbulb className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs text-cyan-400 font-medium mb-1">
+                            Recommendation
+                          </p>
+                          <p className="text-sm text-neutral-300">
+                            {risk.recommendation}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Suggested revision */}
+                      {risk.suggestedRevision && (
+                        <div className="p-3 rounded-xl bg-emerald-500/5 border-l-2 border-emerald-500/50">
+                          <p className="text-xs text-emerald-400 font-medium mb-1">
+                            Suggested Revision
+                          </p>
+                          <p className="text-sm text-neutral-300">
+                            "{risk.suggestedRevision}"
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+```
+
+---
+
+### `src/components/contracts/negotiation-panel.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import {
+  X,
+  Mail,
+  Copy,
+  Check,
+  Loader2,
+  Sparkles,
+  FileEdit,
+  Send,
+} from "lucide-react";
+
+interface NegotiationPanelProps {
+  open: boolean;
+  onClose: () => void;
+  contractId: string;
+  analysis: any;
+  selectedRisks: number[];
+  risks: any[];
+}
+
+type Tone = "professional" | "friendly" | "firm";
+
+export function NegotiationPanel({
+  open,
+  onClose,
+  contractId,
+  analysis,
+  selectedRisks,
+  risks,
+}: NegotiationPanelProps) {
+  const [tone, setTone] = useState<Tone>("professional");
+  const [email, setEmail] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const selectedRiskItems = selectedRisks.map((i) => risks[i]).filter(Boolean);
+  const risksToUse = selectedRiskItems.length > 0 ? selectedRiskItems : risks.slice(0, 3);
+
+  const generateEmail = async () => {
+    setLoading(true);
+    setEmail(null);
+
+    try {
+      const response = await fetch(`/api/contracts/${contractId}/negotiate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          selectedRiskIndices: selectedRisks.length > 0 ? selectedRisks : [0, 1, 2].filter(i => i < risks.length),
+          tone,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate email");
+      }
+
+      setEmail(data.email);
+    } catch (error) {
+      console.error("Failed to generate email:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyToClipboard = async () => {
+    if (!email) return;
+    await navigator.clipboard.writeText(email);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+          />
+
+          {/* Panel */}
+          <motion.div
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-2xl bg-neutral-900 border-l border-white/10 overflow-hidden flex flex-col"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-white">
+                    Generate Counter-Offer Email
+                  </h2>
+                  <p className="text-sm text-neutral-400">
+                    AI will draft a professional negotiation email
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+              >
+                <X className="w-5 h-5 text-neutral-400" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Tone Selection */}
+              <div>
+                <label className="block text-sm font-medium text-white mb-3">
+                  Email Tone
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    {
+                      id: "professional" as Tone,
+                      label: "Professional",
+                      description: "Formal and business-like",
+                    },
+                    {
+                      id: "friendly" as Tone,
+                      label: "Friendly",
+                      description: "Warm but professional",
+                    },
+                    {
+                      id: "firm" as Tone,
+                      label: "Firm",
+                      description: "Direct and confident",
+                    },
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() => setTone(option.id)}
+                      className={cn(
+                        "p-4 rounded-xl text-left transition-all",
+                        tone === option.id
+                          ? "bg-cyan-500/10 border-2 border-cyan-500/50"
+                          : "bg-white/5 border-2 border-transparent hover:border-white/10"
+                      )}
+                    >
+                      <p
+                        className={cn(
+                          "font-medium mb-1",
+                          tone === option.id ? "text-cyan-400" : "text-white"
+                        )}
+                      >
+                        {option.label}
+                      </p>
+                      <p className="text-xs text-neutral-500">
+                        {option.description}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Selected Issues */}
+              <div>
+                <label className="block text-sm font-medium text-white mb-3">
+                  Issues to Address ({risksToUse.length})
+                </label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {risksToUse.map((risk, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 rounded-xl bg-white/5"
+                    >
+                      <div
+                        className={cn(
+                          "w-6 h-6 rounded flex items-center justify-center text-xs font-medium",
+                          risk.severity === "CRITICAL" && "bg-red-500/20 text-red-400",
+                          risk.severity === "HIGH" && "bg-orange-500/20 text-orange-400",
+                          risk.severity === "MEDIUM" && "bg-amber-500/20 text-amber-400",
+                          risk.severity === "LOW" && "bg-blue-500/20 text-blue-400"
+                        )}
+                      >
+                        {risk.severity[0]}
+                      </div>
+                      <p className="text-sm text-neutral-300 flex-1 line-clamp-1">
+                        {risk.explanation}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Generate Button */}
+              {!email && (
+                <button
+                  onClick={generateEmail}
+                  disabled={loading}
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold hover:from-cyan-400 hover:to-blue-400 transition-colors shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      Generate Email
+                    </>
+                  )}
+                </button>
+              )}
+
+              {/* Generated Email */}
+              {email && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-emerald-400">
+                      <Check className="w-5 h-5" />
+                      <span className="text-sm font-medium">Email Generated</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={copyToClipboard}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-sm text-white hover:bg-white/10 transition-colors"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="w-4 h-4 text-emerald-400" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4" />
+                            Copy
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEmail(null);
+                          generateEmail();
+                        }}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-sm text-white hover:bg-white/10 transition-colors"
+                      >
+                        <FileEdit className="w-4 h-4" />
+                        Regenerate
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                    <pre className="whitespace-pre-wrap text-sm text-neutral-300 font-sans leading-relaxed">
+                      {email}
+                    </pre>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Footer */}
+            {email && (
+              <div className="p-6 border-t border-white/5">
+                <button className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+                  <Send className="w-4 h-4" />
+                  Open in Email Client
+                </button>
+              </div>
+            )}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+```
+
+---
+
+## 3. Contracts List Page
+
+### `src/app/(dashboard)/dashboard/contracts/page.tsx`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
+import { users, contracts } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
+import { PremiumContractsList } from "@/components/contracts/premium-contracts-list";
+
+export default async function ContractsPage() {
+  const { userId: clerkId } = await auth();
+
+  if (!clerkId) {
+    redirect("/login");
+  }
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId),
+  });
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const userContracts = await db.query.contracts.findMany({
+    where: eq(contracts.userId, user.id),
+    orderBy: [desc(contracts.createdAt)],
+    with: {
+      client: true,
+    },
+  });
+
+  return <PremiumContractsList contracts={userContracts} />;
+}
+```
+
+### `src/components/contracts/premium-contracts-list.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { cn, formatRelativeTime } from "@/lib/utils";
+import {
+  Shield,
+  Plus,
+  Search,
+  Filter,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Calendar,
+  DollarSign,
+  Building,
+  FileText,
+  ChevronRight,
+  ArrowUpDown,
+  MoreHorizontal,
+} from "lucide-react";
+
+interface ContractsListProps {
+  contracts: any[];
+}
+
+type SortField = "date" | "risk" | "value";
+type FilterStatus = "all" | "high-risk" | "reviewed" | "pending";
+
+export function PremiumContractsList({ contracts }: ContractsListProps) {
+  const [search, setSearch] = useState("");
+  const [sortField, setSortField] = useState<SortField>("date");
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+
+  // Filter and sort contracts
+  const filteredContracts = contracts
+    .filter((contract) => {
+      // Search filter
+      if (search) {
+        const searchLower = search.toLowerCase();
+        return (
+          contract.title?.toLowerCase().includes(searchLower) ||
+          contract.client?.name?.toLowerCase().includes(searchLower)
+        );
+      }
+      return true;
+    })
+    .filter((contract) => {
+      // Status filter
+      if (filterStatus === "high-risk") return contract.riskScore < 60;
+      if (filterStatus === "reviewed") return contract.status === "reviewed";
+      if (filterStatus === "pending") return contract.status === "pending_review";
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortField === "date") {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      if (sortField === "risk") {
+        return (a.riskScore ?? 100) - (b.riskScore ?? 100);
+      }
+      if (sortField === "value") {
+        const aValue = parseFloat(a.totalValue) || 0;
+        const bValue = parseFloat(b.totalValue) || 0;
+        return bValue - aValue;
+      }
+      return 0;
+    });
+
+  // Stats
+  const totalContracts = contracts.length;
+  const highRiskCount = contracts.filter((c) => c.riskScore && c.riskScore < 60).length;
+  const totalValue = contracts.reduce((sum, c) => sum + (parseFloat(c.totalValue) || 0), 0);
+  const avgRiskScore =
+    contracts.length > 0
+      ? Math.round(
+          contracts.reduce((sum, c) => sum + (c.riskScore ?? 0), 0) /
+            contracts.filter((c) => c.riskScore !== null).length || 0
+        )
+      : 0;
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Contracts</h1>
+          <p className="text-neutral-400 mt-1">
+            Manage and analyze your contracts
+          </p>
+        </div>
+        <Link
+          href="/dashboard/contracts/analyze"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium hover:from-cyan-400 hover:to-blue-400 transition-colors shadow-lg shadow-cyan-500/20"
+        >
+          <Plus className="w-4 h-4" />
+          Analyze Contract
+        </Link>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-4 gap-4">
+        {[
+          {
+            label: "Total Contracts",
+            value: totalContracts,
+            icon: FileText,
+            color: "cyan",
+          },
+          {
+            label: "High Risk",
+            value: highRiskCount,
+            icon: AlertTriangle,
+            color: "red",
+          },
+          {
+            label: "Avg. Risk Score",
+            value: `${avgRiskScore}%`,
+            icon: Shield,
+            color: avgRiskScore >= 70 ? "emerald" : avgRiskScore >= 50 ? "amber" : "red",
+          },
+          {
+            label: "Total Value",
+            value: `$${totalValue.toLocaleString()}`,
+            icon: DollarSign,
+            color: "purple",
+          },
+        ].map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className="p-5 rounded-2xl bg-neutral-900/50 border border-white/5"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div
+                className={cn(
+                  "w-10 h-10 rounded-xl flex items-center justify-center",
+                  `bg-${stat.color}-500/10`
+                )}
+              >
+                <stat.icon className={cn("w-5 h-5", `text-${stat.color}-400`)} />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-white">{stat.value}</p>
+            <p className="text-sm text-neutral-500">{stat.label}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center gap-4">
+        {/* Search */}
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+          <input
+            type="text"
+            placeholder="Search contracts..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-neutral-500 focus:outline-none focus:border-cyan-500/50"
+          />
+        </div>
+
+        {/* Status filter */}
+        <div className="flex items-center gap-2">
+          {[
+            { id: "all" as FilterStatus, label: "All" },
+            { id: "high-risk" as FilterStatus, label: "High Risk" },
+            { id: "pending" as FilterStatus, label: "Pending Review" },
+          ].map((filter) => (
+            <button
+              key={filter.id}
+              onClick={() => setFilterStatus(filter.id)}
+              className={cn(
+                "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                filterStatus === filter.id
+                  ? "bg-white/10 text-white"
+                  : "text-neutral-400 hover:text-white hover:bg-white/5"
+              )}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Sort */}
+        <div className="flex items-center gap-2 pl-4 border-l border-white/10">
+          <ArrowUpDown className="w-4 h-4 text-neutral-500" />
+          <select
+            value={sortField}
+            onChange={(e) => setSortField(e.target.value as SortField)}
+            className="bg-transparent text-sm text-neutral-400 focus:outline-none cursor-pointer"
+          >
+            <option value="date">Date</option>
+            <option value="risk">Risk Score</option>
+            <option value="value">Value</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Contracts list */}
+      {filteredContracts.length === 0 ? (
+        <div className="py-20 text-center">
+          <div className="w-20 h-20 rounded-2xl bg-neutral-800 flex items-center justify-center mx-auto mb-6">
+            <Shield className="w-10 h-10 text-neutral-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-white mb-2">
+            No contracts found
+          </h3>
+          <p className="text-neutral-400 mb-6">
+            {search
+              ? "Try adjusting your search or filters"
+              : "Upload your first contract to get started"}
+          </p>
+          {!search && (
+            <Link
+              href="/dashboard/contracts/analyze"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500/10 text-cyan-400 font-medium hover:bg-cyan-500/20 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Analyze Contract
+            </Link>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-2xl bg-neutral-900/50 border border-white/5 overflow-hidden">
+          <div className="divide-y divide-white/5">
+            {filteredContracts.map((contract, index) => {
+              const riskScore = contract.riskScore ?? 50;
+              const riskLevel =
+                riskScore >= 80 ? "low" : riskScore >= 60 ? "medium" : "high";
+
+              return (
+                <motion.div
+                  key={contract.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                >
+                  <Link
+                    href={`/dashboard/contracts/${contract.id}`}
+                    className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors group"
+                  >
+                    {/* Risk indicator */}
+                    <div
+                      className={cn(
+                        "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
+                        riskLevel === "low" && "bg-emerald-500/10",
+                        riskLevel === "medium" && "bg-amber-500/10",
+                        riskLevel === "high" && "bg-red-500/10"
+                      )}
+                    >
+                      {riskLevel === "high" ? (
+                        <AlertTriangle
+                          className={cn(
+                            "w-6 h-6",
+                            riskLevel === "high" && "text-red-400"
+                          )}
+                        />
+                      ) : riskLevel === "medium" ? (
+                        <Clock className="w-6 h-6 text-amber-400" />
+                      ) : (
+                        <CheckCircle className="w-6 h-6 text-emerald-400" />
+                      )}
+                    </div>
+
+                    {/* Contract info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <p className="font-medium text-white truncate">
+                          {contract.title}
+                        </p>
+                        <span
+                          className={cn(
+                            "px-2 py-0.5 rounded text-xs font-medium shrink-0",
+                            riskLevel === "low" && "bg-emerald-500/20 text-emerald-400",
+                            riskLevel === "medium" && "bg-amber-500/20 text-amber-400",
+                            riskLevel === "high" && "bg-red-500/20 text-red-400"
+                          )}
+                        >
+                          {riskScore}% Safe
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-neutral-500">
+                        {contract.client && (
+                          <span className="flex items-center gap-1.5">
+                            <Building className="w-3.5 h-3.5" />
+                            {contract.client.name}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5" />
+                          {formatRelativeTime(contract.createdAt)}
+                        </span>
+                        {contract.totalValue && (
+                          <span className="flex items-center gap-1.5">
+                            <DollarSign className="w-3.5 h-3.5" />
+                            {parseFloat(contract.totalValue).toLocaleString()}{" "}
+                            {contract.currency}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Risks summary */}
+                    <div className="hidden md:flex items-center gap-2 shrink-0">
+                      {contract.riskFlags && contract.riskFlags.length > 0 && (
+                        <>
+                          {contract.riskFlags.filter((r: any) => r.severity === "CRITICAL").length > 0 && (
+                            <span className="px-2 py-1 rounded bg-red-500/10 text-xs text-red-400">
+                              {contract.riskFlags.filter((r: any) => r.severity === "CRITICAL").length} Critical
+                            </span>
+                          )}
+                          {contract.riskFlags.filter((r: any) => r.severity === "HIGH").length > 0 && (
+                            <span className="px-2 py-1 rounded bg-orange-500/10 text-xs text-orange-400">
+                              {contract.riskFlags.filter((r: any) => r.severity === "HIGH").length} High
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    <ChevronRight className="w-5 h-5 text-neutral-600 group-hover:text-white transition-colors" />
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+## 4. Add CSS Animation for Slow Spin
+
+Add this to your `globals.css`:
+
+```css
+/* Slow spin animation for loading indicators */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+```
+
+---
+
+## 5. Update API Route with Middle-Out Transforms
+
+### `src/lib/ai/index.ts`
+
+```typescript
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+
+if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+  throw new Error("GOOGLE_GENERATIVE_AI_API_KEY is not set");
+}
+
+export const google = createGoogleGenerativeAI({
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+});
+
+// Default model for contract analysis
+export const contractAnalysisModel = google("gemini-2.0-flash-001", {
+  // Configuration for large documents
+  structuredOutputs: true,
+});
+
+// For longer documents or more complex analysis
+export const contractAnalysisModelPro = google("gemini-1.5-pro", {
+  structuredOutputs: true,
+});
+
+// OpenRouter configuration if using transforms
+export const openRouterConfig = {
+  transforms: ["middle-out"], // Compress prompts that exceed context size
+};
+```
+
+---
+
+## Summary
+
+Part 3 includes:
+
+1. **Premium Contract Upload Page**
+   - Beautiful drop zone with animations
+   - Step-by-step progress visualization
+   - Trust indicators
+
+2. **Contract Detail Page**
+   - Animated risk score ring
+   - Risk breakdown by severity
+   - Expandable risk details
+   - Summary and parties extraction
+   - Negotiation priority list
+   - Missing clauses detection
+
+3. **Risk Details Panel**
+   - Selectable risks for negotiation
+   - Expandable cards with full details
+   - Recommendations and suggested revisions
+
+4. **Negotiation Panel**
+   - Tone selection (professional/friendly/firm)
+   - AI-generated email preview
+   - Copy to clipboard functionality
+
+5. **Contracts List Page**
+   - Stats overview
+   - Search and filtering
+   - Sortable columns
+   - Risk indicators per contract
+
+---
