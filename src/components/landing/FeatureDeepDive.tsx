@@ -1,112 +1,111 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { Shield, Target, Briefcase, MessageSquare } from "lucide-react";
-
-const features = [
-    {
-        id: "shield",
-        icon: Shield,
-        name: "Contract Shield",
-        headline: "Catch the traps\nbefore they catch you.",
-        description: "Every clause analyzed. Every risk flagged. Every negotiation point identified.",
-        color: "from-cyan-500 to-blue-500",
-        stat: { value: "$847", label: "avg savings per contract" },
-    },
-    {
-        id: "radar",
-        icon: Target,
-        name: "Client Radar",
-        headline: "Know who's happy.\nKnow who's not.",
-        description: "Real-time health scores for every relationship. Predict problems before they happen.",
-        color: "from-amber-500 to-orange-500",
-        stat: { value: "94%", label: "prediction accuracy" },
-    },
-    {
-        id: "magnet",
-        icon: Briefcase,
-        name: "Lead Magnet",
-        headline: "Your work sells.\nWhile you sleep.",
-        description: "AI-powered portfolio that converts visitors into clients automatically.",
-        color: "from-purple-500 to-pink-500",
-        stat: { value: "3.2x", label: "more qualified leads" },
-    },
-    {
-        id: "forge",
-        icon: MessageSquare,
-        name: "Proof Forge",
-        headline: "Social proof.\nOn autopilot.",
-        description: "One-click testimonial collection. Video or text. In under 2 minutes.",
-        color: "from-rose-500 to-red-500",
-        stat: { value: "8x", label: "faster collection" },
-    },
-];
+import { Shield, Target, Briefcase, MessageSquare, ArrowUpRight } from "lucide-react";
+import { BentoGrid, BentoGridItem } from "@/components/ui/BentoGrid";
+import { motion } from "framer-motion";
 
 export function FeatureDeepDive() {
     return (
-        <section id="features" className="relative">
-            {features.map((feature, index) => (
-                <FeatureSlide key={feature.id} feature={feature} index={index} />
-            ))}
-        </section>
-    );
-}
+        <section id="features" className="py-32 bg-black relative overflow-hidden">
+            {/* Background Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black via-purple-950/10 to-black pointer-events-none" />
 
-function FeatureSlide({
-    feature,
-    index,
-}: {
-    feature: (typeof features)[0];
-    index: number;
-}) {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start end", "end start"],
-    });
-
-    const opacity = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [0, 1, 1, 0]);
-    const y = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [100, 0, 0, -100]);
-    const scale = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [0.9, 1, 1, 0.9]);
-
-    const Icon = feature.icon;
-
-    return (
-        <section
-            ref={containerRef}
-            className="relative min-h-screen flex items-center justify-center py-32"
-        >
-            <motion.div
-                style={{ opacity, y, scale }}
-                className="max-w-5xl mx-auto px-6 text-center"
-            >
-                {/* Feature label */}
-                <div className="flex items-center justify-center gap-3 mb-8">
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center`}>
-                        <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <span className="text-lg font-medium text-white/60">{feature.name}</span>
-                </div>
-
-                {/* Massive headline */}
-                <h2 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-[0.9] mb-8 whitespace-pre-line">
-                    {feature.headline}
+            <div className="max-w-7xl mx-auto px-6 mb-20 text-center relative z-10">
+                <h2 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-600 mb-4">
+                    Everything you need.
                 </h2>
-
-                {/* Description */}
-                <p className="text-xl md:text-2xl text-white/50 max-w-2xl mx-auto mb-12">
-                    {feature.description}
+                <p className="text-neutral-500 text-lg max-w-2xl mx-auto">
+                    A complete operating system for your freelance business.
                 </p>
+            </div>
 
-                {/* Stat */}
-                <div className="inline-flex items-center gap-4 px-8 py-4 rounded-2xl bg-white/5 border border-white/10">
-                    <span className={`text-4xl font-bold bg-gradient-to-r ${feature.color} bg-clip-text text-transparent`}>
-                        {feature.stat.value}
-                    </span>
-                    <span className="text-white/40">{feature.stat.label}</span>
-                </div>
-            </motion.div>
+            <BentoGrid className="max-w-6xl mx-auto relative z-10">
+                {items.map((item, i) => (
+                    <BentoGridItem
+                        key={i}
+                        title={item.title}
+                        description={item.description}
+                        header={item.header}
+                        icon={item.icon}
+                        className={i === 0 || i === 3 ? "md:col-span-2" : ""}
+                    />
+                ))}
+            </BentoGrid>
         </section>
     );
 }
+
+const items = [
+    {
+        title: "Contract Shield",
+        description: "AI-powered analysis that flags risky clauses before you sign. Detects unlimited revisions, NET-60 terms, and IP theft traps.",
+        header: (
+            <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 overflow-hidden relative group/image">
+                <div className="absolute inset-0 bg-grid-white/[0.02]" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="relative w-3/4 h-3/4 bg-neutral-900 rounded-lg border border-white/10 p-4 shadow-2xl group-hover/image:scale-105 transition-transform duration-500">
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="w-2 h-2 rounded-full bg-red-500" />
+                            <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                            <div className="w-2 h-2 rounded-full bg-green-500" />
+                        </div>
+                        <div className="space-y-2">
+                            <div className="h-2 w-3/4 bg-white/10 rounded" />
+                            <div className="h-2 w-1/2 bg-white/10 rounded" />
+                            <div className="h-2 w-full bg-red-500/20 rounded animate-pulse" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        ),
+        icon: <Shield className="h-4 w-4 text-neutral-500" />,
+    },
+    {
+        title: "Client Radar",
+        description: "Predict client health and churn risk with 94% accuracy.",
+        header: (
+            <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 relative overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-cyan-500/20 rounded-full blur-3xl" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <Target className="w-16 h-16 text-cyan-500/50" />
+                </div>
+            </div>
+        ),
+        icon: <Target className="h-4 w-4 text-neutral-500" />,
+    },
+    {
+        title: "Proof Forge",
+        description: "Automated testimonial collection using AI-generated drafts.",
+        header: (
+            <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 relative overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="flex -space-x-4">
+                        {[...Array(3)].map((_, i) => (
+                            <div key={i} className="w-10 h-10 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-xs text-white/50">
+                                User
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        ),
+        icon: <MessageSquare className="h-4 w-4 text-neutral-500" />,
+    },
+    {
+        title: "Lead Magnet",
+        description: "Showcase your work with an AI-curated portfolio that converts.",
+        header: (
+            <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 overflow-hidden relative">
+                <div className="absolute right-0 bottom-0 w-3/4 h-3/4 bg-neutral-900 border-t border-l border-white/10 rounded-tl-xl p-4">
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="aspect-square bg-white/5 rounded-lg" />
+                        <div className="aspect-square bg-white/5 rounded-lg" />
+                        <div className="aspect-square bg-white/5 rounded-lg" />
+                        <div className="aspect-square bg-white/5 rounded-lg" />
+                    </div>
+                </div>
+            </div>
+        ),
+        icon: <Briefcase className="h-4 w-4 text-neutral-500" />,
+    },
+];
