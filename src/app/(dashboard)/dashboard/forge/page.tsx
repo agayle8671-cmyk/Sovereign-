@@ -197,7 +197,7 @@ export default function ForgePage() {
                                             <div className="flex items-center justify-between text-xs">
                                                 <span className="text-emerald-400 font-medium">Product Active</span>
                                                 <Link
-                                                    href={`/p/${asset.id === "comp_1" ? "modern-auth-hook" : asset.id === "comp_2" ? "saas-pricing-table" : "invoice-generator-pdf"}`}
+                                                    href={`/product/${asset.id === "comp_1" ? "modern-auth-hook" : asset.id === "comp_2" ? "saas-pricing-table" : "invoice-generator-pdf"}`}
                                                     target="_blank"
                                                     className="flex items-center gap-1 text-zinc-400 hover:text-white"
                                                 >
