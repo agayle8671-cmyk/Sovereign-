@@ -3,11 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { users, clients, testimonials } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { sendEmail } from "@/lib/email";
+import { testimonialRequestEmail } from "@/lib/email/templates/testimonial-request";
 import { generateId } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
     try {
         const { userId: clerkId } = await auth();
+
         if (!clerkId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
@@ -20,11 +23,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        const { clientId } = await req.json();
+        const body = await req.json();
+        const { clientId, portfolioItemId, message } = body;
 
         if (!clientId) {
             return NextResponse.json(
-                { error: "Client ID required" },
+                { error: "Client ID is required" },
                 { status: 400 }
             );
         }
@@ -34,45 +38,65 @@ export async function POST(req: NextRequest) {
             where: eq(clients.id, clientId),
         });
 
-        if (!client || !client.email) {
+        if (!client) {
+            return NextResponse.json({ error: "Client not found" }, { status: 404 });
+        }
+
+        if (!client.email) {
             return NextResponse.json(
-                { error: "Client not found or has no email" },
-                { status: 404 }
+                { error: "Client has no email address" },
+                { status: 400 }
             );
         }
 
         // Generate magic link token
         const magicToken = generateId(32);
+        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
-        // Create pending testimonial
+        // Create testimonial request
         const [testimonial] = await db
             .insert(testimonials)
             .values({
                 userId: user.id,
                 clientId: client.id,
+                portfolioItemId: portfolioItemId || null,
                 type: "pending",
                 clientName: client.name,
                 clientCompany: client.company,
                 magicLinkToken: magicToken,
-                magicLinkExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+                magicLinkExpiresAt: expiresAt,
             })
             .returning();
 
-        // In production, send email here using Resend
-        // await sendTestimonialRequestEmail(client.email, magicToken, user.name);
+        // Build magic link
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const magicLink = `${baseUrl}/testimonial/${magicToken}`;
 
-        console.log(
-            `Testimonial request created. Magic link: /testimonial/${magicToken}`
-        );
+        // Send email
+        try {
+            await sendEmail({
+                to: client.email,
+                subject: `${user.name || "Someone"} would love your feedback`,
+                html: testimonialRequestEmail({
+                    freelancerName: user.name || "Your contact",
+                    clientName: client.name,
+                    magicLink,
+                }),
+            });
+        } catch (emailError) {
+            console.error("Failed to send email:", emailError);
+            // Don't fail the whole request if email fails
+        }
 
         return NextResponse.json({
             success: true,
             testimonialId: testimonial.id,
+            magicLink, // Include for development/testing
         });
     } catch (error) {
-        console.error("Error requesting testimonial:", error);
+        console.error("Testimonial request error:", error);
         return NextResponse.json(
-            { error: "Failed to request testimonial" },
+            { error: "Failed to send testimonial request" },
             { status: 500 }
         );
     }
