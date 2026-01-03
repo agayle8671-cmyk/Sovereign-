@@ -1,4 +1,4 @@
-import { MarketingHeader } from "@/components/landing/MarketingHeader";
+import { StickyNav } from "@/components/landing/StickyNav";
 
 export default function MarketingLayout({
   children,
@@ -6,9 +6,9 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative">
-      <MarketingHeader />
+    <>
+      <StickyNav />
       {children}
-    </div>
+    </>
   );
 }

@@ -1,22 +1,22 @@
-import { HeroSection } from "@/components/landing/hero/HeroSection";
-import { SocialProofSection } from "@/components/landing/social-proof/SocialProofSection";
-import { ProductShowcase } from "@/components/landing/product-showcase/ProductShowcase";
-import { FeaturesSection } from "@/components/landing/features/FeaturesSection";
-import { PricingSection } from "@/components/landing/pricing/PricingSection";
-import { FAQSection } from "@/components/landing/faq/FAQSection";
-import { CTASection } from "@/components/landing/cta/CTASection";
+import { HeroSection } from "@/components/landing/HeroSection";
+import { StatementSection } from "@/components/landing/StatementSection";
+import { ProductSection } from "@/components/landing/ProductSection";
+import { FeatureDeepDive } from "@/components/landing/FeatureDeepDive";
+import { SocialProofSection } from "@/components/landing/SocialProofSection";
+import { PricingSection } from "@/components/landing/PricingSection";
+import { FinalCTA } from "@/components/landing/FinalCTA";
 import { Footer } from "@/components/landing/Footer";
 
-export default function MarketingPage() {
+export default function LandingPage() {
     return (
-        <main className="bg-black min-h-screen">
+        <main className="bg-[#000000] text-white overflow-x-hidden">
             <HeroSection />
+            <StatementSection />
+            <ProductSection />
+            <FeatureDeepDive />
             <SocialProofSection />
-            <ProductShowcase />
-            <FeaturesSection />
             <PricingSection />
-            <FAQSection />
-            <CTASection />
+            <FinalCTA />
             <Footer />
         </main>
     );

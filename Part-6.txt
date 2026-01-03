@@ -1,0 +1,952 @@
+
+
+---
+
+## Complete Rebuild
+
+### `src/app/(marketing)/page.tsx`
+
+```typescript
+import { HeroSection } from "@/components/landing/HeroSection";
+import { StatementSection } from "@/components/landing/StatementSection";
+import { ProductSection } from "@/components/landing/ProductSection";
+import { FeatureDeepDive } from "@/components/landing/FeatureDeepDive";
+import { SocialProofSection } from "@/components/landing/SocialProofSection";
+import { PricingSection } from "@/components/landing/PricingSection";
+import { FinalCTA } from "@/components/landing/FinalCTA";
+import { Footer } from "@/components/landing/Footer";
+
+export default function LandingPage() {
+  return (
+    <main className="bg-[#000000] text-white overflow-x-hidden">
+      <HeroSection />
+      <StatementSection />
+      <ProductSection />
+      <FeatureDeepDive />
+      <SocialProofSection />
+      <PricingSection />
+      <FinalCTA />
+      <Footer />
+    </main>
+  );
+}
+```
+
+### `src/app/(marketing)/layout.tsx`
+
+```typescript
+import { StickyNav } from "@/components/landing/StickyNav";
+
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <StickyNav />
+      {children}
+    </>
+  );
+}
+```
+
+---
+
+### `src/components/landing/StickyNav.tsx`
+
+```typescript
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
+
+export function StickyNav() {
+  const [visible, setVisible] = useState(false);
+  const [lastScroll, setLastScroll] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScroll = window.scrollY;
+      
+      // Show nav after scrolling past hero (100vh)
+      if (currentScroll > window.innerHeight * 0.8) {
+        // Show when scrolling up, hide when scrolling down
+        setVisible(currentScroll < lastScroll || currentScroll < window.innerHeight);
+      } else {
+        setVisible(false);
+      }
+      
+      setLastScroll(currentScroll);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScroll]);
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.nav
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -100, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="fixed top-0 left-0 right-0 z-50"
+        >
+          <div className="mx-4 mt-4">
+            <div className="max-w-6xl mx-auto px-6 py-3 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10">
+              <div className="flex items-center justify-between">
+                <Link href="/" className="text-lg font-semibold text-white">
+                  Sovereign
+                </Link>
+                
+                <div className="hidden md:flex items-center gap-8">
+                  <Link href="#product" className="text-sm text-white/60 hover:text-white transition-colors">
+                    Product
+                  </Link>
+                  <Link href="#features" className="text-sm text-white/60 hover:text-white transition-colors">
+                    Features
+                  </Link>
+                  <Link href="#pricing" className="text-sm text-white/60 hover:text-white transition-colors">
+                    Pricing
+                  </Link>
+                </div>
+
+                <SignedIn>
+                  <Link href="/dashboard">
+                    <button className="px-5 py-2 text-sm font-medium text-black bg-white rounded-full hover:bg-white/90 transition-colors">
+                      Dashboard
+                    </button>
+                  </Link>
+                </SignedIn>
+                <SignedOut>
+                  <Link href="/signup">
+                    <button className="px-5 py-2 text-sm font-medium text-black bg-white rounded-full hover:bg-white/90 transition-colors">
+                      Get Started
+                    </button>
+                  </Link>
+                </SignedOut>
+              </div>
+            </div>
+          </div>
+        </motion.nav>
+      )}
+    </AnimatePresence>
+  );
+}
+```
+
+---
+
+### `src/components/landing/HeroSection.tsx`
+
+```typescript
+"use client";
+
+import { useRef } from "react";
+import Link from "next/link";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { ArrowDown } from "lucide-react";
+
+export function HeroSection() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  // The word "SOVEREIGN" zooms toward camera as you scroll
+  const wordScale = useTransform(scrollYProgress, [0, 0.5], [1, 8]);
+  const wordOpacity = useTransform(scrollYProgress, [0.3, 0.5], [1, 0]);
+  const wordY = useTransform(scrollYProgress, [0, 0.5], ["0%", "-20%"]);
+  
+  // Tagline fades in as word fades out
+  const taglineOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  
+  // Background gradient intensifies
+  const bgOpacity = useTransform(scrollYProgress, [0, 0.5], [0.3, 0.8]);
+
+  return (
+    <section ref={containerRef} className="relative h-[300vh]">
+      {/* Sticky container */}
+      <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0">
+          <motion.div
+            style={{ opacity: bgOpacity }}
+            className="absolute inset-0 bg-gradient-to-b from-purple-900/50 via-black to-black"
+          />
+          <div className="absolute inset-0">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-purple-500/20 rounded-full blur-[200px]" />
+          </div>
+        </div>
+
+        {/* Main content */}
+        <div className="relative z-10 text-center px-6">
+          {/* The massive word */}
+          <motion.h1
+            style={{
+              scale: wordScale,
+              opacity: wordOpacity,
+              y: wordY,
+            }}
+            className="text-[15vw] md:text-[12vw] font-bold tracking-tighter leading-none select-none"
+          >
+            <span className="bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-transparent">
+              SOVEREIGN
+            </span>
+          </motion.h1>
+
+          {/* Tagline below */}
+          <motion.div
+            style={{ opacity: taglineOpacity }}
+            className="mt-8"
+          >
+            <p className="text-xl md:text-2xl text-white/60 font-light max-w-xl mx-auto">
+              The operating system for independent professionals
+            </p>
+            
+            <div className="flex items-center justify-center gap-4 mt-10">
+              <Link href="/signup">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-4 text-lg font-medium text-black bg-white rounded-full hover:bg-white/90 transition-colors"
+                >
+                  Start Free
+                </motion.button>
+              </Link>
+              <Link href="#product">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-4 text-lg font-medium text-white border border-white/20 rounded-full hover:bg-white/5 transition-colors"
+                >
+                  See How It Works
+                </motion.button>
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Scroll indicator */}
+        <motion.div
+          style={{ opacity: taglineOpacity }}
+          className="absolute bottom-12 left-1/2 -translate-x-1/2"
+        >
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <ArrowDown className="w-6 h-6 text-white/40" />
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/landing/StatementSection.tsx`
+
+```typescript
+"use client";
+
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+
+export function StatementSection() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"],
+  });
+
+  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
+  const y = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [100, 0, 0, -100]);
+
+  return (
+    <section ref={containerRef} className="relative min-h-screen flex items-center justify-center py-32">
+      <motion.div
+        style={{ opacity, y }}
+        className="max-w-5xl mx-auto px-6 text-center"
+      >
+        {/* Massive stat */}
+        <p className="text-[20vw] md:text-[15vw] font-bold tracking-tighter leading-none">
+          <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            $2.4M
+          </span>
+        </p>
+        
+        <p className="text-2xl md:text-4xl text-white/60 font-light mt-6 max-w-3xl mx-auto leading-relaxed">
+          in risky contract clauses identified and fixed
+          <br />
+          <span className="text-white">before they became problems.</span>
+        </p>
+      </motion.div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/landing/ProductSection.tsx`
+
+```typescript
+"use client";
+
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Shield, AlertTriangle, CheckCircle, Sparkles } from "lucide-react";
+
+export function ProductSection() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"],
+  });
+
+  const scale = useTransform(scrollYProgress, [0, 0.3], [0.8, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2], [0, 1]);
+  const y = useTransform(scrollYProgress, [0, 0.3], [100, 0]);
+  
+  // Callouts appear at different scroll points
+  const callout1 = useTransform(scrollYProgress, [0.3, 0.4], [0, 1]);
+  const callout2 = useTransform(scrollYProgress, [0.4, 0.5], [0, 1]);
+  const callout3 = useTransform(scrollYProgress, [0.5, 0.6], [0, 1]);
+
+  return (
+    <section
+      id="product"
+      ref={containerRef}
+      className="relative min-h-[200vh] py-32"
+    >
+      <div className="sticky top-0 h-screen flex flex-col items-center justify-center overflow-hidden">
+        {/* Section label */}
+        <motion.p
+          style={{ opacity }}
+          className="text-sm uppercase tracking-[0.3em] text-white/40 mb-8"
+        >
+          Contract Shield
+        </motion.p>
+
+        {/* Main headline */}
+        <motion.h2
+          style={{ opacity, y }}
+          className="text-5xl md:text-7xl font-bold text-center mb-16 max-w-4xl px-6"
+        >
+          AI that reads contracts
+          <br />
+          <span className="text-white/40">so you don't have to.</span>
+        </motion.h2>
+
+        {/* Product visualization - Full bleed dashboard */}
+        <motion.div
+          style={{ scale, opacity }}
+          className="relative w-full max-w-6xl mx-auto px-6"
+        >
+          {/* The dashboard itself - no chrome, just the UI */}
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-b from-neutral-900 to-neutral-950 border border-white/10 shadow-2xl shadow-purple-500/10">
+            {/* Dashboard header */}
+            <div className="p-6 border-b border-white/5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white">Contract Analysis</p>
+                    <p className="text-sm text-white/40">Acme_Agreement_v2.pdf</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 text-sm font-medium">
+                    3 Issues Found
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Dashboard content */}
+            <div className="p-6 grid grid-cols-3 gap-6">
+              {/* Document preview */}
+              <div className="col-span-2 space-y-4">
+                <div className="p-4 rounded-2xl bg-white/5">
+                  <div className="space-y-3">
+                    {/* Simulated document lines */}
+                    {[...Array(10)].map((_, i) => (
+                      <div
+                        key={i}
+                        className={`h-4 rounded ${
+                          i === 2
+                            ? "bg-red-500/30 w-full"
+                            : i === 5
+                            ? "bg-amber-500/30 w-4/5"
+                            : i === 7
+                            ? "bg-red-500/30 w-3/4"
+                            : "bg-white/5 w-full"
+                        }`}
+                        style={{ width: i === 2 || i === 5 || i === 7 ? undefined : `${70 + Math.random() * 30}%` }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Risk panel */}
+              <div className="space-y-4">
+                {/* Risk score */}
+                <div className="p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20">
+                  <p className="text-sm text-white/60 mb-2">Risk Score</p>
+                  <p className="text-5xl font-bold text-amber-400">67</p>
+                  <p className="text-sm text-white/40 mt-1">Medium Risk</p>
+                </div>
+
+                {/* Issues list */}
+                <div className="space-y-2">
+                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
+                    <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                    <span className="text-sm text-red-400">Unlimited revisions</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">
+                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span className="text-sm text-amber-400">NET-60 payment</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span className="text-sm text-emerald-400">IP protected</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Floating callouts */}
+          <motion.div
+            style={{ opacity: callout1 }}
+            className="absolute -left-4 top-1/4 max-w-[280px]"
+          >
+            <div className="p-4 rounded-2xl bg-black/90 backdrop-blur border border-white/10 shadow-xl">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-white text-sm">AI Analysis</p>
+                  <p className="text-xs text-white/60 mt-1">
+                    Scans 50+ risk factors in under 30 seconds
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            style={{ opacity: callout2 }}
+            className="absolute -right-4 top-1/3 max-w-[280px]"
+          >
+            <div className="p-4 rounded-2xl bg-black/90 backdrop-blur border border-white/10 shadow-xl">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-4 h-4 text-red-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-white text-sm">Risk Detection</p>
+                  <p className="text-xs text-white/60 mt-1">
+                    Highlights dangerous clauses instantly
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            style={{ opacity: callout3 }}
+            className="absolute left-1/2 -translate-x-1/2 -bottom-6 max-w-[320px]"
+          >
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur border border-purple-500/30 shadow-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-medium text-white text-sm">Generate Counter-Offer</p>
+                  <p className="text-xs text-white/60">AI writes your negotiation email</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/landing/FeatureDeepDive.tsx`
+
+```typescript
+"use client";
+
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Shield, Target, Briefcase, MessageSquare } from "lucide-react";
+
+const features = [
+  {
+    id: "shield",
+    icon: Shield,
+    name: "Contract Shield",
+    headline: "Catch the traps\nbefore they catch you.",
+    description: "Every clause analyzed. Every risk flagged. Every negotiation point identified.",
+    color: "from-cyan-500 to-blue-500",
+    stat: { value: "$847", label: "avg savings per contract" },
+  },
+  {
+    id: "radar",
+    icon: Target,
+    name: "Client Radar",
+    headline: "Know who's happy.\nKnow who's not.",
+    description: "Real-time health scores for every relationship. Predict problems before they happen.",
+    color: "from-amber-500 to-orange-500",
+    stat: { value: "94%", label: "prediction accuracy" },
+  },
+  {
+    id: "magnet",
+    icon: Briefcase,
+    name: "Lead Magnet",
+    headline: "Your work sells.\nWhile you sleep.",
+    description: "AI-powered portfolio that converts visitors into clients automatically.",
+    color: "from-purple-500 to-pink-500",
+    stat: { value: "3.2x", label: "more qualified leads" },
+  },
+  {
+    id: "forge",
+    icon: MessageSquare,
+    name: "Proof Forge",
+    headline: "Social proof.\nOn autopilot.",
+    description: "One-click testimonial collection. Video or text. In under 2 minutes.",
+    color: "from-rose-500 to-red-500",
+    stat: { value: "8x", label: "faster collection" },
+  },
+];
+
+export function FeatureDeepDive() {
+  return (
+    <section id="features" className="relative">
+      {features.map((feature, index) => (
+        <FeatureSlide key={feature.id} feature={feature} index={index} />
+      ))}
+    </section>
+  );
+}
+
+function FeatureSlide({
+  feature,
+  index,
+}: {
+  feature: (typeof features)[0];
+  index: number;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"],
+  });
+
+  const opacity = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [0, 1, 1, 0]);
+  const y = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [100, 0, 0, -100]);
+  const scale = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [0.9, 1, 1, 0.9]);
+
+  const Icon = feature.icon;
+
+  return (
+    <section
+      ref={containerRef}
+      className="relative min-h-screen flex items-center justify-center py-32"
+    >
+      <motion.div
+        style={{ opacity, y, scale }}
+        className="max-w-5xl mx-auto px-6 text-center"
+      >
+        {/* Feature label */}
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center`}>
+            <Icon className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-lg font-medium text-white/60">{feature.name}</span>
+        </div>
+
+        {/* Massive headline */}
+        <h2 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-[0.9] mb-8 whitespace-pre-line">
+          {feature.headline}
+        </h2>
+
+        {/* Description */}
+        <p className="text-xl md:text-2xl text-white/50 max-w-2xl mx-auto mb-12">
+          {feature.description}
+        </p>
+
+        {/* Stat */}
+        <div className="inline-flex items-center gap-4 px-8 py-4 rounded-2xl bg-white/5 border border-white/10">
+          <span className={`text-4xl font-bold bg-gradient-to-r ${feature.color} bg-clip-text text-transparent`}>
+            {feature.stat.value}
+          </span>
+          <span className="text-white/40">{feature.stat.label}</span>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/landing/SocialProofSection.tsx`
+
+```typescript
+"use client";
+
+import { useRef, useEffect, useState } from "react";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { Star } from "lucide-react";
+
+const testimonials = [
+  {
+    quote: "Caught a $12,000 liability clause I would have missed.",
+    author: "Sarah Chen",
+    role: "UX Designer",
+  },
+  {
+    quote: "Went from 3 hours per contract to 10 minutes.",
+    author: "Marcus Rodriguez",
+    role: "Developer",
+  },
+  {
+    quote: "The AI predicted exactly which client would become a problem.",
+    author: "Emily Watson",
+    role: "Strategist",
+  },
+];
+
+export function SocialProofSection() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"],
+  });
+
+  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
+  const y = useTransform(scrollYProgress, [0, 0.3], [50, 0]);
+
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % testimonials.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <section ref={containerRef} className="relative min-h-screen flex items-center justify-center py-32">
+      <motion.div style={{ opacity, y }} className="max-w-4xl mx-auto px-6 text-center">
+        {/* Rating */}
+        <div className="flex items-center justify-center gap-1 mb-8">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} className="w-6 h-6 fill-amber-400 text-amber-400" />
+          ))}
+          <span className="ml-3 text-white/60">4.9 from 847 reviews</span>
+        </div>
+
+        {/* Rotating testimonial */}
+        <div className="relative h-[200px] flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeIndex}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              className="absolute inset-0 flex flex-col items-center justify-center"
+            >
+              <blockquote className="text-3xl md:text-5xl font-medium leading-tight mb-8">
+                "{testimonials[activeIndex].quote}"
+              </blockquote>
+              <p className="text-white/60">
+                <span className="text-white">{testimonials[activeIndex].author}</span>
+                {" · "}
+                {testimonials[activeIndex].role}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Dots */}
+        <div className="flex items-center justify-center gap-2 mt-8">
+          {testimonials.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveIndex(i)}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                i === activeIndex ? "bg-white w-8" : "bg-white/20"
+              }`}
+            />
+          ))}
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/landing/PricingSection.tsx` (COMPLETELY NEW)
+
+```typescript
+"use client";
+
+import { useState, useRef } from "react";
+import Link from "next/link";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Check } from "lucide-react";
+
+export function PricingSection() {
+  const [annual, setAnnual] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"],
+  });
+
+  const opacity = useTransform(scrollYProgress, [0, 0.2], [0, 1]);
+  const y = useTransform(scrollYProgress, [0, 0.2], [50, 0]);
+
+  const price = annual ? 24 : 29;
+
+  return (
+    <section
+      id="pricing"
+      ref={containerRef}
+      className="relative min-h-screen flex items-center justify-center py-32"
+    >
+      <motion.div style={{ opacity, y }} className="max-w-4xl mx-auto px-6">
+        {/* Simple headline */}
+        <div className="text-center mb-16">
+          <h2 className="text-5xl md:text-7xl font-bold mb-6">
+            Simple pricing.
+          </h2>
+          <p className="text-xl text-white/50">
+            Start free. Upgrade when you're ready.
+          </p>
+        </div>
+
+        {/* Toggle */}
+        <div className="flex items-center justify-center gap-4 mb-16">
+          <span className={`text-lg ${!annual ? "text-white" : "text-white/40"}`}>
+            Monthly
+          </span>
+          <button
+            onClick={() => setAnnual(!annual)}
+            className="relative w-16 h-8 rounded-full bg-white/10 p-1"
+          >
+            <motion.div
+              animate={{ x: annual ? 32 : 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              className="w-6 h-6 rounded-full bg-white"
+            />
+          </button>
+          <span className={`text-lg ${annual ? "text-white" : "text-white/40"}`}>
+            Annual <span className="text-emerald-400 text-sm ml-1">-20%</span>
+          </span>
+        </div>
+
+        {/* Two-column pricing */}
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Free */}
+          <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/10">
+            <p className="text-sm text-white/40 uppercase tracking-wider mb-4">Free</p>
+            <p className="text-6xl font-bold mb-2">$0</p>
+            <p className="text-white/40 mb-8">Forever free</p>
+
+            <ul className="space-y-4 mb-8">
+              {[
+                "3 contract analyses / month",
+                "5 clients",
+                "Basic portfolio",
+                "Email testimonials",
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-3 text-white/70">
+                  <Check className="w-5 h-5 text-emerald-400 shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+
+            <Link href="/signup" className="block">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-colors"
+              >
+                Get Started Free
+              </motion.button>
+            </Link>
+          </div>
+
+          {/* Pro */}
+          <div className="relative p-8 rounded-3xl bg-gradient-to-b from-purple-500/10 to-transparent border border-purple-500/30">
+            {/* Popular badge - FIXED positioning */}
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-sm font-medium text-white z-10">
+              Most Popular
+            </div>
+
+            <p className="text-sm text-purple-400 uppercase tracking-wider mb-4">Pro</p>
+            <div className="flex items-baseline gap-2 mb-2">
+              <p className="text-6xl font-bold">${price}</p>
+              <span className="text-white/40">/month</span>
+            </div>
+            <p className="text-white/40 mb-8">
+              {annual ? `$${price * 12} billed annually` : "Billed monthly"}
+            </p>
+
+            <ul className="space-y-4 mb-8">
+              {[
+                "Unlimited contract analyses",
+                "Unlimited clients",
+                "AI negotiation emails",
+                "Client health scoring",
+                "Video testimonials",
+                "Priority support",
+                "API access",
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-3 text-white/70">
+                  <Check className="w-5 h-5 text-purple-400 shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+
+            <Link href="/signup?plan=pro" className="block">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium hover:from-purple-400 hover:to-pink-400 transition-colors"
+              >
+                Start 14-Day Free Trial
+              </motion.button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Enterprise note */}
+        <p className="text-center text-white/40 mt-12">
+          Need more? <Link href="/contact" className="text-white underline">Contact us</Link> for enterprise pricing.
+        </p>
+      </motion.div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/landing/FinalCTA.tsx`
+
+```typescript
+"use client";
+
+import { useRef } from "react";
+import Link from "next/link";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+
+export function FinalCTA() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"],
+  });
+
+  const scale = useTransform(scrollYProgress, [0, 0.5], [0.8, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3], [0, 1]);
+
+  return (
+    <section ref={containerRef} className="relative min-h-[80vh] flex items-center justify-center py-32 overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-500/20 rounded-full blur-[200px]" />
+      </div>
+
+      <motion.div style={{ scale, opacity }} className="relative z-10 text-center px-6">
+        <h2 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8">
+          Ready?
+        </h2>
+
+        <p className="text-xl md:text-2xl text-white/50 mb-12 max-w-xl mx-auto">
+          Join 10,000+ freelancers who've taken control of their business.
+        </p>
+
+        <Link href="/signup">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="group inline-flex items-center gap-3 px-10 py-5 text-xl font-medium text-black bg-white rounded-full hover:bg-white/90 transition-colors"
+          >
+            Get Started Free
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </motion.button>
+        </Link>
+
+        <p className="text-white/40 mt-8">No credit card required</p>
+      </motion.div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/landing/Footer.tsx`
+
+```typescript
+import Link from "next/link";
+
+export function Footer() {
+  return (
+    <footer className="border-t border-white/5 py-12">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-6">
+            <Link href="/" className="text-lg font-semibold text-white">
+              Sovereign
+            </Link>
+            <div className="flex items-center gap-4 text-sm text-white/40">
+              <Link href="/privacy" className="hover:text-white transition-colors">
+                Privacy
+              </Link>
+              <Link href="/terms" className="hover:text-white transition-colors">
+                Terms
+              </Link>
+            </div>
+          </div>
+          
+          <p className="text-sm text-white/40">
+            © {new Date().getFullYear()} Sovereign. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+```
+
