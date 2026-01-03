@@ -134,28 +134,30 @@ export function OSSidebar({ user, collapsed, onToggle }: OSSidebarProps) {
 
       {/* Quick Actions */}
       <div className="px-3 py-3 border-b border-white/[0.04]">
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 text-emerald-400 hover:from-emerald-500/20 hover:to-cyan-500/20 transition-all",
-            collapsed && "justify-center px-2"
-          )}
-        >
-          <Plus className="w-4 h-4" />
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.span
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                className="text-sm font-medium"
-              >
-                New Action
-              </motion.span>
+        <Link href="/dashboard/contracts/analyze">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 text-emerald-400 hover:from-emerald-500/20 hover:to-cyan-500/20 transition-all",
+              collapsed && "justify-center px-2"
             )}
-          </AnimatePresence>
-        </motion.button>
+          >
+            <Plus className="w-4 h-4" />
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.span
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="text-sm font-medium"
+                >
+                  New Contract
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        </Link>
       </div>
 
       {/* Core Zone */}
@@ -308,9 +310,9 @@ function NavItem({
           style={{
             backgroundColor: item.color === "cyan" ? "#22d3ee" :
               item.color === "amber" ? "#fbbf24" :
-              item.color === "purple" ? "#a78bfa" :
-              item.color === "rose" ? "#fb7185" :
-              "#34d399"
+                item.color === "purple" ? "#a78bfa" :
+                  item.color === "rose" ? "#fb7185" :
+                    "#34d399"
           }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         />

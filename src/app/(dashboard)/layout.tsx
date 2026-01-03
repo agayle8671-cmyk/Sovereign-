@@ -10,15 +10,21 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { userId } = await auth();
-  
-  if (!userId) {
-    redirect("/login");
-  }
+  /* Auth Bypass for Testing */
+  // const { userId } = await auth();
+  // if (!userId) {
+  //   redirect("/login");
+  // }
+  // const user = await db.query.users.findFirst({
+  //   where: eq(users.clerkId, userId),
+  // });
 
-  const user = await db.query.users.findFirst({
-    where: eq(users.clerkId, userId),
-  });
+  const user = {
+    name: "Admin User",
+    email: "admin@sovereign.ai",
+    subscriptionTier: "pro", // Unlocks "Pro" features for testing
+    image: null
+  };
 
   return <DashboardShell user={user}>{children}</DashboardShell>;
 }
