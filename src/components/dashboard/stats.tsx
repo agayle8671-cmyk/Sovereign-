@@ -9,7 +9,7 @@ interface Stat {
     name: string;
     value: number;
     change: string;
-    changeType: "positive" | "negative" | "neutral";
+    changeType: "positive" | "negative" | "neutral" | "warning";
     icon: "shield" | "radar" | "magnet" | "forge";
 }
 
@@ -76,7 +76,8 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
                                         "flex items-center gap-1 text-xs font-medium",
                                         stat.changeType === "positive" && "text-success",
                                         stat.changeType === "negative" && "text-danger",
-                                        stat.changeType === "neutral" && "text-neutral-400"
+                                        stat.changeType === "neutral" && "text-neutral-400",
+                                        stat.changeType === "warning" && "text-yellow-500"
                                     )}
                                 >
                                     {stat.changeType === "positive" && (
@@ -85,7 +86,7 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
                                     {stat.changeType === "negative" && (
                                         <TrendingDown className="w-3 h-3" />
                                     )}
-                                    {stat.changeType === "neutral" && (
+                                    {(stat.changeType === "neutral" || stat.changeType === "warning") && (
                                         <Minus className="w-3 h-3" />
                                     )}
                                     {stat.change}

@@ -1,32 +1,55 @@
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { CommandMenu } from "@/components/dashboard/command-menu";
+import { SyncUser } from "@/components/dashboard/sync-user";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const { userId: clerkId } = await auth();
+
+    if (!clerkId) {
+        redirect("/login");
+    }
+
+    // Check if user exists in database
+    const user = await db.query.users.findFirst({
+        where: eq(users.clerkId, clerkId),
+    });
+
     return (
-        <div className="flex h-screen overflow-hidden bg-neutral-950 text-neutral-100 font-sans selection:bg-brand-500/30">
-            {/* Sidebar */}
-            <DashboardSidebar />
+        <div className="min-h-screen bg-neutral-950">
+            {/* Sync user if not in database */}
+            {!user && <SyncUser />}
 
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-                <div className="absolute inset-0 bg-gradient-mesh opacity-30 pointer-events-none" />
-                <div className="absolute inset-0 pattern-dots opacity-20 pointer-events-none" />
+            {/* Background Pattern */}
+            <div className="fixed inset-0 bg-gradient-mesh opacity-50 pointer-events-none" />
+            <div className="fixed inset-0 pattern-dots opacity-30 pointer-events-none" />
 
-                <DashboardHeader />
+            <div className="relative flex h-screen overflow-hidden">
+                {/* Sidebar */}
+                <DashboardSidebar />
 
-                <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 scrollbar-thin scrollbar-thumb-neutral-800 scrollbar-track-transparent relative z-10">
-                    <div className="max-w-7xl mx-auto">
-                        {children}
-                    </div>
-                </main>
+                {/* Main Content */}
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    {/* Header */}
+                    <DashboardHeader />
+
+                    {/* Page Content */}
+                    <main className="flex-1 overflow-y-auto">
+                        <div className="container max-w-7xl mx-auto p-6">{children}</div>
+                    </main>
+                </div>
             </div>
 
-            {/* Global Command Menu */}
+            {/* Command Menu (⌘K) */}
             <CommandMenu />
         </div>
     );
