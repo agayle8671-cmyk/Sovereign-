@@ -22,6 +22,8 @@ import {
   Activity,
   Clock,
   Inbox,
+  Hammer,
+  Radar,
 } from "lucide-react";
 
 interface OSSidebarProps {
@@ -76,6 +78,18 @@ const contextNavigation = [
     icon: MessageSquare,
     color: "rose",
     shortcut: "G then T",
+  },
+  {
+    name: "The Forge",
+    href: "/dashboard/forge",
+    icon: Hammer,
+    color: "orange",
+  },
+  {
+    name: "The Radar",
+    href: "/dashboard/radar",
+    icon: Radar,
+    color: "indigo",
   },
 ];
 

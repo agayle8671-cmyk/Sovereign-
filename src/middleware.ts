@@ -18,6 +18,12 @@ const isPublicRoute = createRouteMatcher([
     "/testimonial/(.*)",
 ]);
 
+// export default clerkMiddleware(async (auth, req) => {
+//     if (!isPublicRoute(req)) {
+//         await auth.protect();
+//     }
+// });
+
 export default clerkMiddleware(async (auth, req) => {
     if (!isPublicRoute(req)) {
         await auth.protect();
