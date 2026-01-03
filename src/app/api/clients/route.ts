@@ -6,17 +6,19 @@ import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 
 const createClientSchema = z.object({
-    name: z.string().min(2),
-    email: z.string().email().optional().nullable(),
-    company: z.string().optional().nullable(),
-    industry: z.string().optional().nullable(),
-    website: z.string().url().optional().nullable(),
-    notes: z.string().optional().nullable(),
+    name: z.string().min(1, "Name is required"),
+    email: z.string().email().optional().or(z.literal("")),
+    company: z.string().optional(),
+    industry: z.string().optional(),
+    website: z.string().url().optional().or(z.literal("")),
+    notes: z.string().optional(),
 });
 
+// GET /api/clients - List all clients
 export async function GET() {
     try {
         const { userId: clerkId } = await auth();
+
         if (!clerkId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
@@ -44,9 +46,11 @@ export async function GET() {
     }
 }
 
+// POST /api/clients - Create new client
 export async function POST(req: NextRequest) {
     try {
         const { userId: clerkId } = await auth();
+
         if (!clerkId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
@@ -60,8 +64,20 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const data = createClientSchema.parse(body);
 
+        // Validate input
+        const validationResult = createClientSchema.safeParse(body);
+
+        if (!validationResult.success) {
+            return NextResponse.json(
+                { error: "Validation error", details: validationResult.error.flatten() },
+                { status: 400 }
+            );
+        }
+
+        const data = validationResult.data;
+
+        // Create client
         const [client] = await db
             .insert(clients)
             .values({
@@ -74,17 +90,12 @@ export async function POST(req: NextRequest) {
                 notes: data.notes || null,
                 healthScore: 100,
                 sentimentTrend: "NEUTRAL",
+                totalRevenue: "0",
             })
             .returning();
 
-        return NextResponse.json(client);
+        return NextResponse.json(client, { status: 201 });
     } catch (error) {
-        if (error instanceof z.ZodError) {
-            return NextResponse.json(
-                { error: "Validation error", details: error.issues },
-                { status: 400 }
-            );
-        }
         console.error("Error creating client:", error);
         return NextResponse.json(
             { error: "Failed to create client" },

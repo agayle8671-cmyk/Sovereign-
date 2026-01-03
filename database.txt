@@ -1,0 +1,1582 @@
+
+---
+
+## Dashboard Audit & Fix
+
+### Issues Found:
+
+| Area | Problem |
+|------|---------|
+| **Database queries** | SQL syntax may not work with Drizzle |
+| **API routes** | Some are incomplete or have errors |
+| **Forms** | Not all submissions are connected |
+| **File upload** | Not configured (need UploadThing/S3) |
+| **Error handling** | Missing in most places |
+| **Loading states** | Inconsistent |
+| **Type safety** | Some type mismatches |
+
+---
+
+## Complete Working Dashboard
+
+Let me rebuild the core dashboard functionality properly:
+
+### 1. Fix Database Connection & Queries
+
+First, let's make sure the database is working:
+
+#### `src/lib/db/index.ts` (fixed)
+
+```typescript
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import * as schema from "./schema";
+
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL environment variable is not set");
+}
+
+const sql = neon(process.env.DATABASE_URL);
+export const db = drizzle(sql, { schema });
+
+export type Database = typeof db;
+```
+
+---
+
+### 2. Complete Working Dashboard Page
+
+#### `src/app/(dashboard)/dashboard/page.tsx`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { DashboardContent } from "@/components/dashboard/dashboard-content";
+import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
+
+export default async function DashboardPage() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/login");
+  }
+
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardContent clerkId={userId} />
+    </Suspense>
+  );
+}
+```
+
+#### `src/components/dashboard/dashboard-content.tsx`
+
+```typescript
+import { db } from "@/lib/db";
+import { users, contracts, clients, portfolioItems, testimonials } from "@/lib/db/schema";
+import { eq, desc, sql } from "drizzle-orm";
+import { DashboardStats } from "./stats";
+import { RecentContracts } from "./recent-contracts";
+import { ClientHealth } from "./client-health";
+import { QuickActions } from "./quick-actions";
+import { WelcomeCard } from "./welcome-card";
+import { CreateUserPrompt } from "./create-user-prompt";
+
+interface DashboardContentProps {
+  clerkId: string;
+}
+
+export async function DashboardContent({ clerkId }: DashboardContentProps) {
+  // Get user from database
+  const user = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId),
+  });
+
+  // If no user exists, show prompt to create
+  if (!user) {
+    return <CreateUserPrompt />;
+  }
+
+  // Fetch all dashboard data
+  const [
+    contractCount,
+    clientCount,
+    portfolioCount,
+    testimonialCount,
+    recentContractsList,
+    clientsList,
+  ] = await Promise.all([
+    // Count contracts
+    db
+      .select({ 
+        count: sql<number>`count(*)`.mapWith(Number) 
+      })
+      .from(contracts)
+      .where(eq(contracts.userId, user.id))
+      .then(r => r[0]?.count ?? 0),
+
+    // Count clients
+    db
+      .select({ 
+        count: sql<number>`count(*)`.mapWith(Number) 
+      })
+      .from(clients)
+      .where(eq(clients.userId, user.id))
+      .then(r => r[0]?.count ?? 0),
+
+    // Count portfolio items
+    db
+      .select({ 
+        count: sql<number>`count(*)`.mapWith(Number) 
+      })
+      .from(portfolioItems)
+      .where(eq(portfolioItems.userId, user.id))
+      .then(r => r[0]?.count ?? 0),
+
+    // Count testimonials
+    db
+      .select({ 
+        count: sql<number>`count(*)`.mapWith(Number) 
+      })
+      .from(testimonials)
+      .where(eq(testimonials.userId, user.id))
+      .then(r => r[0]?.count ?? 0),
+
+    // Recent contracts with client
+    db.query.contracts.findMany({
+      where: eq(contracts.userId, user.id),
+      orderBy: [desc(contracts.createdAt)],
+      limit: 5,
+      with: {
+        client: true,
+      },
+    }),
+
+    // All clients for health display
+    db.query.clients.findMany({
+      where: eq(clients.userId, user.id),
+      orderBy: [clients.healthScore],
+      limit: 5,
+    }),
+  ]);
+
+  const stats = [
+    {
+      name: "Contracts",
+      value: contractCount,
+      href: "/dashboard/contracts",
+      icon: "shield" as const,
+    },
+    {
+      name: "Clients",
+      value: clientCount,
+      href: "/dashboard/clients",
+      icon: "radar" as const,
+    },
+    {
+      name: "Portfolio Items",
+      value: portfolioCount,
+      href: "/dashboard/portfolio",
+      icon: "magnet" as const,
+    },
+    {
+      name: "Testimonials",
+      value: testimonialCount,
+      href: "/dashboard/testimonials",
+      icon: "magnet" as const,
+    },
+  ];
+
+  const isNewUser = contractCount === 0 && clientCount <= 1;
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-semibold text-neutral-100">
+          Welcome back{user.name ? `, ${user.name.split(" ")[0]}` : ""}
+        </h1>
+        <p className="text-neutral-400 mt-1">
+          Here's what's happening with your business.
+        </p>
+      </div>
+
+      {/* New User Onboarding */}
+      {isNewUser && <WelcomeCard />}
+
+      {/* Stats */}
+      <DashboardStats stats={stats} />
+
+      {/* Quick Actions */}
+      <QuickActions />
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <RecentContracts contracts={recentContractsList} />
+        </div>
+        <div>
+          <ClientHealth clients={clientsList} />
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+#### `src/components/dashboard/dashboard-skeleton.tsx`
+
+```typescript
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
+export function DashboardSkeleton() {
+  return (
+    <div className="space-y-8">
+      {/* Header skeleton */}
+      <div>
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-4 w-96 mt-2" />
+      </div>
+
+      {/* Stats skeleton */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} className="p-6">
+            <Skeleton className="h-10 w-10 rounded-lg" />
+            <Skeleton className="h-8 w-16 mt-4" />
+            <Skeleton className="h-4 w-24 mt-2" />
+          </Card>
+        ))}
+      </div>
+
+      {/* Content skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2 p-6">
+          <Skeleton className="h-6 w-40 mb-4" />
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-16 w-full mb-3" />
+          ))}
+        </Card>
+        <Card className="p-6">
+          <Skeleton className="h-6 w-32 mb-4" />
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-12 w-full mb-3" />
+          ))}
+        </Card>
+      </div>
+    </div>
+  );
+}
+```
+
+#### `src/components/dashboard/create-user-prompt.tsx`
+
+```typescript
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Loader2, Sparkles } from "lucide-react";
+
+export function CreateUserPrompt() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSetup = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/auth/sync", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to set up account");
+      }
+
+      // Refresh to load the new user data
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <Card className="p-8 max-w-md text-center">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center mx-auto mb-6">
+          <Sparkles className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-xl font-semibold text-neutral-100 mb-2">
+          Welcome to Sovereign!
+        </h2>
+        <p className="text-neutral-400 mb-6">
+          Let's set up your account and get you started with your autonomous
+          commercial operating system.
+        </p>
+        
+        {error && (
+          <p className="text-danger text-sm mb-4">{error}</p>
+        )}
+
+        <Button
+          onClick={handleSetup}
+          disabled={loading}
+          className="w-full"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Setting up...
+            </>
+          ) : (
+            "Set Up My Account"
+          )}
+        </Button>
+      </Card>
+    </div>
+  );
+}
+```
+
+---
+
+### 3. Fixed Stats Component
+
+#### `src/components/dashboard/stats.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { Shield, Radio, Magnet, Hammer } from "lucide-react";
+
+interface Stat {
+  name: string;
+  value: number;
+  href: string;
+  icon: "shield" | "radar" | "magnet" | "forge";
+}
+
+interface DashboardStatsProps {
+  stats: Stat[];
+}
+
+const iconMap = {
+  shield: Shield,
+  radar: Radio,
+  magnet: Magnet,
+  forge: Hammer,
+};
+
+const colorMap = {
+  shield: {
+    bg: "bg-shield/10",
+    text: "text-shield",
+  },
+  radar: {
+    bg: "bg-radar/10",
+    text: "text-radar",
+  },
+  magnet: {
+    bg: "bg-magnet/10",
+    text: "text-magnet",
+  },
+  forge: {
+    bg: "bg-forge/10",
+    text: "text-forge",
+  },
+};
+
+export function DashboardStats({ stats }: DashboardStatsProps) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {stats.map((stat) => {
+        const Icon = iconMap[stat.icon];
+        const colors = colorMap[stat.icon];
+
+        return (
+          <Link key={stat.name} href={stat.href}>
+            <Card className="p-6 hover:border-neutral-700 transition-colors cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div
+                  className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center",
+                    colors.bg
+                  )}
+                >
+                  <Icon className={cn("w-6 h-6", colors.text)} />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold text-neutral-100">
+                    {stat.value}
+                  </p>
+                  <p className="text-sm text-neutral-400">{stat.name}</p>
+                </div>
+              </div>
+            </Card>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+```
+
+---
+
+### 4. Fixed Recent Contracts Component
+
+#### `src/components/dashboard/recent-contracts.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/ui/avatar";
+import { cn, formatRelativeTime, formatCurrency } from "@/lib/utils";
+import {
+  FileText,
+  ArrowRight,
+  AlertTriangle,
+  Plus,
+  ChevronRight,
+} from "lucide-react";
+
+interface Contract {
+  id: string;
+  title: string;
+  status: string;
+  riskScore: number | null;
+  totalValue: string | null;
+  currency: string | null;
+  createdAt: Date;
+  client: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  } | null;
+}
+
+interface RecentContractsProps {
+  contracts: Contract[];
+}
+
+const statusLabels: Record<string, { label: string; variant: string }> = {
+  draft: { label: "Draft", variant: "secondary" },
+  pending_review: { label: "Pending Review", variant: "warning" },
+  in_negotiation: { label: "Negotiating", variant: "info" },
+  active: { label: "Active", variant: "success" },
+  completed: { label: "Completed", variant: "secondary" },
+  cancelled: { label: "Cancelled", variant: "danger" },
+};
+
+function getRiskColor(score: number | null) {
+  if (score === null) return "text-neutral-400";
+  if (score >= 80) return "text-success";
+  if (score >= 60) return "text-warning";
+  return "text-danger";
+}
+
+export function RecentContracts({ contracts }: RecentContractsProps) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <FileText className="w-5 h-5 text-shield" />
+          Recent Contracts
+        </CardTitle>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/dashboard/contracts">
+            View all
+            <ArrowRight className="w-4 h-4 ml-1" />
+          </Link>
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {contracts.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="w-12 h-12 rounded-xl bg-neutral-800 flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-6 h-6 text-neutral-500" />
+            </div>
+            <p className="text-neutral-400 mb-4">No contracts yet</p>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/dashboard/contracts/analyze">
+                <Plus className="w-4 h-4 mr-2" />
+                Analyze Your First Contract
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {contracts.map((contract) => {
+              const status = statusLabels[contract.status] || statusLabels.draft;
+              
+              return (
+                <Link
+                  key={contract.id}
+                  href={`/dashboard/contracts/${contract.id}`}
+                  className="flex items-center gap-4 p-3 rounded-lg hover:bg-neutral-800/50 transition-colors group"
+                >
+                  {contract.client ? (
+                    <UserAvatar
+                      user={{
+                        name: contract.client.name,
+                        avatarUrl: contract.client.avatarUrl,
+                      }}
+                      size="sm"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-neutral-500" />
+                    </div>
+                  )}
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-neutral-100 truncate">
+                        {contract.title}
+                      </p>
+                      {contract.riskScore !== null && contract.riskScore < 60 && (
+                        <AlertTriangle className="w-4 h-4 text-warning shrink-0" />
+                      )}
+                    </div>
+                    <p className="text-sm text-neutral-500">
+                      {contract.client?.name || "No client"} •{" "}
+                      {formatRelativeTime(contract.createdAt)}
+                    </p>
+                  </div>
+
+                  <div className="hidden sm:flex items-center gap-3">
+                    {contract.riskScore !== null && (
+                      <span className={cn("text-sm font-medium", getRiskColor(contract.riskScore))}>
+                        {contract.riskScore}%
+                      </span>
+                    )}
+                    <Badge variant={status.variant as any} size="sm">
+                      {status.label}
+                    </Badge>
+                  </div>
+
+                  <ChevronRight className="w-4 h-4 text-neutral-600 group-hover:text-neutral-400 transition-colors" />
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+---
+
+### 5. Fixed Client Health Component
+
+#### `src/components/dashboard/client-health.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { UserAvatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Users, ArrowRight, Plus } from "lucide-react";
+
+interface Client {
+  id: string;
+  name: string;
+  company: string | null;
+  avatarUrl: string | null;
+  healthScore: number | null;
+}
+
+interface ClientHealthProps {
+  clients: Client[];
+}
+
+function getHealthColor(score: number | null) {
+  if (score === null) return "bg-neutral-600";
+  if (score >= 80) return "bg-success";
+  if (score >= 60) return "bg-warning";
+  return "bg-danger";
+}
+
+function getHealthTextColor(score: number | null) {
+  if (score === null) return "text-neutral-400";
+  if (score >= 80) return "text-success";
+  if (score >= 60) return "text-warning";
+  return "text-danger";
+}
+
+export function ClientHealth({ clients }: ClientHealthProps) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Users className="w-5 h-5 text-radar" />
+          Client Health
+        </CardTitle>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/dashboard/clients">
+            View all
+            <ArrowRight className="w-4 h-4 ml-1" />
+          </Link>
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {clients.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="w-12 h-12 rounded-xl bg-neutral-800 flex items-center justify-center mx-auto mb-4">
+              <Users className="w-6 h-6 text-neutral-500" />
+            </div>
+            <p className="text-neutral-400 mb-4">No clients yet</p>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/dashboard/clients/new">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Your First Client
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {clients.map((client) => (
+              <Link
+                key={client.id}
+                href={`/dashboard/clients/${client.id}`}
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-800/50 transition-colors"
+              >
+                <UserAvatar
+                  user={{
+                    name: client.name,
+                    avatarUrl: client.avatarUrl,
+                  }}
+                  size="sm"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-neutral-100 truncate">
+                    {client.name}
+                  </p>
+                  <p className="text-xs text-neutral-500 truncate">
+                    {client.company || "No company"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-16 h-1.5 rounded-full bg-neutral-800 overflow-hidden">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all",
+                        getHealthColor(client.healthScore)
+                      )}
+                      style={{ width: `${client.healthScore || 0}%` }}
+                    />
+                  </div>
+                  <span
+                    className={cn(
+                      "text-xs font-medium w-8 text-right",
+                      getHealthTextColor(client.healthScore)
+                    )}
+                  >
+                    {client.healthScore ?? 0}%
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+---
+
+### 6. Fixed Quick Actions Component
+
+#### `src/components/dashboard/quick-actions.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import {
+  FileText,
+  Users,
+  Briefcase,
+  MessageSquare,
+  ArrowRight,
+} from "lucide-react";
+
+const actions = [
+  {
+    name: "Analyze Contract",
+    description: "Upload and scan for risks",
+    href: "/dashboard/contracts/analyze",
+    icon: FileText,
+    iconBg: "bg-shield/10",
+    iconColor: "text-shield",
+  },
+  {
+    name: "Add Client",
+    description: "Track a new relationship",
+    href: "/dashboard/clients/new",
+    icon: Users,
+    iconBg: "bg-radar/10",
+    iconColor: "text-radar",
+  },
+  {
+    name: "Add Portfolio Item",
+    description: "Showcase your work",
+    href: "/dashboard/portfolio/new",
+    icon: Briefcase,
+    iconBg: "bg-magnet/10",
+    iconColor: "text-magnet",
+  },
+  {
+    name: "Request Testimonial",
+    description: "Collect social proof",
+    href: "/dashboard/testimonials",
+    icon: MessageSquare,
+    iconBg: "bg-forge/10",
+    iconColor: "text-forge",
+  },
+];
+
+export function QuickActions() {
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {actions.map((action) => (
+        <Link key={action.name} href={action.href}>
+          <Card className="p-4 h-full hover:border-neutral-700 transition-colors group cursor-pointer">
+            <div
+              className={`w-10 h-10 rounded-lg ${action.iconBg} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}
+            >
+              <action.icon className={`w-5 h-5 ${action.iconColor}`} />
+            </div>
+            <h3 className="font-medium text-neutral-100 text-sm">
+              {action.name}
+            </h3>
+            <p className="text-xs text-neutral-500 mt-1">{action.description}</p>
+            <ArrowRight className="w-4 h-4 text-neutral-600 mt-2 group-hover:translate-x-1 group-hover:text-neutral-400 transition-all" />
+          </Card>
+        </Link>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+### 7. Complete Auth Sync API
+
+#### `src/app/api/auth/sync/route.ts`
+
+```typescript
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { users, vaults, clients, portfolioItems } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+
+export async function POST() {
+  try {
+    const { userId: clerkId } = await auth();
+    
+    if (!clerkId) {
+      return NextResponse.json(
+        { error: "Not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    const clerkUser = await currentUser();
+    
+    if (!clerkUser) {
+      return NextResponse.json(
+        { error: "Could not fetch user data" },
+        { status: 400 }
+      );
+    }
+
+    // Check if user already exists
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkId),
+    });
+
+    if (existingUser) {
+      return NextResponse.json({
+        success: true,
+        userId: existingUser.id,
+        message: "User already exists",
+      });
+    }
+
+    // Create new user
+    const email = clerkUser.emailAddresses[0]?.emailAddress;
+    const name = [clerkUser.firstName, clerkUser.lastName]
+      .filter(Boolean)
+      .join(" ");
+
+    if (!email) {
+      return NextResponse.json(
+        { error: "No email address found" },
+        { status: 400 }
+      );
+    }
+
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        clerkId: clerkId,
+        email: email,
+        name: name || null,
+        avatarUrl: clerkUser.imageUrl || null,
+        onboardingCompleted: false,
+        subscriptionTier: "free",
+      })
+      .returning();
+
+    // Create vault with default settings
+    await db.insert(vaults).values({
+      userId: newUser.id,
+      settings: {
+        defaultCurrency: "USD",
+        defaultPaymentTerms: "NET_30",
+        autoGenerateChangeOrders: true,
+        scopeCreepSensitivity: "medium",
+        notificationPreferences: {
+          email: true,
+          push: true,
+        },
+      },
+      aiPreferences: {
+        preferredTone: "professional",
+        autoNegotiate: false,
+        riskTolerance: "moderate",
+      },
+      defaultRates: {
+        hourlyRate: 150,
+      },
+    });
+
+    // Create a demo client so dashboard isn't empty
+    const [demoClient] = await db
+      .insert(clients)
+      .values({
+        userId: newUser.id,
+        name: "Demo Client",
+        email: "demo@example.com",
+        company: "Demo Company Inc.",
+        industry: "technology",
+        healthScore: 85,
+        sentimentTrend: "POSITIVE",
+        totalRevenue: "0",
+        notes: "This is a demo client. Feel free to edit or delete.",
+      })
+      .returning();
+
+    // Create a demo portfolio item
+    await db.insert(portfolioItems).values({
+      userId: newUser.id,
+      title: "Sample Project",
+      shortDescription:
+        "This is a sample portfolio item. Edit or delete it and add your real work!",
+      category: "web design",
+      industries: ["technology"],
+      tags: ["demo"],
+      isFeatured: false,
+      isPublic: true,
+    });
+
+    return NextResponse.json({
+      success: true,
+      userId: newUser.id,
+      message: "Account created successfully",
+    });
+  } catch (error) {
+    console.error("Sync error:", error);
+    return NextResponse.json(
+      { 
+        error: "Failed to sync account",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
+      { status: 500 }
+    );
+  }
+}
+```
+
+---
+
+### 8. Complete Clients API
+
+#### `src/app/api/clients/route.ts`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { users, clients } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
+import { z } from "zod";
+
+const createClientSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email().optional().or(z.literal("")),
+  company: z.string().optional(),
+  industry: z.string().optional(),
+  website: z.string().url().optional().or(z.literal("")),
+  notes: z.string().optional(),
+});
+
+// GET /api/clients - List all clients
+export async function GET() {
+  try {
+    const { userId: clerkId } = await auth();
+    
+    if (!clerkId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkId),
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const clientsList = await db.query.clients.findMany({
+      where: eq(clients.userId, user.id),
+      orderBy: [desc(clients.createdAt)],
+    });
+
+    return NextResponse.json(clientsList);
+  } catch (error) {
+    console.error("Error fetching clients:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch clients" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST /api/clients - Create new client
+export async function POST(req: NextRequest) {
+  try {
+    const { userId: clerkId } = await auth();
+    
+    if (!clerkId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkId),
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const body = await req.json();
+    
+    // Validate input
+    const validationResult = createClientSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: "Validation error", details: validationResult.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const data = validationResult.data;
+
+    // Create client
+    const [client] = await db
+      .insert(clients)
+      .values({
+        userId: user.id,
+        name: data.name,
+        email: data.email || null,
+        company: data.company || null,
+        industry: data.industry || null,
+        website: data.website || null,
+        notes: data.notes || null,
+        healthScore: 100,
+        sentimentTrend: "NEUTRAL",
+        totalRevenue: "0",
+      })
+      .returning();
+
+    return NextResponse.json(client, { status: 201 });
+  } catch (error) {
+    console.error("Error creating client:", error);
+    return NextResponse.json(
+      { error: "Failed to create client" },
+      { status: 500 }
+    );
+  }
+}
+```
+
+---
+
+### 9. Complete Portfolio API
+
+#### `src/app/api/portfolio/route.ts`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { users, portfolioItems } from "@/lib/db/schema";
+import { eq, desc } from "drizzle-orm";
+import { z } from "zod";
+
+const createPortfolioSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  shortDescription: z.string().max(500).optional(),
+  description: z.string().optional(),
+  category: z.string().optional(),
+  externalUrl: z.string().url().optional().or(z.literal("")),
+  tags: z.array(z.string()).optional(),
+  isFeatured: z.boolean().default(false),
+  isPublic: z.boolean().default(true),
+});
+
+// GET /api/portfolio - List all portfolio items
+export async function GET() {
+  try {
+    const { userId: clerkId } = await auth();
+    
+    if (!clerkId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkId),
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const items = await db.query.portfolioItems.findMany({
+      where: eq(portfolioItems.userId, user.id),
+      orderBy: [desc(portfolioItems.createdAt)],
+    });
+
+    return NextResponse.json(items);
+  } catch (error) {
+    console.error("Error fetching portfolio:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch portfolio" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST /api/portfolio - Create new portfolio item
+export async function POST(req: NextRequest) {
+  try {
+    const { userId: clerkId } = await auth();
+    
+    if (!clerkId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.clerkId, clerkId),
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const body = await req.json();
+    
+    const validationResult = createPortfolioSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: "Validation error", details: validationResult.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const data = validationResult.data;
+
+    const [item] = await db
+      .insert(portfolioItems)
+      .values({
+        userId: user.id,
+        title: data.title,
+        shortDescription: data.shortDescription || null,
+        description: data.description || null,
+        category: data.category || null,
+        externalUrl: data.externalUrl || null,
+        tags: data.tags || [],
+        isFeatured: data.isFeatured,
+        isPublic: data.isPublic,
+      })
+      .returning();
+
+    return NextResponse.json(item, { status: 201 });
+  } catch (error) {
+    console.error("Error creating portfolio item:", error);
+    return NextResponse.json(
+      { error: "Failed to create portfolio item" },
+      { status: 500 }
+    );
+  }
+}
+```
+
+---
+
+### 10. Fix Client Detail Page
+
+#### `src/app/(dashboard)/dashboard/clients/[id]/page.tsx`
+
+```typescript
+import { auth } from "@clerk/nextjs/server";
+import { notFound, redirect } from "next/navigation";
+import { db } from "@/lib/db";
+import { users, clients, contracts, communications } from "@/lib/db/schema";
+import { eq, and, desc } from "drizzle-orm";
+import { ClientDetail } from "@/components/clients/client-detail";
+
+interface ClientPageProps {
+  params: { id: string };
+}
+
+export default async function ClientPage({ params }: ClientPageProps) {
+  const { userId: clerkId } = await auth();
+
+  if (!clerkId) {
+    redirect("/login");
+  }
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.clerkId, clerkId),
+  });
+
+  if (!user) {
+    redirect("/dashboard");
+  }
+
+  const client = await db.query.clients.findFirst({
+    where: and(
+      eq(clients.id, params.id),
+      eq(clients.userId, user.id)
+    ),
+  });
+
+  if (!client) {
+    notFound();
+  }
+
+  // Get client's contracts
+  const clientContracts = await db.query.contracts.findMany({
+    where: and(
+      eq(contracts.clientId, client.id),
+      eq(contracts.userId, user.id)
+    ),
+    orderBy: [desc(contracts.createdAt)],
+    limit: 5,
+  });
+
+  return <ClientDetail client={client} contracts={clientContracts} />;
+}
+```
+
+#### `src/components/clients/client-detail.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { UserAvatar } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { formatCurrency, formatDate, cn } from "@/lib/utils";
+import {
+  ArrowLeft,
+  Mail,
+  Globe,
+  Building,
+  FileText,
+  Edit,
+  Trash2,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+} from "lucide-react";
+
+interface Client {
+  id: string;
+  name: string;
+  email: string | null;
+  company: string | null;
+  industry: string | null;
+  website: string | null;
+  avatarUrl: string | null;
+  healthScore: number | null;
+  sentimentTrend: string | null;
+  totalRevenue: string | null;
+  notes: string | null;
+  createdAt: Date;
+}
+
+interface Contract {
+  id: string;
+  title: string;
+  status: string;
+  totalValue: string | null;
+  createdAt: Date;
+}
+
+interface ClientDetailProps {
+  client: Client;
+  contracts: Contract[];
+}
+
+function getHealthColor(score: number | null) {
+  if (score === null) return "text-neutral-400";
+  if (score >= 80) return "text-success";
+  if (score >= 60) return "text-warning";
+  return "text-danger";
+}
+
+function getSentimentIcon(trend: string | null) {
+  switch (trend) {
+    case "VERY_POSITIVE":
+    case "POSITIVE":
+      return <TrendingUp className="w-5 h-5 text-success" />;
+    case "NEGATIVE":
+    case "VERY_NEGATIVE":
+      return <TrendingDown className="w-5 h-5 text-danger" />;
+    default:
+      return <Minus className="w-5 h-5 text-neutral-400" />;
+  }
+}
+
+export function ClientDetail({ client, contracts }: ClientDetailProps) {
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/dashboard/clients">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+          </Button>
+          <UserAvatar
+            user={{ name: client.name, avatarUrl: client.avatarUrl }}
+            size="xl"
+          />
+          <div>
+            <h1 className="text-2xl font-semibold text-neutral-100">
+              {client.name}
+            </h1>
+            {client.company && (
+              <p className="text-neutral-400 flex items-center gap-1 mt-1">
+                <Building className="w-4 h-4" />
+                {client.company}
+              </p>
+            )}
+            {client.industry && (
+              <Badge variant="outline" className="mt-2">
+                {client.industry}
+              </Badge>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">
+            <Edit className="w-4 h-4 mr-2" />
+            Edit
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Info */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Contact Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Contact Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {client.email && (
+                <div className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-neutral-500" />
+                  <a
+                    href={`mailto:${client.email}`}
+                    className="text-brand-500 hover:underline"
+                  >
+                    {client.email}
+                  </a>
+                </div>
+              )}
+              {client.website && (
+                <div className="flex items-center gap-3">
+                  <Globe className="w-5 h-5 text-neutral-500" />
+                  <a
+                    href={client.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand-500 hover:underline"
+                  >
+                    {client.website}
+                  </a>
+                </div>
+              )}
+              {!client.email && !client.website && (
+                <p className="text-neutral-500">No contact information added.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Notes */}
+          {client.notes && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Notes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-neutral-300 whitespace-pre-wrap">
+                  {client.notes}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Contracts */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-shield" />
+                Contracts
+              </CardTitle>
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/dashboard/contracts/new?clientId=${client.id}`}>
+                  New Contract
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {contracts.length === 0 ? (
+                <p className="text-neutral-500 text-center py-4">
+                  No contracts with this client yet.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {contracts.map((contract) => (
+                    <Link
+                      key={contract.id}
+                      href={`/dashboard/contracts/${contract.id}`}
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-neutral-800/50 transition-colors"
+                    >
+                      <div>
+                        <p className="font-medium text-neutral-100">
+                          {contract.title}
+                        </p>
+                        <p className="text-sm text-neutral-500">
+                          {formatDate(contract.createdAt)}
+                        </p>
+                      </div>
+                      {contract.totalValue && (
+                        <p className="font-medium text-neutral-100">
+                          {formatCurrency(parseFloat(contract.totalValue))}
+                        </p>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar - Health & Stats */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Relationship Health</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center">
+                <p
+                  className={cn(
+                    "text-5xl font-bold",
+                    getHealthColor(client.healthScore)
+                  )}
+                >
+                  {client.healthScore ?? "—"}%
+                </p>
+                <p className="text-neutral-500 mt-1">Health Score</p>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <span className="text-neutral-400">Sentiment Trend</span>
+                <div className="flex items-center gap-2">
+                  {getSentimentIcon(client.sentimentTrend)}
+                  <span className="text-neutral-100 capitalize">
+                    {client.sentimentTrend?.toLowerCase().replace("_", " ") ||
+                      "Neutral"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-neutral-400">Total Revenue</span>
+                <span className="text-neutral-100 font-medium">
+                  {client.totalRevenue
+                    ? formatCurrency(parseFloat(client.totalRevenue))
+                    : "$0"}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-neutral-400">Client Since</span>
+                <span className="text-neutral-100">
+                  {formatDate(client.createdAt)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+### 11. Add Missing Utility Functions
+
+Make sure `src/lib/utils.ts` has these:
+
+```typescript
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export function formatCurrency(
+  amount: number,
+  currency: string = "USD"
+): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+export function formatDate(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(d);
+}
+
+export function formatRelativeTime(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffSecs < 60) return "just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return formatDate(d);
+}
+
+export function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+export function generateId(length: number = 12): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+export function slugify(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+```
+
+---
+
+## Final Checklist
+
+Run through this to verify everything works:
+
+```bash
+# 1. Make sure all dependencies are installed
+npm install
+
+# 2. Check your .env.local has all required vars:
+#    - DATABASE_URL
+#    - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+#    - CLERK_SECRET_KEY
+#    - OPENAI_API_KEY (for contract analysis)
+
+# 3. Push database schema
+npx drizzle-kit push
+
+# 4. Start the server
+npm run dev
+```
+
