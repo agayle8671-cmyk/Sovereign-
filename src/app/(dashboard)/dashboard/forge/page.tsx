@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Hammer,
@@ -195,9 +196,13 @@ export default function ForgePage() {
                                         >
                                             <div className="flex items-center justify-between text-xs">
                                                 <span className="text-emerald-400 font-medium">Product Active</span>
-                                                <a href="#" className="flex items-center gap-1 text-zinc-400 hover:text-white">
+                                                <Link
+                                                    href={`/p/${asset.id === "comp_1" ? "modern-auth-hook" : asset.id === "comp_2" ? "saas-pricing-table" : "invoice-generator-pdf"}`}
+                                                    target="_blank"
+                                                    className="flex items-center gap-1 text-zinc-400 hover:text-white"
+                                                >
                                                     View Landing Page <ExternalLink className="w-3 h-3" />
-                                                </a>
+                                                </Link>
                                             </div>
                                         </motion.div>
                                     )}

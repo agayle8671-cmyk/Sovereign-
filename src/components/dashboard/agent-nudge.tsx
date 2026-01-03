@@ -8,7 +8,7 @@ interface AgentNudgeProps {
   initialShow?: boolean;
 }
 
-export function AgentNudge({ initialShow = true }: AgentNudgeProps) {
+export function AgentNudge({ initialShow = false }: AgentNudgeProps) {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
