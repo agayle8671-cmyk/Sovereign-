@@ -27,6 +27,9 @@ import { RevenueChart } from "@/components/charts/RevenueChart";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { ProgressRing, MultiProgressRing } from "@/components/charts/ProgressRing";
 import { HealthHeatmap } from "@/components/charts/HealthHeatmap";
+import { RiskRadar } from "@/components/charts/RiskRadar";
+import { InvoiceFlow } from "@/components/charts/InvoiceFlow";
+import { AgentTimeline } from "@/components/charts/AgentTimeline";
 
 interface DashboardHomeProps {
   user: any;
@@ -105,48 +108,11 @@ export function DashboardHome({
         {/* Hero Tile: Financial Pulse (2x2) - Premium Revenue Chart */}
         <RevenueChart className="col-span-2 row-span-2" />
 
-        {/* Agent Activity Feed (1x2) */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="col-span-1 row-span-2 rounded-2xl bg-[#0f0f12] border border-white/[0.04] flex flex-col overflow-hidden hover:border-white/[0.08] transition-colors"
-        >
-          <div className="p-4 border-b border-white/[0.04] flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <h3 className="text-sm font-medium text-white">Agent Activity</h3>
-          </div>
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {agentLogs.map((log) => (
-              <div
-                key={log.id}
-                className="p-2.5 rounded-xl hover:bg-white/[0.03] transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <div
-                    className={cn(
-                      "w-1.5 h-1.5 rounded-full",
-                      log.status === "complete" ? "bg-emerald-500" : "bg-cyan-500 animate-pulse"
-                    )}
-                  />
-                  <span className="text-[11px] font-medium text-cyan-400">[{log.agent}]</span>
-                  <span className="text-[10px] text-zinc-600 ml-auto">{log.time}</span>
-                </div>
-                <p className="text-xs text-zinc-400 pl-3.5">
-                  {log.action} <span className="text-zinc-200">{log.target}</span>
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="p-3 border-t border-white/[0.04]">
-            <Link
-              href="/dashboard/audit"
-              className="block text-center text-xs text-zinc-500 hover:text-white transition-colors"
-            >
-              View full audit log →
-            </Link>
-          </div>
-        </motion.div>
+        {/* Agent Timeline (1x2) - Visual Feed */}
+        <AgentTimeline
+          className="col-span-1 row-span-2"
+          data={agentLogs}
+        />
 
         {/* Monthly Targets (1x2) - Premium Rings */}
         <motion.div
@@ -344,6 +310,10 @@ export function DashboardHome({
             />
           </div>
         </motion.div>
+
+        {/* Deep Dive Row (Row 5 & 6) */}
+        <RiskRadar className="col-span-2 row-span-2" />
+        <InvoiceFlow className="col-span-2 row-span-2" />
       </div>
     </div>
   );
