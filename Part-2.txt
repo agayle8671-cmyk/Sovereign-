@@ -1,0 +1,2270 @@
+
+---
+
+## Premium Landing Page Components
+
+### `src/app/(marketing)/page.tsx`
+
+```typescript
+import { PremiumHero } from "@/components/marketing/premium-hero";
+import { LogoCloud } from "@/components/marketing/logo-cloud";
+import { FeaturesSection } from "@/components/marketing/features-section";
+import { ProductShowcase } from "@/components/marketing/product-showcase";
+import { SocialProofSection } from "@/components/marketing/social-proof-section";
+import { PricingSection } from "@/components/marketing/pricing-section";
+import { FAQSection } from "@/components/marketing/faq-section";
+import { CTASection } from "@/components/marketing/cta-section";
+import { PremiumFooter } from "@/components/marketing/premium-footer";
+
+export default function HomePage() {
+  return (
+    <main className="relative">
+      <PremiumHero />
+      <LogoCloud />
+      <FeaturesSection />
+      <ProductShowcase />
+      <SocialProofSection />
+      <PricingSection />
+      <FAQSection />
+      <CTASection />
+      <PremiumFooter />
+    </main>
+  );
+}
+```
+
+### `src/app/(marketing)/layout.tsx`
+
+```typescript
+import { PremiumMarketingHeader } from "@/components/marketing/premium-header";
+
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-h-screen bg-neutral-950 overflow-x-hidden">
+      {/* Premium background layers */}
+      <div className="fixed inset-0 bg-neutral-950" />
+      
+      {/* Animated gradient orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-brand-500/20 rounded-full blur-[120px] animate-pulse-slow" />
+        <div className="absolute top-1/3 right-0 w-[600px] h-[600px] bg-cyan-500/15 rounded-full blur-[120px] animate-pulse-slow animation-delay-2000" />
+        <div className="absolute bottom-0 left-0 w-[700px] h-[700px] bg-purple-500/15 rounded-full blur-[120px] animate-pulse-slow animation-delay-4000" />
+      </div>
+
+      {/* Grid pattern */}
+      <div 
+        className="fixed inset-0 pointer-events-none opacity-[0.02]"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                           linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: '64px 64px'
+        }}
+      />
+
+      {/* Noise texture */}
+      <div className="fixed inset-0 bg-noise opacity-[0.02] pointer-events-none" />
+
+      {/* Header */}
+      <PremiumMarketingHeader />
+
+      {/* Content */}
+      <div className="relative">{children}</div>
+    </div>
+  );
+}
+```
+
+---
+
+### `src/components/marketing/premium-header.tsx`
+
+```typescript
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useAuth, SignedIn, SignedOut } from "@clerk/nextjs";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Menu, X, Sparkles, ChevronRight, ArrowRight } from "lucide-react";
+
+const navigation = [
+  { name: "Features", href: "#features" },
+  { name: "Pricing", href: "#pricing" },
+  { name: "FAQ", href: "#faq" },
+];
+
+export function PremiumMarketingHeader() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <>
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+          scrolled
+            ? "bg-neutral-950/80 backdrop-blur-2xl border-b border-white/5"
+            : "bg-transparent"
+        )}
+      >
+        <nav className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="flex h-20 items-center justify-between">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/25 group-hover:shadow-brand-500/40 transition-shadow">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div className="absolute inset-0 rounded-xl bg-brand-500/40 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <span className="text-xl font-semibold text-white">Sovereign</span>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center gap-1">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="relative px-4 py-2 text-sm font-medium text-neutral-400 hover:text-white transition-colors group"
+                >
+                  {item.name}
+                  <span className="absolute inset-x-4 -bottom-px h-px bg-gradient-to-r from-transparent via-brand-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+              ))}
+            </div>
+
+            {/* Desktop CTA */}
+            <div className="hidden lg:flex items-center gap-4">
+              <SignedIn>
+                <Link
+                  href="/dashboard"
+                  className="group flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white rounded-full bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 transition-all"
+                >
+                  Dashboard
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+              </SignedIn>
+              <SignedOut>
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-sm font-medium text-neutral-400 hover:text-white transition-colors"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="group relative flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white rounded-full bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-400 hover:to-brand-500 shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 transition-all overflow-hidden"
+                >
+                  <span className="relative z-10">Get Started Free</span>
+                  <ArrowRight className="relative z-10 w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-brand-400 to-brand-500 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                </Link>
+              </SignedOut>
+            </div>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/5 transition-colors"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          </div>
+        </nav>
+      </motion.header>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-neutral-950/90 backdrop-blur-xl lg:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-sm bg-neutral-900 border-l border-white/10 lg:hidden"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-white/5">
+                <Link href="/" className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-lg font-semibold text-white">
+                    Sovereign
+                  </span>
+                </Link>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/5"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <nav className="p-6 space-y-2">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-between p-4 rounded-xl text-neutral-300 hover:text-white hover:bg-white/5 transition-colors"
+                  >
+                    {item.name}
+                    <ChevronRight className="w-4 h-4 text-neutral-600" />
+                  </Link>
+                ))}
+              </nav>
+              <div className="p-6 mt-auto border-t border-white/5 space-y-3">
+                <SignedIn>
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white font-medium"
+                  >
+                    Go to Dashboard
+                  </Link>
+                </SignedIn>
+                <SignedOut>
+                  <Link
+                    href="/login"
+                    className="flex items-center justify-center w-full py-3 rounded-xl border border-white/10 text-white font-medium hover:bg-white/5"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white font-medium"
+                  >
+                    Get Started Free
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </SignedOut>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+```
+
+---
+
+### `src/components/marketing/premium-hero.tsx`
+
+```typescript
+"use client";
+
+import { useEffect, useRef } from "react";
+import Link from "next/link";
+import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  ArrowRight,
+  Play,
+  Shield,
+  Zap,
+  Target,
+  CheckCircle,
+  Star,
+} from "lucide-react";
+
+const stats = [
+  { value: "10,000+", label: "Freelancers Protected" },
+  { value: "$2.4M", label: "Risk Identified" },
+  { value: "4.9/5", label: "Average Rating" },
+];
+
+const features = [
+  "AI-powered contract analysis",
+  "Risk detection in seconds",
+  "Negotiation email generator",
+];
+
+export function PremiumHero() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
+  return (
+    <section
+      ref={containerRef}
+      className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden"
+    >
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Gradient orbs */}
+        <motion.div
+          style={{ y }}
+          className="absolute top-20 left-1/4 w-[500px] h-[500px] rounded-full"
+        >
+          <div className="w-full h-full bg-brand-500/30 rounded-full blur-[100px]" />
+        </motion.div>
+        <motion.div
+          style={{ y }}
+          className="absolute top-40 right-1/4 w-[400px] h-[400px] rounded-full"
+        >
+          <div className="w-full h-full bg-cyan-500/20 rounded-full blur-[100px]" />
+        </motion.div>
+        <motion.div
+          style={{ y }}
+          className="absolute bottom-20 left-1/3 w-[600px] h-[600px] rounded-full"
+        >
+          <div className="w-full h-full bg-purple-500/20 rounded-full blur-[120px]" />
+        </motion.div>
+      </div>
+
+      <motion.div style={{ opacity }} className="relative z-10 w-full">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Announcement badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 mb-8"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500" />
+              </span>
+              <span className="text-sm font-medium text-brand-400">
+                Now with AI-powered contract negotiation
+              </span>
+              <ArrowRight className="w-4 h-4 text-brand-400" />
+            </motion.div>
+
+            {/* Main headline */}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight"
+            >
+              <span className="text-white">The Operating System</span>
+              <br />
+              <span className="text-white">for the </span>
+              <span className="relative">
+                <span className="bg-gradient-to-r from-brand-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                  Business of One
+                </span>
+                <svg
+                  className="absolute -bottom-2 left-0 w-full"
+                  viewBox="0 0 300 12"
+                  fill="none"
+                >
+                  <path
+                    d="M2 10C50 4 100 2 150 6C200 10 250 4 298 8"
+                    stroke="url(#gradient)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                  />
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#818cf8" />
+                      <stop offset="50%" stopColor="#22d3ee" />
+                      <stop offset="100%" stopColor="#a855f7" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </span>
+            </motion.h1>
+
+            {/* Subheadline */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="mt-8 text-xl text-neutral-400 max-w-2xl mx-auto leading-relaxed"
+            >
+              Sovereign automates 50% of your admin work. Defend contracts.
+              Generate leads. Collect proof. All from one intelligent platform
+              that works while you sleep.
+            </motion.p>
+
+            {/* Feature pills */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="flex flex-wrap items-center justify-center gap-3 mt-8"
+            >
+              {features.map((feature, index) => (
+                <div
+                  key={feature}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10"
+                >
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm text-neutral-300">{feature}</span>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10"
+            >
+              <Link
+                href="/signup"
+                className="group relative inline-flex items-center gap-2 px-8 py-4 text-base font-semibold text-white rounded-full overflow-hidden"
+              >
+                {/* Button background with animated gradient */}
+                <div className="absolute inset-0 bg-gradient-to-r from-brand-500 via-brand-600 to-brand-500 bg-[length:200%_100%] animate-gradient" />
+                
+                {/* Shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                
+                {/* Shadow */}
+                <div className="absolute inset-0 shadow-[0_0_40px_8px_rgba(99,102,241,0.3)] rounded-full" />
+                
+                <span className="relative">Get Started Free</span>
+                <ArrowRight className="relative w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+
+              <button className="group inline-flex items-center gap-3 px-6 py-4 text-base font-medium text-neutral-300 rounded-full border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                  <Play className="w-4 h-4 text-white ml-0.5" />
+                </div>
+                Watch Demo
+              </button>
+            </motion.div>
+
+            {/* Social Proof */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="mt-16 pt-10 border-t border-white/5"
+            >
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
+                {stats.map((stat, index) => (
+                  <div key={stat.label} className="text-center">
+                    <p className="text-3xl font-bold text-white">{stat.value}</p>
+                    <p className="text-sm text-neutral-500 mt-1">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Rating stars */}
+              <div className="flex items-center justify-center gap-3 mt-8">
+                <div className="flex items-center gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className="w-5 h-5 fill-amber-400 text-amber-400"
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-neutral-400">
+                  Trusted by 10,000+ independent professionals
+                </span>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Product Preview */}
+          <motion.div
+            initial={{ opacity: 0, y: 60 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.7 }}
+            className="relative mt-20"
+          >
+            {/* Glow behind the preview */}
+            <div className="absolute inset-0 bg-gradient-to-t from-brand-500/20 via-transparent to-transparent blur-3xl" />
+
+            {/* Browser window */}
+            <div className="relative mx-auto max-w-5xl">
+              {/* Browser chrome */}
+              <div className="rounded-t-2xl bg-neutral-800/80 backdrop-blur-xl border border-white/10 border-b-0 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                    <div className="w-3 h-3 rounded-full bg-amber-500/80" />
+                    <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+                  </div>
+                  <div className="flex-1 flex justify-center">
+                    <div className="px-4 py-1.5 rounded-lg bg-neutral-900/80 text-sm text-neutral-400 flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+                      app.sovereign.com/dashboard
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Screenshot */}
+              <div className="relative rounded-b-2xl overflow-hidden border border-white/10 border-t-0">
+                <div className="aspect-[16/9] bg-neutral-900">
+                  {/* Dashboard preview - simplified version */}
+                  <div className="p-6 h-full flex">
+                    {/* Sidebar */}
+                    <div className="w-48 bg-neutral-800/50 rounded-xl p-4 mr-4">
+                      <div className="w-8 h-8 rounded-lg bg-brand-500/20 mb-4" />
+                      <div className="space-y-2">
+                        {[...Array(5)].map((_, i) => (
+                          <div
+                            key={i}
+                            className={`h-8 rounded-lg ${
+                              i === 0 ? "bg-white/10" : "bg-white/5"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Main content */}
+                    <div className="flex-1 space-y-4">
+                      {/* Stats row */}
+                      <div className="grid grid-cols-4 gap-4">
+                        {[
+                          { color: "cyan", value: "12" },
+                          { color: "amber", value: "8" },
+                          { color: "purple", value: "24" },
+                          { color: "rose", value: "156" },
+                        ].map((stat, i) => (
+                          <div
+                            key={i}
+                            className="p-4 rounded-xl bg-neutral-800/50"
+                          >
+                            <div
+                              className={`w-10 h-10 rounded-lg bg-${stat.color}-500/20 mb-3`}
+                            />
+                            <div className="text-2xl font-bold text-white">
+                              {stat.value}
+                            </div>
+                            <div className="h-3 w-16 bg-white/10 rounded mt-1" />
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Content grid */}
+                      <div className="grid grid-cols-3 gap-4 flex-1">
+                        <div className="col-span-2 p-4 rounded-xl bg-neutral-800/50">
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="w-6 h-6 rounded bg-cyan-500/20" />
+                            <div className="h-4 w-32 bg-white/10 rounded" />
+                          </div>
+                          <div className="space-y-3">
+                            {[...Array(3)].map((_, i) => (
+                              <div
+                                key={i}
+                                className="flex items-center gap-3 p-3 rounded-lg bg-white/5"
+                              >
+                                <div className="w-8 h-8 rounded-lg bg-white/10" />
+                                <div className="flex-1">
+                                  <div className="h-3 w-32 bg-white/10 rounded" />
+                                  <div className="h-2 w-24 bg-white/5 rounded mt-1" />
+                                </div>
+                                <div className="h-6 w-12 rounded bg-emerald-500/20" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="p-4 rounded-xl bg-neutral-800/50">
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="w-6 h-6 rounded bg-amber-500/20" />
+                            <div className="h-4 w-24 bg-white/10 rounded" />
+                          </div>
+                          <div className="space-y-3">
+                            {[...Array(4)].map((_, i) => (
+                              <div key={i} className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-white/10" />
+                                <div className="flex-1">
+                                  <div className="h-3 w-20 bg-white/10 rounded" />
+                                </div>
+                                <div className="h-1.5 w-12 bg-white/10 rounded-full" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating notification */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20, y: 20 }}
+                  animate={{ opacity: 1, x: 0, y: 0 }}
+                  transition={{ duration: 0.5, delay: 1.5 }}
+                  className="absolute bottom-8 left-8 max-w-xs"
+                >
+                  <div className="p-4 rounded-xl bg-neutral-800/90 backdrop-blur-xl border border-white/10 shadow-2xl">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center shrink-0">
+                        <Shield className="w-5 h-5 text-cyan-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-white text-sm">
+                          Contract Analyzed
+                        </p>
+                        <p className="text-xs text-neutral-400 mt-0.5">
+                          Found 3 risk clauses. Generating counteroffer...
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* Scroll indicator */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+      >
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-xs text-neutral-500">Scroll to explore</span>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="w-6 h-10 rounded-full border-2 border-neutral-700 p-1"
+          >
+            <div className="w-1.5 h-2.5 rounded-full bg-neutral-500 mx-auto" />
+          </motion.div>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/marketing/logo-cloud.tsx`
+
+```typescript
+"use client";
+
+import { motion } from "framer-motion";
+
+const logos = [
+  { name: "Vercel", opacity: 0.5 },
+  { name: "Stripe", opacity: 0.5 },
+  { name: "Linear", opacity: 0.5 },
+  { name: "Notion", opacity: 0.5 },
+  { name: "Figma", opacity: 0.5 },
+  { name: "Framer", opacity: 0.5 },
+];
+
+export function LogoCloud() {
+  return (
+    <section className="relative py-20 border-y border-white/5">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center text-sm text-neutral-500 mb-10"
+        >
+          Trusted by freelancers working with
+        </motion.p>
+
+        <div className="relative overflow-hidden">
+          {/* Gradient masks */}
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-neutral-950 to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-neutral-950 to-transparent z-10" />
+
+          {/* Scrolling logos */}
+          <motion.div
+            initial={{ x: 0 }}
+            animate={{ x: "-50%" }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="flex items-center gap-16 w-fit"
+          >
+            {[...logos, ...logos].map((logo, index) => (
+              <div
+                key={index}
+                className="text-2xl font-bold text-white/20 whitespace-nowrap"
+              >
+                {logo.name}
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/marketing/features-section.tsx`
+
+```typescript
+"use client";
+
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import {
+  Shield,
+  Target,
+  Briefcase,
+  MessageSquare,
+  Zap,
+  Lock,
+  TrendingUp,
+  Bot,
+  Sparkles,
+} from "lucide-react";
+
+const features = [
+  {
+    icon: Shield,
+    title: "Contract Shield",
+    description:
+      "AI analyzes every clause, identifies risks, and generates negotiation emails that protect your interests.",
+    gradient: "from-cyan-500 to-blue-500",
+    color: "cyan",
+    stats: "50+ risk factors analyzed",
+  },
+  {
+    icon: Target,
+    title: "Client Radar",
+    description:
+      "Track relationships, analyze sentiment from communications, and never let a client slip through the cracks.",
+    gradient: "from-amber-500 to-orange-500",
+    color: "amber",
+    stats: "Real-time health scoring",
+  },
+  {
+    icon: Briefcase,
+    title: "Lead Magnet",
+    description:
+      "Automatically capture and nurture leads with intelligent portfolio showcases and case studies.",
+    gradient: "from-purple-500 to-pink-500",
+    color: "purple",
+    stats: "3x more qualified leads",
+  },
+  {
+    icon: MessageSquare,
+    title: "Proof Forge",
+    description:
+      "Collect testimonials effortlessly with magic link requests and build social proof that converts.",
+    gradient: "from-rose-500 to-red-500",
+    color: "rose",
+    stats: "One-click testimonial flow",
+  },
+];
+
+const capabilities = [
+  { icon: Bot, text: "AI-Powered Analysis" },
+  { icon: Lock, text: "Bank-Level Security" },
+  { icon: TrendingUp, text: "Growth Insights" },
+  { icon: Zap, text: "Lightning Fast" },
+];
+
+export function FeaturesSection() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <section id="features" className="relative py-32">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        {/* Section header */}
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto mb-20"
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 mb-6">
+            <Sparkles className="w-4 h-4 text-brand-400" />
+            <span className="text-sm font-medium text-brand-400">Features</span>
+          </div>
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+            Four engines. One platform.
+            <br />
+            <span className="text-neutral-500">Zero busywork.</span>
+          </h2>
+          <p className="text-lg text-neutral-400">
+            Everything you need to protect your business, attract clients, and
+            build lasting relationships—automated.
+          </p>
+        </motion.div>
+
+        {/* Features grid */}
+        <div className="grid md:grid-cols-2 gap-6 mb-20">
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="group relative"
+              >
+                <div className="relative p-8 rounded-3xl bg-neutral-900/50 backdrop-blur-xl border border-white/5 hover:border-white/10 transition-all duration-500 overflow-hidden h-full">
+                  {/* Gradient glow on hover */}
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
+                  />
+
+                  {/* Corner glow */}
+                  <div
+                    className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${feature.gradient} rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500`}
+                  />
+
+                  <div className="relative">
+                    {/* Icon */}
+                    <div
+                      className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient} p-[1px] mb-6`}
+                    >
+                      <div className="w-full h-full rounded-2xl bg-neutral-900 flex items-center justify-center">
+                        <Icon className={`w-7 h-7 text-${feature.color}-400`} />
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <h3 className="text-2xl font-semibold text-white mb-3">
+                      {feature.title}
+                    </h3>
+                    <p className="text-neutral-400 leading-relaxed mb-4">
+                      {feature.description}
+                    </p>
+
+                    {/* Stats badge */}
+                    <div
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-${feature.color}-500/10 border border-${feature.color}-500/20`}
+                    >
+                      <div className={`w-1.5 h-1.5 rounded-full bg-${feature.color}-400`} />
+                      <span className={`text-sm text-${feature.color}-400`}>
+                        {feature.stats}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Capabilities bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="flex flex-wrap items-center justify-center gap-6 p-6 rounded-2xl bg-neutral-900/30 border border-white/5"
+        >
+          {capabilities.map((capability, index) => {
+            const Icon = capability.icon;
+            return (
+              <div
+                key={capability.text}
+                className="flex items-center gap-3 text-neutral-400"
+              >
+                <Icon className="w-5 h-5 text-brand-400" />
+                <span className="text-sm font-medium">{capability.text}</span>
+                {index < capabilities.length - 1 && (
+                  <div className="hidden sm:block w-px h-4 bg-neutral-700 ml-6" />
+                )}
+              </div>
+            );
+          })}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/marketing/product-showcase.tsx`
+
+```typescript
+"use client";
+
+import { useState, useRef } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import {
+  Shield,
+  Target,
+  Briefcase,
+  MessageSquare,
+  CheckCircle,
+  AlertTriangle,
+  TrendingUp,
+  Star,
+} from "lucide-react";
+
+const tabs = [
+  {
+    id: "contracts",
+    label: "Contract Analysis",
+    icon: Shield,
+    color: "cyan",
+    description: "AI scans every clause and identifies risks in seconds",
+  },
+  {
+    id: "clients",
+    label: "Client Intelligence",
+    icon: Target,
+    color: "amber",
+    description: "Real-time relationship health and sentiment tracking",
+  },
+  {
+    id: "portfolio",
+    label: "Portfolio & Leads",
+    icon: Briefcase,
+    color: "purple",
+    description: "Showcase work and capture leads automatically",
+  },
+  {
+    id: "testimonials",
+    label: "Social Proof",
+    icon: MessageSquare,
+    color: "rose",
+    description: "One-click testimonial collection system",
+  },
+];
+
+export function ProductShowcase() {
+  const [activeTab, setActiveTab] = useState("contracts");
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <section className="relative py-32 overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-500/5 to-transparent" />
+
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+            See it in action
+          </h2>
+          <p className="text-lg text-neutral-400">
+            Watch how Sovereign transforms the way you manage your independent
+            business
+          </p>
+        </motion.div>
+
+        {/* Tab navigation */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="flex flex-wrap justify-center gap-2 mb-12"
+        >
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all duration-300",
+                  isActive
+                    ? "bg-white text-neutral-900"
+                    : "bg-white/5 text-neutral-400 hover:bg-white/10 hover:text-white"
+                )}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            );
+          })}
+        </motion.div>
+
+        {/* Tab description */}
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={activeTab}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="text-center text-neutral-400 mb-8"
+          >
+            {tabs.find((t) => t.id === activeTab)?.description}
+          </motion.p>
+        </AnimatePresence>
+
+        {/* Product preview */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative"
+        >
+          {/* Glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-t from-brand-500/10 via-transparent to-transparent blur-3xl" />
+
+          {/* Browser frame */}
+          <div className="relative max-w-5xl mx-auto rounded-2xl bg-neutral-900/80 backdrop-blur-xl border border-white/10 overflow-hidden shadow-2xl">
+            {/* Browser chrome */}
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-neutral-800/50">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                <div className="w-3 h-3 rounded-full bg-amber-500/80" />
+                <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+              </div>
+              <div className="flex-1 flex justify-center">
+                <div className="px-4 py-1 rounded-lg bg-neutral-900/80 text-sm text-neutral-500">
+                  app.sovereign.com
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="aspect-[16/10] p-6 bg-neutral-950">
+              <AnimatePresence mode="wait">
+                {activeTab === "contracts" && (
+                  <ContractPreview key="contracts" />
+                )}
+                {activeTab === "clients" && <ClientPreview key="clients" />}
+                {activeTab === "portfolio" && (
+                  <PortfolioPreview key="portfolio" />
+                )}
+                {activeTab === "testimonials" && (
+                  <TestimonialsPreview key="testimonials" />
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function ContractPreview() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="h-full flex gap-6"
+    >
+      {/* Left panel - Document */}
+      <div className="flex-1 rounded-xl bg-neutral-900/50 border border-white/5 p-4 overflow-hidden">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-6 h-6 rounded bg-cyan-500/20" />
+          <span className="text-sm font-medium text-white">
+            Freelance_Agreement.pdf
+          </span>
+        </div>
+        <div className="space-y-3">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="flex gap-2">
+              <div
+                className={`h-3 rounded ${
+                  i === 2 || i === 5
+                    ? "w-full bg-red-500/20 border border-red-500/30"
+                    : "w-3/4 bg-white/5"
+                }`}
+              />
+              {(i === 2 || i === 5) && (
+                <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Right panel - Analysis */}
+      <div className="w-80 rounded-xl bg-neutral-900/50 border border-white/5 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm font-medium text-white">Risk Analysis</span>
+          <span className="text-2xl font-bold text-amber-400">67%</span>
+        </div>
+
+        <div className="space-y-3 mb-6">
+          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertTriangle className="w-4 h-4 text-red-400" />
+              <span className="text-sm font-medium text-red-400">
+                High Risk
+              </span>
+            </div>
+            <p className="text-xs text-neutral-400">
+              Unlimited revisions clause detected
+            </p>
+          </div>
+          <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <span className="text-sm font-medium text-amber-400">
+                Medium Risk
+              </span>
+            </div>
+            <p className="text-xs text-neutral-400">NET-60 payment terms</p>
+          </div>
+        </div>
+
+        <button className="w-full py-2.5 rounded-lg bg-cyan-500 text-white font-medium text-sm">
+          Generate Counter-Offer
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+function ClientPreview() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="h-full flex gap-6"
+    >
+      {/* Client list */}
+      <div className="w-72 rounded-xl bg-neutral-900/50 border border-white/5 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm font-medium text-white">Clients</span>
+          <span className="text-xs text-neutral-500">12 total</span>
+        </div>
+        <div className="space-y-2">
+          {[
+            { name: "Acme Corp", health: 92, trend: "up" },
+            { name: "TechStart Inc", health: 78, trend: "down" },
+            { name: "Design Co", health: 85, trend: "up" },
+            { name: "StartupXYZ", health: 45, trend: "down" },
+          ].map((client, i) => (
+            <div
+              key={i}
+              className={`p-3 rounded-lg ${
+                i === 0 ? "bg-white/10" : "bg-white/5"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 font-medium text-sm">
+                  {client.name[0]}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-white">{client.name}</p>
+                  <div className="flex items-center gap-1">
+                    <TrendingUp
+                      className={`w-3 h-3 ${
+                        client.trend === "up"
+                          ? "text-emerald-400"
+                          : "text-red-400 rotate-180"
+                      }`}
+                    />
+                    <span
+                      className={`text-xs ${
+                        client.health > 70
+                          ? "text-emerald-400"
+                          : client.health > 50
+                          ? "text-amber-400"
+                          : "text-red-400"
+                      }`}
+                    >
+                      {client.health}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Client detail */}
+      <div className="flex-1 rounded-xl bg-neutral-900/50 border border-white/5 p-4">
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400 font-bold text-lg">
+              A
+            </div>
+            <div>
+              <h3 className="font-medium text-white">Acme Corp</h3>
+              <p className="text-sm text-neutral-500">
+                Technology • San Francisco
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-2xl font-bold text-emerald-400">92%</p>
+            <p className="text-xs text-neutral-500">Health Score</p>
+          </div>
+        </div>
+
+        {/* Health metrics */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          {[
+            { label: "Response Time", value: "< 2hrs", good: true },
+            { label: "Payment", value: "On Time", good: true },
+            { label: "Sentiment", value: "Positive", good: true },
+          ].map((metric, i) => (
+            <div key={i} className="p-3 rounded-lg bg-white/5">
+              <p className="text-xs text-neutral-500 mb-1">{metric.label}</p>
+              <p
+                className={`text-sm font-medium ${
+                  metric.good ? "text-emerald-400" : "text-red-400"
+                }`}
+              >
+                {metric.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Recent activity */}
+        <div>
+          <p className="text-xs text-neutral-500 mb-2">Recent Activity</p>
+          <div className="space-y-2">
+            {[
+              "Contract signed - Website Redesign",
+              "Invoice paid - $4,500",
+              "Positive feedback received",
+            ].map((activity, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-2 text-xs text-neutral-400"
+              >
+                <CheckCircle className="w-3 h-3 text-emerald-400" />
+                {activity}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function PortfolioPreview() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="h-full"
+    >
+      <div className="grid grid-cols-3 gap-4 h-full">
+        {[
+          { title: "E-commerce Redesign", client: "TechStart", featured: true },
+          { title: "Brand Identity", client: "Design Co", featured: false },
+          { title: "Mobile App", client: "StartupXYZ", featured: true },
+          { title: "Marketing Site", client: "Acme Corp", featured: false },
+          { title: "Dashboard UI", client: "DataFlow", featured: true },
+          { title: "Landing Page", client: "LaunchPad", featured: false },
+        ].map((project, i) => (
+          <div
+            key={i}
+            className="rounded-xl bg-neutral-900/50 border border-white/5 overflow-hidden group"
+          >
+            <div className="aspect-video bg-gradient-to-br from-purple-500/20 to-pink-500/20 relative">
+              {project.featured && (
+                <div className="absolute top-2 right-2 px-2 py-1 rounded bg-purple-500/80 text-[10px] text-white font-medium">
+                  Featured
+                </div>
+              )}
+            </div>
+            <div className="p-3">
+              <p className="text-sm font-medium text-white">{project.title}</p>
+              <p className="text-xs text-neutral-500">{project.client}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+function TestimonialsPreview() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="h-full flex gap-6"
+    >
+      {/* Testimonial cards */}
+      <div className="flex-1 grid grid-cols-2 gap-4">
+        {[
+          {
+            name: "Sarah Chen",
+            role: "CEO, TechStart",
+            text: "Working with them was incredible. Delivered on time and exceeded expectations.",
+            rating: 5,
+          },
+          {
+            name: "Michael Ross",
+            role: "Founder, LaunchPad",
+            text: "Professional, creative, and incredibly easy to work with. Highly recommend!",
+            rating: 5,
+          },
+          {
+            name: "Emily Davis",
+            role: "Marketing Dir, Acme",
+            text: "The best freelancer I've ever worked with. Will definitely hire again.",
+            rating: 5,
+          },
+          {
+            name: "James Wilson",
+            role: "CTO, DataFlow",
+            text: "Exceptional quality of work. They truly understand what clients need.",
+            rating: 5,
+          },
+        ].map((testimonial, i) => (
+          <div
+            key={i}
+            className="p-4 rounded-xl bg-neutral-900/50 border border-white/5"
+          >
+            <div className="flex items-center gap-1 mb-2">
+              {[...Array(testimonial.rating)].map((_, j) => (
+                <Star
+                  key={j}
+                  className="w-3 h-3 fill-amber-400 text-amber-400"
+                />
+              ))}
+            </div>
+            <p className="text-sm text-neutral-300 mb-3 line-clamp-2">
+              "{testimonial.text}"
+            </p>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-rose-500/20" />
+              <div>
+                <p className="text-xs font-medium text-white">
+                  {testimonial.name}
+                </p>
+                <p className="text-[10px] text-neutral-500">
+                  {testimonial.role}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Request form */}
+      <div className="w-64 rounded-xl bg-neutral-900/50 border border-white/5 p-4">
+        <h3 className="font-medium text-white mb-4">Request Testimonial</h3>
+        <div className="space-y-3">
+          <div className="p-3 rounded-lg bg-white/5">
+            <p className="text-xs text-neutral-500 mb-1">Client</p>
+            <p className="text-sm text-white">Sarah Chen</p>
+          </div>
+          <div className="p-3 rounded-lg bg-white/5">
+            <p className="text-xs text-neutral-500 mb-1">Project</p>
+            <p className="text-sm text-white">E-commerce Redesign</p>
+          </div>
+          <button className="w-full py-2.5 rounded-lg bg-rose-500 text-white font-medium text-sm">
+            Send Magic Link
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+```
+
+---
+
+### `src/components/marketing/social-proof-section.tsx`
+
+```typescript
+"use client";
+
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { Star, Quote } from "lucide-react";
+
+const testimonials = [
+  {
+    quote:
+      "Sovereign caught a $12,000 liability clause I would have missed. Paid for itself 100x over.",
+    author: "Sarah Chen",
+    role: "UX Designer",
+    company: "Independent",
+    avatar: "S",
+    gradient: "from-cyan-500 to-blue-500",
+  },
+  {
+    quote:
+      "My client relationships have never been healthier. The AI sentiment tracking is game-changing.",
+    author: "Marcus Johnson",
+    role: "Web Developer",
+    company: "Freelance",
+    avatar: "M",
+    gradient: "from-amber-500 to-orange-500",
+  },
+  {
+    quote:
+      "Went from chasing testimonials for weeks to collecting them in days. The magic links are brilliant.",
+    author: "Elena Rodriguez",
+    role: "Brand Strategist",
+    company: "Studio Elena",
+    avatar: "E",
+    gradient: "from-purple-500 to-pink-500",
+  },
+];
+
+const metrics = [
+  { value: "50%", label: "Less admin time" },
+  { value: "$847", label: "Avg. risk identified per contract" },
+  { value: "3.2x", label: "Faster testimonial collection" },
+  { value: "10k+", label: "Freelancers protected" },
+];
+
+export function SocialProofSection() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <section className="relative py-32">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+            Loved by 10,000+ independents
+          </h2>
+          <p className="text-lg text-neutral-400">
+            Join the freelancers, consultants, and creators who run their
+            business with Sovereign
+          </p>
+        </motion.div>
+
+        {/* Testimonials */}
+        <div className="grid md:grid-cols-3 gap-6 mb-20">
+          {testimonials.map((testimonial, index) => (
+            <motion.div
+              key={testimonial.author}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              className="group relative"
+            >
+              <div className="relative p-8 rounded-3xl bg-neutral-900/50 backdrop-blur-xl border border-white/5 hover:border-white/10 transition-all duration-500 h-full">
+                {/* Quote icon */}
+                <div
+                  className={`absolute -top-4 -left-4 w-8 h-8 rounded-full bg-gradient-to-br ${testimonial.gradient} flex items-center justify-center`}
+                >
+                  <Quote className="w-4 h-4 text-white" />
+                </div>
+
+                {/* Stars */}
+                <div className="flex items-center gap-1 mb-6">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className="w-5 h-5 fill-amber-400 text-amber-400"
+                    />
+                  ))}
+                </div>
+
+                {/* Quote */}
+                <p className="text-lg text-neutral-200 leading-relaxed mb-8">
+                  "{testimonial.quote}"
+                </p>
+
+                {/* Author */}
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`w-12 h-12 rounded-full bg-gradient-to-br ${testimonial.gradient} flex items-center justify-center text-white font-semibold`}
+                  >
+                    {testimonial.avatar}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white">
+                      {testimonial.author}
+                    </p>
+                    <p className="text-sm text-neutral-500">
+                      {testimonial.role} • {testimonial.company}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Metrics */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-6"
+        >
+          {metrics.map((metric, index) => (
+            <div
+              key={metric.label}
+              className="text-center p-6 rounded-2xl bg-neutral-900/30 border border-white/5"
+            >
+              <p className="text-4xl font-bold bg-gradient-to-r from-brand-400 to-cyan-400 bg-clip-text text-transparent mb-2">
+                {metric.value}
+              </p>
+              <p className="text-sm text-neutral-500">{metric.label}</p>
+            </div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/marketing/pricing-section.tsx`
+
+```typescript
+"use client";
+
+import { useState, useRef } from "react";
+import Link from "next/link";
+import { motion, useInView } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Check, Sparkles, Zap, Crown, ArrowRight } from "lucide-react";
+
+const plans = [
+  {
+    name: "Free",
+    description: "Perfect for getting started",
+    price: { monthly: 0, annually: 0 },
+    icon: Sparkles,
+    gradient: "from-neutral-500 to-neutral-600",
+    features: [
+      "3 contract analyses / month",
+      "Up to 5 clients",
+      "Basic portfolio (5 items)",
+      "Email testimonial requests",
+      "Community support",
+    ],
+    cta: "Get Started Free",
+    ctaVariant: "outline" as const,
+  },
+  {
+    name: "Pro",
+    description: "For serious freelancers",
+    price: { monthly: 29, annually: 24 },
+    icon: Zap,
+    gradient: "from-brand-500 to-brand-600",
+    popular: true,
+    features: [
+      "Unlimited contract analyses",
+      "Unlimited clients",
+      "Unlimited portfolio items",
+      "AI negotiation emails",
+      "Client health scoring",
+      "Video testimonials",
+      "Priority support",
+      "API access",
+    ],
+    cta: "Start Pro Trial",
+    ctaVariant: "primary" as const,
+  },
+  {
+    name: "Agency",
+    description: "For teams and agencies",
+    price: { monthly: 79, annually: 66 },
+    icon: Crown,
+    gradient: "from-amber-500 to-orange-500",
+    features: [
+      "Everything in Pro",
+      "Up to 5 team members",
+      "White-label portfolio",
+      "Custom branding",
+      "Advanced analytics",
+      "Dedicated account manager",
+      "Custom integrations",
+      "SLA guarantee",
+    ],
+    cta: "Contact Sales",
+    ctaVariant: "outline" as const,
+  },
+];
+
+export function PricingSection() {
+  const [annual, setAnnual] = useState(true);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <section id="pricing" className="relative py-32">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-500/5 to-transparent" />
+
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+            Simple, transparent pricing
+          </h2>
+          <p className="text-lg text-neutral-400 mb-8">
+            Start free and scale as you grow. No hidden fees, no surprises.
+          </p>
+
+          {/* Billing toggle */}
+          <div className="inline-flex items-center gap-4 p-1.5 rounded-full bg-neutral-900/50 border border-white/10">
+            <button
+              onClick={() => setAnnual(false)}
+              className={cn(
+                "px-6 py-2.5 rounded-full text-sm font-medium transition-all",
+                !annual
+                  ? "bg-white text-neutral-900"
+                  : "text-neutral-400 hover:text-white"
+              )}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setAnnual(true)}
+              className={cn(
+                "px-6 py-2.5 rounded-full text-sm font-medium transition-all flex items-center gap-2",
+                annual
+                  ? "bg-white text-neutral-900"
+                  : "text-neutral-400 hover:text-white"
+              )}
+            >
+              Annually
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs">
+                Save 20%
+              </span>
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Pricing cards */}
+        <div className="grid md:grid-cols-3 gap-6">
+          {plans.map((plan, index) => {
+            const Icon = plan.icon;
+            const price = annual ? plan.price.annually : plan.price.monthly;
+
+            return (
+              <motion.div
+                key={plan.name}
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className={cn(
+                  "relative rounded-3xl p-[1px] bg-gradient-to-b",
+                  plan.popular
+                    ? "from-brand-500/50 via-brand-500/10 to-transparent"
+                    : "from-white/10 to-transparent"
+                )}
+              >
+                {/* Popular badge */}
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 text-sm font-medium text-white shadow-lg shadow-brand-500/25">
+                    Most Popular
+                  </div>
+                )}
+
+                <div
+                  className={cn(
+                    "relative rounded-3xl p-8 h-full",
+                    plan.popular ? "bg-neutral-900" : "bg-neutral-900/50"
+                  )}
+                >
+                  {/* Icon & Name */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div
+                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${plan.gradient} p-[1px]`}
+                    >
+                      <div className="w-full h-full rounded-xl bg-neutral-900 flex items-center justify-center">
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-white">
+                        {plan.name}
+                      </h3>
+                      <p className="text-sm text-neutral-500">
+                        {plan.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <div className="mb-6">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl font-bold text-white">
+                        ${price}
+                      </span>
+                      {price > 0 && (
+                        <span className="text-neutral-500">/month</span>
+                      )}
+                    </div>
+                    {annual && price > 0 && (
+                      <p className="text-sm text-neutral-500 mt-1">
+                        Billed annually (${price * 12}/year)
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Features */}
+                  <ul className="space-y-3 mb-8">
+                    {plan.features.map((feature) => (
+                      <li
+                        key={feature}
+                        className="flex items-start gap-3 text-sm text-neutral-300"
+                      >
+                        <Check className="w-5 h-5 text-emerald-400 shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* CTA */}
+                  <Link
+                    href={plan.name === "Agency" ? "/contact" : "/signup"}
+                    className={cn(
+                      "flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-medium transition-all",
+                      plan.ctaVariant === "primary"
+                        ? "bg-gradient-to-r from-brand-500 to-brand-600 text-white hover:from-brand-400 hover:to-brand-500 shadow-lg shadow-brand-500/25"
+                        : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
+                    )}
+                  >
+                    {plan.cta}
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Money-back guarantee */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="text-center text-neutral-500 mt-10"
+        >
+          All paid plans include a 14-day free trial. No credit card required.
+        </motion.p>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/marketing/faq-section.tsx`
+
+```typescript
+"use client";
+
+import { useState, useRef } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Plus, Minus } from "lucide-react";
+
+const faqs = [
+  {
+    question: "How does Contract Shield analyze my contracts?",
+    answer:
+      "Our AI reads every clause in your contract and compares it against industry standards and best practices. It identifies risky terms like unlimited revisions, IP issues, unfavorable payment terms, and missing protections. The analysis typically takes 30-60 seconds depending on document length.",
+  },
+  {
+    question: "Is my data secure?",
+    answer:
+      "Absolutely. We use bank-level AES-256 encryption for all data at rest and in transit. Your contracts are processed in isolated environments and never used to train AI models. We're SOC 2 Type II compliant and conduct regular security audits.",
+  },
+  {
+    question: "Can I cancel anytime?",
+    answer:
+      "Yes, you can cancel your subscription at any time with no questions asked. If you cancel, you'll retain access until the end of your billing period. We also offer a 14-day free trial on all paid plans—no credit card required.",
+  },
+  {
+    question: "Does it work with any type of contract?",
+    answer:
+      "Contract Shield works best with service agreements, NDAs, consulting contracts, and freelance agreements. It supports PDF, DOC, DOCX, and plain text formats. While it can analyze any contract, results are optimized for independent professional work.",
+  },
+  {
+    question: "How does the testimonial collection work?",
+    answer:
+      "When you request a testimonial, we send your client a secure magic link. They can submit text or video feedback in under 2 minutes—no account needed. You review and approve testimonials before they appear on your portfolio.",
+  },
+  {
+    question: "Can I white-label my portfolio?",
+    answer:
+      "Yes! On the Agency plan, you can use your own domain, customize colors and branding, and remove all Sovereign branding. Your portfolio will look completely native to your business.",
+  },
+];
+
+export function FAQSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <section id="faq" className="relative py-32">
+      <div className="max-w-3xl mx-auto px-6 lg:px-8">
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+            Frequently asked questions
+          </h2>
+          <p className="text-lg text-neutral-400">
+            Everything you need to know about Sovereign
+          </p>
+        </motion.div>
+
+        <div className="space-y-4">
+          {faqs.map((faq, index) => {
+            const isOpen = openIndex === index;
+
+            return (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: index * 0.05 }}
+              >
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : index)}
+                  className="w-full"
+                >
+                  <div
+                    className={cn(
+                      "p-6 rounded-2xl text-left transition-all duration-300",
+                      isOpen
+                        ? "bg-neutral-900 border border-white/10"
+                        : "bg-neutral-900/50 border border-white/5 hover:border-white/10"
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <h3 className="font-semibold text-white text-lg">
+                        {faq.question}
+                      </h3>
+                      <div
+                        className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                          isOpen ? "bg-brand-500" : "bg-white/5"
+                        )}
+                      >
+                        {isOpen ? (
+                          <Minus className="w-4 h-4 text-white" />
+                        ) : (
+                          <Plus className="w-4 h-4 text-neutral-400" />
+                        )}
+                      </div>
+                    </div>
+
+                    <AnimatePresence>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="overflow-hidden"
+                        >
+                          <p className="pt-4 text-neutral-400 leading-relaxed">
+                            {faq.answer}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </button>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/marketing/cta-section.tsx`
+
+```typescript
+"use client";
+
+import { useRef } from "react";
+import Link from "next/link";
+import { motion, useInView } from "framer-motion";
+import { ArrowRight, Sparkles } from "lucide-react";
+
+export function CTASection() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <section className="relative py-32 overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-500/20 via-purple-500/20 to-cyan-500/20" />
+        <div className="absolute inset-0 bg-neutral-950/90" />
+      </div>
+
+      {/* Animated orbs */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-500/30 rounded-full blur-[100px] animate-pulse" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/30 rounded-full blur-[100px] animate-pulse animation-delay-2000" />
+
+      <div className="relative max-w-4xl mx-auto px-6 lg:px-8 text-center">
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 mb-8">
+            <Sparkles className="w-4 h-4 text-brand-400" />
+            <span className="text-sm font-medium text-brand-400">
+              Join 10,000+ freelancers
+            </span>
+          </div>
+
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+            Ready to take control
+            <br />
+            of your business?
+          </h2>
+
+          <p className="text-xl text-neutral-400 mb-10 max-w-2xl mx-auto">
+            Start free today. No credit card required. Set up in under 5
+            minutes.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/signup"
+              className="group relative inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white rounded-full overflow-hidden"
+            >
+              {/* Animated gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-brand-500 via-brand-600 to-brand-500 bg-[length:200%_100%] animate-gradient" />
+
+              {/* Shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+
+              {/* Shadow */}
+              <div className="absolute inset-0 shadow-[0_0_40px_8px_rgba(99,102,241,0.4)] rounded-full" />
+
+              <span className="relative">Get Started Free</span>
+              <ArrowRight className="relative w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+
+            <Link
+              href="#pricing"
+              className="px-8 py-4 text-lg font-medium text-neutral-300 hover:text-white transition-colors"
+            >
+              View Pricing
+            </Link>
+          </div>
+
+          {/* Trust badges */}
+          <div className="flex flex-wrap items-center justify-center gap-8 mt-12 pt-12 border-t border-white/5">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-white">4.9/5</p>
+              <p className="text-sm text-neutral-500">Average rating</p>
+            </div>
+            <div className="w-px h-8 bg-white/10 hidden sm:block" />
+            <div className="text-center">
+              <p className="text-2xl font-bold text-white">$2.4M+</p>
+              <p className="text-sm text-neutral-500">Risk identified</p>
+            </div>
+            <div className="w-px h-8 bg-white/10 hidden sm:block" />
+            <div className="text-center">
+              <p className="text-2xl font-bold text-white">SOC 2</p>
+              <p className="text-sm text-neutral-500">Certified</p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+### `src/components/marketing/premium-footer.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { Sparkles, Twitter, Linkedin, Github, Mail } from "lucide-react";
+
+const navigation = {
+  product: [
+    { name: "Features", href: "#features" },
+    { name: "Pricing", href: "#pricing" },
+    { name: "FAQ", href: "#faq" },
+    { name: "Changelog", href: "/changelog" },
+  ],
+  resources: [
+    { name: "Documentation", href: "/docs" },
+    { name: "Blog", href: "/blog" },
+    { name: "Templates", href: "/templates" },
+    { name: "API Reference", href: "/api" },
+  ],
+  company: [
+    { name: "About", href: "/about" },
+    { name: "Careers", href: "/careers" },
+    { name: "Contact", href: "/contact" },
+    { name: "Press", href: "/press" },
+  ],
+  legal: [
+    { name: "Privacy", href: "/privacy" },
+    { name: "Terms", href: "/terms" },
+    { name: "Security", href: "/security" },
+    { name: "Cookies", href: "/cookies" },
+  ],
+};
+
+const social = [
+  { name: "Twitter", icon: Twitter, href: "https://twitter.com" },
+  { name: "LinkedIn", icon: Linkedin, href: "https://linkedin.com" },
+  { name: "GitHub", icon: Github, href: "https://github.com" },
+];
+
+export function PremiumFooter() {
+  return (
+    <footer className="relative border-t border-white/5">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-900/50 to-transparent" />
+
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-12">
+          {/* Brand */}
+          <div className="col-span-2">
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-lg font-semibold text-white">Sovereign</span>
+            </Link>
+            <p className="text-sm text-neutral-500 mb-6 max-w-xs">
+              The autonomous operating system for freelancers, consultants, and
+              independent professionals.
+            </p>
+            <div className="flex items-center gap-3">
+              {social.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-neutral-400 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    <Icon className="w-4 h-4" />
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <div>
+            <h4 className="font-medium text-white mb-4">Product</h4>
+            <ul className="space-y-3">
+              {navigation.product.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className="text-sm text-neutral-500 hover:text-white transition-colors"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-white mb-4">Resources</h4>
+            <ul className="space-y-3">
+              {navigation.resources.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className="text-sm text-neutral-500 hover:text-white transition-colors"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-white mb-4">Company</h4>
+            <ul className="space-y-3">
+              {navigation.company.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className="text-sm text-neutral-500 hover:text-white transition-colors"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-white mb-4">Legal</h4>
+            <ul className="space-y-3">
+              {navigation.legal.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className="text-sm text-neutral-500 hover:text-white transition-colors"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Newsletter */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 py-8 border-t border-white/5">
+          <div>
+            <h4 className="font-medium text-white mb-1">
+              Subscribe to our newsletter
+            </h4>
+            <p className="text-sm text-neutral-500">
+              Get product updates and tips for growing your business.
+            </p>
+          </div>
+          <form className="flex gap-2 w-full md:w-auto">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="flex-1 md:w-64 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-neutral-500 focus:outline-none focus:border-brand-500/50"
+            />
+            <button
+              type="submit"
+              className="px-5 py-2.5 rounded-lg bg-brand-500 text-white font-medium hover:bg-brand-400 transition-colors whitespace-nowrap"
+            >
+              Subscribe
+            </button>
+          </form>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-white/5">
+          <p className="text-sm text-neutral-500">
+            © {new Date().getFullYear()} Sovereign. All rights reserved.
+          </p>
+          <div className="flex items-center gap-4 text-sm text-neutral-500">
+            <span className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+              All systems operational
+            </span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+```
+
+---
+
+## Add Animation Utilities
+
+Add these to your `globals.css`:
+
+```css
+/* Animation delays */
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Slow pulse for background orbs */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 8s ease-in-out infinite;
+}
+```
+
+---
+
+## What Changed
+
+This landing page redesign includes:
+
+1. **Premium Header** - Glass morphism, smooth scroll state, animated mobile menu
+2. **Hero Section** - Animated gradient orbs, premium typography, interactive product preview, floating notifications
+3. **Logo Cloud** - Infinite scroll animation with gradient masks
+4. **Features Section** - Four-feature grid with hover glows and gradients
+5. **Product Showcase** - Interactive tabs showing each feature in action
+6. **Social Proof** - Large testimonial cards with avatars and metrics
+7. **Pricing Section** - Clear tier comparison with popular badge and annual toggle
+8. **FAQ Section** - Animated accordion with smooth open/close
+9. **CTA Section** - Full-width with animated gradient button
+10. **Footer** - Complete navigation with newsletter signup
+
+---

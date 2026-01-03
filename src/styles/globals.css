@@ -12,7 +12,7 @@
     --color-neutral-800: #18181b;
     --color-neutral-700: #27272a;
     --color-neutral-600: #3f3f46;
-    --color-neutral-500: #71717a;
+    --color-neutral-50: #71717a;
     --color-neutral-400: #a1a1aa;
     --color-neutral-300: #d4d4d8;
     --color-neutral-200: #e4e4e7;
@@ -672,4 +672,32 @@ body {
 
 .badge-danger {
     @apply bg-danger/10 text-danger border-danger/20;
+}
+
+/* Animation delays */
+.animation-delay-2000 {
+    animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+    animation-delay: 4s;
+}
+
+/* Slow pulse for background orbs */
+@keyframes pulse-slow {
+
+    0%,
+    100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.05);
+    }
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 8s ease-in-out infinite;
 }

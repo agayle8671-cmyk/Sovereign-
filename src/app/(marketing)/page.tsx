@@ -1,23 +1,25 @@
-import { HeroSection } from "@/components/marketing/hero-section";
-import { ProblemSection } from "@/components/marketing/problem-section";
+import { PremiumHero } from "@/components/marketing/premium-hero";
+import { LogoCloud } from "@/components/marketing/logo-cloud";
 import { FeaturesSection } from "@/components/marketing/features-section";
-import { HowItWorksSection } from "@/components/marketing/how-it-works";
-import { TestimonialsSection } from "@/components/marketing/testimonials-section";
+import { ProductShowcase } from "@/components/marketing/product-showcase";
+import { SocialProofSection } from "@/components/marketing/social-proof-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
-import { FaqSection } from "@/components/marketing/faq-section";
-import { CtaSection } from "@/components/marketing/cta-section";
+import { FAQSection } from "@/components/marketing/faq-section";
+import { CTASection } from "@/components/marketing/cta-section";
+import { PremiumFooter } from "@/components/marketing/premium-footer";
 
-export default function HomePage() {
+export default function MarketingPage() {
     return (
-        <>
-            <HeroSection />
-            <ProblemSection />
+        <div className="flex flex-col min-h-screen bg-neutral-950 text-white selection:bg-brand-500/30 selection:text-brand-200">
+            <PremiumHero />
+            <LogoCloud />
             <FeaturesSection />
-            <HowItWorksSection />
-            <TestimonialsSection />
+            <ProductShowcase />
+            <SocialProofSection />
             <PricingSection />
-            <FaqSection />
-            <CtaSection />
-        </>
+            <FAQSection />
+            <CTASection />
+            <PremiumFooter />
+        </div>
     );
 }

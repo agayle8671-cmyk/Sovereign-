@@ -1,93 +1,128 @@
 "use client";
 
-import { motion } from "framer-motion";
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "@/components/ui/accordion";
+import { useState, useRef } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Plus, Minus } from "lucide-react";
 
 const faqs = [
     {
-        question: "How does contract analysis work?",
+        question: "How does Contract Shield analyze my contracts?",
         answer:
-            "Sovereign uses advanced AI to parse your contracts, extract key terms, and compare them against our database of freelancer-friendly standards. It identifies risky clauses like unfavorable IP transfers, excessive payment terms, or hidden liabilities, and suggests specific revisions.",
+            "Our AI reads every clause in your contract and compares it against industry standards and best practices. It identifies risky terms like unlimited revisions, IP issues, unfavorable payment terms, and missing protections. The analysis typically takes 30-60 seconds depending on document length.",
     },
     {
         question: "Is my data secure?",
         answer:
-            "Absolutely. Your data is encrypted at rest and in transit. We use single-tenant database isolation for business accounts. Your contract data is never used to train our AI models, and you can delete all your data at any time.",
+            "Absolutely. We use bank-level AES-256 encryption for all data at rest and in transit. Your contracts are processed in isolated environments and never used to train AI models. We're SOC 2 Type II compliant and conduct regular security audits.",
     },
     {
-        question: "Can I use Sovereign with my existing tools?",
+        question: "Can I cancel anytime?",
         answer:
-            "Yes! Sovereign integrates with Gmail, Slack, Google Docs, and more through our browser extension. We're adding new integrations regularly based on user feedback.",
+            "Yes, you can cancel your subscription at any time with no questions asked. If you cancel, you'll retain access until the end of your billing period. We also offer a 14-day free trial on all paid plans—no credit card required.",
     },
     {
-        question: "What happens if I want to cancel?",
+        question: "Does it work with any type of contract?",
         answer:
-            "You can cancel anytime from your settings. Your data remains accessible for 30 days after cancellation, giving you time to export anything you need. We don't believe in lock-in.",
+            "Contract Shield works best with service agreements, NDAs, consulting contracts, and freelance agreements. It supports PDF, DOC, DOCX, and plain text formats. While it can analyze any contract, results are optimized for independent professional work.",
     },
     {
-        question: "How accurate is the AI?",
+        question: "How does the testimonial collection work?",
         answer:
-            "Our contract analysis AI has been trained on hundreds of thousands of freelance contracts and achieves 95%+ accuracy on risk detection. For edge cases, we always recommend human review and provide clear confidence scores.",
+            "When you request a testimonial, we send your client a secure magic link. They can submit text or video feedback in under 2 minutes—no account needed. You review and approve testimonials before they appear on your portfolio.",
     },
     {
-        question: "Do you offer team plans?",
+        question: "Can I white-label my portfolio?",
         answer:
-            "Yes! Our Business plan supports teams of up to 5 users with shared clients, contracts, and portfolio items. Contact us for larger team needs or enterprise features.",
+            "Yes! On the Agency plan, you can use your own domain, customize colors and branding, and remove all Sovereign branding. Your portfolio will look completely native to your business.",
     },
 ];
 
-export function FaqSection() {
-    return (
-        <section className="py-20 lg:py-32 relative">
-            <div className="mx-auto max-w-3xl px-6 lg:px-8">
-                <div className="text-center mb-16">
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="text-sm font-medium text-brand-500 mb-4"
-                    >
-                        FAQ
-                    </motion.p>
-                    <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.1 }}
-                        className="text-3xl sm:text-4xl font-bold text-white"
-                    >
-                        Frequently asked questions
-                    </motion.h2>
-                </div>
+export function FAQSection() {
+    const [openIndex, setOpenIndex] = useState<number | null>(0);
+    const ref = useRef(null);
+    const isInView = useInView(ref, { once: true, margin: "-100px" });
 
+    return (
+        <section id="faq" className="relative py-32">
+            <div className="max-w-3xl mx-auto px-6 lg:px-8">
                 <motion.div
+                    ref={ref}
                     initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.2 }}
+                    animate={isInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.6 }}
+                    className="text-center mb-16"
                 >
-                    <Accordion type="single" collapsible className="space-y-4">
-                        {faqs.map((faq, index) => (
-                            <AccordionItem
-                                key={index}
-                                value={`item-${index}`}
-                                className="border border-neutral-800 rounded-xl px-6 bg-neutral-900/50"
-                            >
-                                <AccordionTrigger className="text-left text-neutral-100 hover:text-white hover:no-underline py-4">
-                                    {faq.question}
-                                </AccordionTrigger>
-                                <AccordionContent className="text-neutral-400 pb-4">
-                                    {faq.answer}
-                                </AccordionContent>
-                            </AccordionItem>
-                        ))}
-                    </Accordion>
+                    <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+                        Frequently asked questions
+                    </h2>
+                    <p className="text-lg text-neutral-400">
+                        Everything you need to know about Sovereign
+                    </p>
                 </motion.div>
+
+                <div className="space-y-4">
+                    {faqs.map((faq, index) => {
+                        const isOpen = openIndex === index;
+
+                        return (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                                transition={{ duration: 0.6, delay: index * 0.05 }}
+                            >
+                                <button
+                                    onClick={() => setOpenIndex(isOpen ? null : index)}
+                                    className="w-full"
+                                >
+                                    <div
+                                        className={cn(
+                                            "p-6 rounded-2xl text-left transition-all duration-300",
+                                            isOpen
+                                                ? "bg-neutral-900 border border-white/10"
+                                                : "bg-neutral-900/50 border border-white/5 hover:border-white/10"
+                                        )}
+                                    >
+                                        <div className="flex items-center justify-between gap-4">
+                                            <h3 className="font-semibold text-white text-lg">
+                                                {faq.question}
+                                            </h3>
+                                            <div
+                                                className={cn(
+                                                    "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                                                    isOpen ? "bg-brand-500" : "bg-white/5"
+                                                )}
+                                            >
+                                                {isOpen ? (
+                                                    <Minus className="w-4 h-4 text-white" />
+                                                ) : (
+                                                    <Plus className="w-4 h-4 text-neutral-400" />
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {isOpen && (
+                                                <motion.div
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: "auto", opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    transition={{ duration: 0.3 }}
+                                                    className="overflow-hidden"
+                                                >
+                                                    <p className="pt-4 text-neutral-400 leading-relaxed">
+                                                        {faq.answer}
+                                                    </p>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                </button>
+                            </motion.div>
+                        );
+                    })}
+                </div>
             </div>
         </section>
     );

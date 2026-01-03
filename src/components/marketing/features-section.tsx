@@ -1,269 +1,175 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import {
     Shield,
-    Magnet,
-    Radio,
-    Hammer,
-    FileText,
-    Users,
+    Target,
+    Briefcase,
+    MessageSquare,
+    Zap,
+    Lock,
     TrendingUp,
-    Package,
-    Check,
+    Bot,
+    Sparkles,
 } from "lucide-react";
 
-const cores = [
+const features = [
     {
-        id: "shield",
-        name: "Shield Core",
-        tagline: "Your General Counsel + Project Manager",
-        description:
-            "Defend your business from risky contracts and scope creep with AI-powered legal analysis and real-time monitoring.",
         icon: Shield,
-        color: "shield",
-        features: [
-            "Contract risk analysis in seconds",
-            "Real-time scope creep detection",
-            "Automated change order generation",
-            "Negotiation email drafting",
-            "Payment term benchmarking",
-        ],
-        stats: { value: "$15K+", label: "Average risk prevented per user" },
+        title: "Contract Shield",
+        description:
+            "AI analyzes every clause, identifies risks, and generates negotiation emails that protect your interests.",
+        gradient: "from-cyan-500 to-blue-500",
+        color: "cyan",
+        stats: "50+ risk factors analyzed",
     },
     {
-        id: "magnet",
-        name: "Magnet Core",
-        tagline: "Your CMO + Sales Director",
+        icon: Target,
+        title: "Client Radar",
         description:
-            "Automate your sales pipeline and social proof collection with AI-personalized portfolios and frictionless testimonials.",
-        icon: Magnet,
-        color: "magnet",
-        features: [
-            "AI-personalized portfolio for every lead",
-            "Automatic testimonial collection",
-            "Video testimonial capture",
-            "Lead enrichment & scoring",
-            "Dynamic pitch page generation",
-        ],
-        stats: { value: "3x", label: "Increase in conversion rate" },
+            "Track relationships, analyze sentiment from communications, and never let a client slip through the cracks.",
+        gradient: "from-amber-500 to-orange-500",
+        color: "amber",
+        stats: "Real-time health scoring",
     },
     {
-        id: "radar",
-        name: "Radar Core",
-        tagline: "Your Account Manager",
+        icon: Briefcase,
+        title: "Lead Magnet",
         description:
-            "Monitor client relationships and predict issues before they happen with sentiment analysis and health scoring.",
-        icon: Radio,
-        color: "radar",
-        features: [
-            "Client sentiment tracking",
-            "Churn risk prediction",
-            "Real-time negotiation coaching",
-            "Response time analytics",
-            "Relationship health scoring",
-        ],
-        stats: { value: "40%", label: "Reduction in client churn" },
+            "Automatically capture and nurture leads with intelligent portfolio showcases and case studies.",
+        gradient: "from-purple-500 to-pink-500",
+        color: "purple",
+        stats: "3x more qualified leads",
     },
     {
-        id: "forge",
-        name: "Forge Core",
-        tagline: "Your R&D Lab",
+        icon: MessageSquare,
+        title: "Proof Forge",
         description:
-            "Transform your service byproducts into sellable micro-SaaS products with automated packaging and launch optimization.",
-        icon: Hammer,
-        color: "forge",
-        features: [
-            "Asset pattern detection",
-            "One-click productization",
-            "Automated documentation",
-            "Launch timing optimization",
-            "Revenue diversification",
-        ],
-        stats: { value: "$2K+", label: "Average monthly passive income" },
+            "Collect testimonials effortlessly with magic link requests and build social proof that converts.",
+        gradient: "from-rose-500 to-red-500",
+        color: "rose",
+        stats: "One-click testimonial flow",
     },
 ];
 
-const colorMap = {
-    shield: {
-        bg: "bg-shield/10",
-        border: "border-shield/30",
-        text: "text-shield",
-        glow: "shadow-glow-shield",
-        gradient: "from-shield to-shield-dark",
-    },
-    magnet: {
-        bg: "bg-magnet/10",
-        border: "border-magnet/30",
-        text: "text-magnet",
-        glow: "shadow-glow-magnet",
-        gradient: "from-magnet to-magnet-dark",
-    },
-    radar: {
-        bg: "bg-radar/10",
-        border: "border-radar/30",
-        text: "text-radar",
-        glow: "shadow-glow-radar",
-        gradient: "from-radar to-radar-dark",
-    },
-    forge: {
-        bg: "bg-forge/10",
-        border: "border-forge/30",
-        text: "text-forge",
-        glow: "shadow-glow-forge",
-        gradient: "from-forge to-forge-dark",
-    },
-};
+const capabilities = [
+    { icon: Bot, text: "AI-Powered Analysis" },
+    { icon: Lock, text: "Bank-Level Security" },
+    { icon: TrendingUp, text: "Growth Insights" },
+    { icon: Zap, text: "Lightning Fast" },
+];
 
 export function FeaturesSection() {
-    const [activeCore, setActiveCore] = useState(cores[0]);
-    const colors = colorMap[activeCore.color as keyof typeof colorMap];
+    const ref = useRef(null);
+    const isInView = useInView(ref, { once: true, margin: "-100px" });
 
     return (
-        <section className="py-20 lg:py-32 relative overflow-hidden">
-            {/* Background glow */}
-            <div
-                className={cn(
-                    "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl opacity-10 transition-colors duration-500",
-                    colors.bg
-                )}
-            />
+        <section id="features" className="relative py-32">
+            <div className="max-w-7xl mx-auto px-6 lg:px-8">
+                {/* Section header */}
+                <motion.div
+                    ref={ref}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={isInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.6 }}
+                    className="text-center max-w-3xl mx-auto mb-20"
+                >
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 mb-6">
+                        <Sparkles className="w-4 h-4 text-brand-400" />
+                        <span className="text-sm font-medium text-brand-400">Features</span>
+                    </div>
+                    <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+                        Four engines. One platform.
+                        <br />
+                        <span className="text-neutral-500">Zero busywork.</span>
+                    </h2>
+                    <p className="text-lg text-neutral-400">
+                        Everything you need to protect your business, attract clients, and
+                        build lasting relationships—automated.
+                    </p>
+                </motion.div>
 
-            <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
-                <div className="mx-auto max-w-2xl text-center mb-16">
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="text-sm font-medium text-brand-500 mb-4"
-                    >
-                        THE FOUR CORES
-                    </motion.p>
-                    <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.1 }}
-                        className="text-3xl sm:text-4xl font-bold text-white"
-                    >
-                        One platform. Four intelligent engines.
-                    </motion.h2>
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.2 }}
-                        className="mt-4 text-lg text-neutral-400"
-                    >
-                        Each core handles a critical aspect of your business, working
-                        together as a unified system.
-                    </motion.p>
-                </div>
-
-                {/* Core tabs */}
-                <div className="flex flex-wrap justify-center gap-3 mb-12">
-                    {cores.map((core) => {
-                        const coreColors = colorMap[core.color as keyof typeof colorMap];
-                        const isActive = activeCore.id === core.id;
+                {/* Features grid */}
+                <div className="grid md:grid-cols-2 gap-6 mb-20">
+                    {features.map((feature, index) => {
+                        const Icon = feature.icon;
                         return (
-                            <button
-                                key={core.id}
-                                onClick={() => setActiveCore(core)}
-                                className={cn(
-                                    "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
-                                    isActive
-                                        ? `${coreColors.bg} ${coreColors.text} ${coreColors.border} border`
-                                        : "text-neutral-400 hover:text-white hover:bg-neutral-800"
-                                )}
+                            <motion.div
+                                key={feature.title}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                                transition={{ duration: 0.6, delay: index * 0.1 }}
+                                className="group relative"
                             >
-                                <core.icon className="w-4 h-4" />
-                                {core.name}
-                            </button>
+                                <div className="relative p-8 rounded-3xl bg-neutral-900/50 backdrop-blur-xl border border-white/5 hover:border-white/10 transition-all duration-500 overflow-hidden h-full">
+                                    {/* Gradient glow on hover */}
+                                    <div
+                                        className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
+                                    />
+
+                                    {/* Corner glow */}
+                                    <div
+                                        className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${feature.gradient} rounded-full blur-3xl opacity-0 group-hover:opacity-20 transition-opacity duration-500`}
+                                    />
+
+                                    <div className="relative">
+                                        {/* Icon */}
+                                        <div
+                                            className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient} p-[1px] mb-6`}
+                                        >
+                                            <div className="w-full h-full rounded-2xl bg-neutral-900 flex items-center justify-center">
+                                                <Icon className={`w-7 h-7 text-${feature.color}-400`} />
+                                            </div>
+                                        </div>
+
+                                        {/* Content */}
+                                        <h3 className="text-2xl font-semibold text-white mb-3">
+                                            {feature.title}
+                                        </h3>
+                                        <p className="text-neutral-400 leading-relaxed mb-4">
+                                            {feature.description}
+                                        </p>
+
+                                        {/* Stats badge */}
+                                        <div
+                                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-${feature.color}-500/10 border border-${feature.color}-500/20`}
+                                        >
+                                            <div className={`w-1.5 h-1.5 rounded-full bg-${feature.color}-400`} />
+                                            <span className={`text-sm text-${feature.color}-400`}>
+                                                {feature.stats}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
                         );
                     })}
                 </div>
 
-                {/* Active core content */}
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={activeCore.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="grid lg:grid-cols-2 gap-12 items-center"
-                    >
-                        {/* Left - Info */}
-                        <div>
+                {/* Capabilities bar */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={isInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.6, delay: 0.5 }}
+                    className="flex flex-wrap items-center justify-center gap-6 p-6 rounded-2xl bg-neutral-900/30 border border-white/5"
+                >
+                    {capabilities.map((capability, index) => {
+                        const Icon = capability.icon;
+                        return (
                             <div
-                                className={cn(
-                                    "inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6",
-                                    `bg-gradient-to-br ${colors.gradient}`
-                                )}
+                                key={capability.text}
+                                className="flex items-center gap-3 text-neutral-400"
                             >
-                                <activeCore.icon className="w-8 h-8 text-white" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-white mb-2">
-                                {activeCore.name}
-                            </h3>
-                            <p className={cn("text-lg font-medium mb-4", colors.text)}>
-                                {activeCore.tagline}
-                            </p>
-                            <p className="text-neutral-400 mb-8">{activeCore.description}</p>
-
-                            <ul className="space-y-3 mb-8">
-                                {activeCore.features.map((feature) => (
-                                    <li key={feature} className="flex items-center gap-3">
-                                        <div
-                                            className={cn(
-                                                "w-5 h-5 rounded-full flex items-center justify-center",
-                                                colors.bg
-                                            )}
-                                        >
-                                            <Check className={cn("w-3 h-3", colors.text)} />
-                                        </div>
-                                        <span className="text-neutral-300">{feature}</span>
-                                    </li>
-                                ))}
-                            </ul>
-
-                            <div
-                                className={cn(
-                                    "inline-flex items-center gap-4 px-6 py-4 rounded-xl border",
-                                    colors.bg,
-                                    colors.border
+                                <Icon className="w-5 h-5 text-brand-400" />
+                                <span className="text-sm font-medium">{capability.text}</span>
+                                {index < capabilities.length - 1 && (
+                                    <div className="hidden sm:block w-px h-4 bg-neutral-700 ml-6" />
                                 )}
-                            >
-                                <span className={cn("text-3xl font-bold", colors.text)}>
-                                    {activeCore.stats.value}
-                                </span>
-                                <span className="text-neutral-400">
-                                    {activeCore.stats.label}
-                                </span>
                             </div>
-                        </div>
-
-                        {/* Right - Visual */}
-                        <div className="relative">
-                            <div
-                                className={cn(
-                                    "aspect-square rounded-2xl border backdrop-blur-xl p-8",
-                                    colors.border,
-                                    "bg-neutral-900/50"
-                                )}
-                            >
-                                {/* Placeholder for feature illustration */}
-                                <div className="h-full rounded-xl bg-neutral-800/50 flex items-center justify-center">
-                                    <activeCore.icon
-                                        className={cn("w-24 h-24 opacity-20", colors.text)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                </AnimatePresence>
+                        );
+                    })}
+                </motion.div>
             </div>
         </section>
     );
