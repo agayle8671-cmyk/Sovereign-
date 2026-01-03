@@ -2,199 +2,88 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import {
-    LayoutDashboard,
-    FileText,
+    Home,
     Users,
     Briefcase,
-    Hammer,
+    Shield,
     Settings,
-    ChevronLeft,
-    ChevronRight,
-    Sparkles,
+    LogOut,
+    Plus
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { UserButton } from "@clerk/nextjs";
 
-const navigation = [
-    {
-        name: "Dashboard",
-        href: "/dashboard",
-        icon: LayoutDashboard,
-        badge: null,
-        badgeColor: null,
-    },
-    {
-        name: "Contracts",
-        href: "/dashboard/contracts",
-        icon: FileText,
-        badge: "3",
-        badgeColor: "shield",
-    },
-    {
-        name: "Clients",
-        href: "/dashboard/clients",
-        icon: Users,
-        badge: "1",
-        badgeColor: "radar",
-    },
-    {
-        name: "Portfolio",
-        href: "/dashboard/portfolio",
-        icon: Briefcase,
-        badge: "New",
-        badgeColor: "magnet",
-    },
-    {
-        name: "Products",
-        href: "/dashboard/products",
-        icon: Hammer,
-        badge: null,
-        badgeColor: "forge",
-    },
+const navItems = [
+    { icon: Home, label: "Home", href: "/dashboard" },
+    { icon: Users, label: "Clients", href: "/dashboard/clients" },
+    { icon: Briefcase, label: "Portfolio", href: "/dashboard/portfolio" },
+    { icon: Shield, label: "Contracts", href: "/dashboard/contracts" },
+    { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];
 
-const bottomNavigation = [
-    {
-        name: "Settings",
-        href: "/dashboard/settings",
-        icon: Settings,
-    },
-];
-
-export function DashboardSidebar() {
+export function Sidebar() {
     const pathname = usePathname();
-    const [collapsed, setCollapsed] = useState(false);
 
     return (
-        <motion.aside
-            initial={false}
-            animate={{ width: collapsed ? 72 : 256 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="relative h-full border-r border-neutral-800 bg-neutral-900/50 backdrop-blur-xl flex flex-col"
+        <motion.div
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            className="fixed left-6 top-6 bottom-6 w-20 flex flex-col items-center py-8 bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] z-50 shadow-2xl shadow-black/50"
         >
             {/* Logo */}
-            <div className="h-16 flex items-center px-4 border-b border-neutral-800">
-                <Link href="/dashboard" className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-glow">
-                        <Sparkles className="w-5 h-5 text-white" />
-                    </div>
-                    <AnimatePresence mode="wait">
-                        {!collapsed && (
-                            <motion.span
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -10 }}
-                                className="text-lg font-semibold text-neutral-100"
-                            >
-                                Sovereign
-                            </motion.span>
-                        )}
-                    </AnimatePresence>
-                </Link>
+            <div className="mb-10 w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <span className="text-white font-bold text-lg">S</span>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-hide">
-                {navigation.map((item) => {
+            {/* Nav Items */}
+            <nav className="flex-1 flex flex-col gap-4 w-full px-3">
+                {navItems.map((item) => {
                     const isActive = pathname === item.href;
                     return (
-                        <Link
-                            key={item.name}
-                            href={item.href}
-                            className={cn(
-                                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                                isActive
-                                    ? "bg-neutral-800 text-neutral-100"
-                                    : "text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/50"
+                        <Link key={item.href} href={item.href} className="relative group flex justify-center">
+                            {isActive && (
+                                <motion.div
+                                    layoutId="activeNav"
+                                    className="absolute inset-0 bg-white/10 rounded-xl"
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                />
                             )}
-                        >
-                            <item.icon
-                                className={cn(
-                                    "w-5 h-5 shrink-0",
-                                    isActive && item.badgeColor === "shield" && "text-shield",
-                                    isActive && item.badgeColor === "magnet" && "text-magnet",
-                                    isActive && item.badgeColor === "radar" && "text-radar",
-                                    isActive && item.badgeColor === "forge" && "text-forge"
-                                )}
-                            />
-                            <AnimatePresence mode="wait">
-                                {!collapsed && (
-                                    <motion.span
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        className="truncate"
-                                    >
-                                        {item.name}
-                                    </motion.span>
-                                )}
-                            </AnimatePresence>
-                            {!collapsed && item.badge && (
-                                <span
-                                    className={cn(
-                                        "ml-auto text-2xs px-1.5 py-0.5 rounded uppercase font-semibold",
-                                        item.badgeColor === "shield" &&
-                                        "bg-shield/10 text-shield",
-                                        item.badgeColor === "magnet" &&
-                                        "bg-magnet/10 text-magnet",
-                                        item.badgeColor === "radar" && "bg-radar/10 text-radar",
-                                        item.badgeColor === "forge" && "bg-forge/10 text-forge"
-                                    )}
-                                >
-                                    {item.badge}
-                                </span>
-                            )}
+                            <div className={cn(
+                                "p-3 rounded-xl transition-all duration-300 relative z-10",
+                                isActive ? "text-white" : "text-neutral-500 group-hover:text-neutral-300"
+                            )}>
+                                <item.icon className="w-5 h-5" />
+
+                                {/* Tooltip */}
+                                <div className="absolute left-14 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-neutral-900 border border-white/10 rounded-lg text-xs font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl">
+                                    {item.label}
+                                </div>
+                            </div>
                         </Link>
                     );
                 })}
+
+                {/* Action Button */}
+                <div className="mt-4 pt-4 border-t border-white/5 flex justify-center">
+                    <button className="p-3 rounded-xl bg-white text-black hover:scale-110 transition-transform shadow-lg shadow-white/10">
+                        <Plus className="w-5 h-5" />
+                    </button>
+                </div>
             </nav>
 
-            {/* Bottom Navigation */}
-            <div className="p-3 border-t border-neutral-800 space-y-1">
-                {bottomNavigation.map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                        <Link
-                            key={item.name}
-                            href={item.href}
-                            className={cn(
-                                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                                isActive
-                                    ? "bg-neutral-800 text-neutral-100"
-                                    : "text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/50"
-                            )}
-                        >
-                            <item.icon className="w-5 h-5 shrink-0" />
-                            <AnimatePresence mode="wait">
-                                {!collapsed && (
-                                    <motion.span
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        className="truncate"
-                                    >
-                                        {item.name}
-                                    </motion.span>
-                                )}
-                            </AnimatePresence>
-                        </Link>
-                    );
-                })}
+            {/* Footer */}
+            <div className="mt-auto">
+                <UserButton
+                    appearance={{
+                        elements: {
+                            avatarBox: "w-10 h-10 rounded-xl",
+                            rootBox: "w-10 h-10"
+                        }
+                    }}
+                />
             </div>
-
-            {/* Collapse Toggle */}
-            <button
-                onClick={() => setCollapsed(!collapsed)}
-                className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700 transition-colors"
-            >
-                {collapsed ? (
-                    <ChevronRight className="w-3.5 h-3.5" />
-                ) : (
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                )}
-            </button>
-        </motion.aside>
+        </motion.div>
     );
 }

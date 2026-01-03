@@ -13,7 +13,10 @@ export const google = createGoogleGenerativeAI({
 });
 
 // Default model for contract analysis
-export const contractAnalysisModel = google("gemini-2.0-flash-001");
+// Default model for contract analysis
+// Default model for contract analysis
+export const contractAnalysisModel = google("gemini-2.0-flash-exp");
+
 
 // For longer documents or more complex analysis
 export const contractAnalysisModelPro = google("gemini-1.5-pro");
