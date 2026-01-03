@@ -3,12 +3,11 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { DashboardSidebar } from "@/components/dashboard/sidebar";
-import { DashboardHeader } from "@/components/dashboard/header";
+import { PremiumSidebar } from "@/components/dashboard/premium-sidebar";
+import { PremiumHeader } from "@/components/dashboard/premium-header";
 import { CommandMenu } from "@/components/dashboard/command-menu";
-import { SyncUser } from "@/components/dashboard/sync-user";
-import { RealtimeProvider } from "@/components/providers/realtime-provider";
 import { Toaster } from "sonner";
+import { RealtimeProvider } from "@/components/providers/realtime-provider";
 
 export default async function DashboardLayout({
     children,
@@ -21,68 +20,53 @@ export default async function DashboardLayout({
         redirect("/login");
     }
 
-    // Check if user exists in database
     const user = await db.query.users.findFirst({
         where: eq(users.clerkId, clerkId),
     });
 
     return (
-        <div className="min-h-screen bg-neutral-950">
-            {/* Sync user if not in database */}
-            {!user && <SyncUser />}
+        <div className="min-h-screen bg-neutral-950 overflow-hidden">
+            {/* Premium Background Layers */}
+            <div className="fixed inset-0 bg-premium-mesh" />
+            <div className="fixed inset-0 bg-noise pointer-events-none" />
+            <div className="fixed inset-0 bg-grid opacity-40 pointer-events-none" />
 
-            {/* Background Pattern */}
-            <div className="fixed inset-0 bg-gradient-mesh opacity-50 pointer-events-none" />
-            <div className="fixed inset-0 pattern-dots opacity-30 pointer-events-none" />
+            {/* Ambient glow effects */}
+            <div className="fixed top-0 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-magnet/10 rounded-full blur-3xl pointer-events-none" />
 
-            {user ? (
-                <RealtimeProvider userId={user.id}>
-                    <div className="relative flex h-screen overflow-hidden">
-                        {/* Sidebar */}
-                        <DashboardSidebar />
+            <div className="relative flex h-screen">
+                {/* Sidebar */}
+                <PremiumSidebar user={user} />
 
-                        {/* Main Content */}
-                        <div className="flex-1 flex flex-col overflow-hidden">
-                            {/* Header */}
-                            <DashboardHeader />
+                {/* Main Content */}
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    {/* Header */}
+                    <PremiumHeader user={user} />
 
-                            {/* Page Content */}
-                            <main className="flex-1 overflow-y-auto">
-                                <div className="container max-w-7xl mx-auto p-6">{children}</div>
-                            </main>
+                    {/* Page Content */}
+                    <main className="flex-1 overflow-y-auto">
+                        <div className="max-w-7xl mx-auto px-6 py-8">
+                            <RealtimeProvider>
+                                {children}
+                            </RealtimeProvider>
                         </div>
-                    </div>
-                    {/* Command Menu (⌘K) */}
-                    <CommandMenu />
-                </RealtimeProvider>
-            ) : (
-                <>
-                    <div className="relative flex h-screen overflow-hidden">
-                        {/* Sidebar */}
-                        <DashboardSidebar />
+                    </main>
+                </div>
+            </div>
 
-                        {/* Main Content */}
-                        <div className="flex-1 flex flex-col overflow-hidden">
-                            {/* Header */}
-                            <DashboardHeader />
+            {/* Command Menu */}
+            <CommandMenu />
 
-                            {/* Page Content */}
-                            <main className="flex-1 overflow-y-auto">
-                                <div className="container max-w-7xl mx-auto p-6">{children}</div>
-                            </main>
-                        </div>
-                    </div>
-                    {/* Command Menu (⌘K) */}
-                    <CommandMenu />
-                </>
-            )}
-
+            {/* Toast Notifications */}
             <Toaster
                 position="bottom-right"
                 toastOptions={{
+                    className: "glass-card",
                     style: {
-                        background: "#171717",
-                        border: "1px solid #262626",
+                        background: "rgba(23, 23, 23, 0.9)",
+                        backdropFilter: "blur(20px)",
+                        border: "1px solid rgba(255, 255, 255, 0.06)",
                         color: "#fff",
                     },
                 }}
