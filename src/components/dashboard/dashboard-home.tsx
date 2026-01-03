@@ -85,34 +85,42 @@ export function DashboardHome({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] text-sm text-white transition-colors"
-          >
-            Export Report
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium transition-colors"
-          >
-            <Zap className="w-4 h-4" />
-            Quick Action
-          </motion.button>
+          <Link href="/dashboard/contracts">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.04] text-sm text-white transition-colors"
+            >
+              View Contracts
+            </motion.button>
+          </Link>
+          <Link href="/dashboard/contracts/analyze">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-medium transition-colors"
+            >
+              <Zap className="w-4 h-4" />
+              Analyze Contract
+            </motion.button>
+          </Link>
         </div>
       </motion.div>
 
       {/* Bento Grid */}
       <div className="grid grid-cols-4 gap-4 auto-rows-[180px]">
         {/* Hero Tile: Financial Pulse (2x2) - Premium Revenue Chart */}
-        <RevenueChart className="col-span-2 row-span-2" />
+        <Link href="/dashboard/contracts" className="col-span-2 row-span-2 group">
+          <RevenueChart className="h-full group-hover:border-white/[0.1] transition-colors" />
+        </Link>
 
         {/* Agent Timeline (1x2) - Visual Feed */}
-        <AgentTimeline
-          className="col-span-1 row-span-2"
-          data={agentLogs}
-        />
+        <Link href="/dashboard/inbox" className="col-span-1 row-span-2 group">
+          <AgentTimeline
+            className="h-full group-hover:border-white/[0.1] transition-colors"
+            data={agentLogs}
+          />
+        </Link>
 
         {/* Monthly Targets (1x2) - Premium Rings */}
         <motion.div
@@ -312,8 +320,12 @@ export function DashboardHome({
         </motion.div>
 
         {/* Deep Dive Row (Row 5 & 6) */}
-        <RiskRadar className="col-span-2 row-span-2" />
-        <InvoiceFlow className="col-span-2 row-span-2" />
+        <Link href="/dashboard/contracts" className="col-span-2 row-span-2 group">
+          <RiskRadar className="h-full group-hover:border-white/[0.1] transition-colors" />
+        </Link>
+        <Link href="/dashboard/portfolio" className="col-span-2 row-span-2 group">
+          <InvoiceFlow className="h-full group-hover:border-white/[0.1] transition-colors" />
+        </Link>
       </div>
     </div>
   );
