@@ -1,0 +1,2346 @@
+# Apple-Quality Landing Page — Full Implementation
+
+
+
+---
+
+## 1. Spring Configurations (Foundation)
+
+### `src/lib/animations.ts`
+
+```typescript
+// Apple-style spring configurations
+export const springs = {
+  // Snappy - buttons, small UI elements
+  snappy: { type: "spring" as const, stiffness: 400, damping: 30 },
+  
+  // Smooth - modals, panels, large movements
+  smooth: { type: "spring" as const, stiffness: 300, damping: 35 },
+  
+  // Bouncy - playful, attention-grabbing
+  bouncy: { type: "spring" as const, stiffness: 400, damping: 17 },
+  
+  // Slow - page transitions, hero animations
+  slow: { type: "spring" as const, stiffness: 100, damping: 20 },
+  
+  // Gentle - subtle movements
+  gentle: { type: "spring" as const, stiffness: 120, damping: 14 },
+  
+  // Instant - micro-interactions
+  instant: { type: "spring" as const, stiffness: 500, damping: 35 },
+};
+
+// Stagger configurations
+export const stagger = {
+  fast: 0.03,
+  medium: 0.05,
+  slow: 0.08,
+};
+
+// Common animation variants
+export const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0 },
+};
+
+export const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+};
+
+export const scaleIn = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: { opacity: 1, scale: 1 },
+};
+
+export const slideInRight = {
+  hidden: { opacity: 0, x: 30 },
+  visible: { opacity: 1, x: 0 },
+};
+
+export const slideInLeft = {
+  hidden: { opacity: 0, x: -30 },
+  visible: { opacity: 1, x: 0 },
+};
+```
+
+---
+
+## 2. Main Landing Page
+
+### `src/app/(marketing)/page.tsx`
+
+```typescript
+import { HeroSection } from "@/components/landing/hero/HeroSection";
+import { SocialProofSection } from "@/components/landing/social-proof/SocialProofSection";
+import { ProductShowcase } from "@/components/landing/product-showcase/ProductShowcase";
+import { FeaturesSection } from "@/components/landing/features/FeaturesSection";
+import { PricingSection } from "@/components/landing/pricing/PricingSection";
+import { FAQSection } from "@/components/landing/faq/FAQSection";
+import { CTASection } from "@/components/landing/cta/CTASection";
+import { Footer } from "@/components/landing/Footer";
+
+export default function LandingPage() {
+  return (
+    <main className="relative bg-black min-h-screen overflow-x-hidden">
+      <HeroSection />
+      <SocialProofSection />
+      <ProductShowcase />
+      <FeaturesSection />
+      <PricingSection />
+      <FAQSection />
+      <CTASection />
+      <Footer />
+    </main>
+  );
+}
+```
+
+### `src/app/(marketing)/layout.tsx`
+
+```typescript
+import { MarketingHeader } from "@/components/landing/MarketingHeader";
+
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative">
+      <MarketingHeader />
+      {children}
+    </div>
+  );
+}
+```
+
+---
+
+## 3. Marketing Header (Glass, Appears on Scroll)
+
+### `src/components/landing/MarketingHeader.tsx`
+
+```typescript
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { cn } from "@/lib/utils";
+import { springs } from "@/lib/animations";
+import { Menu, X, Sparkles } from "lucide-react";
+
+const navItems = [
+  { label: "Features", href: "#features" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "FAQ", href: "#faq" },
+];
+
+export function MarketingHeader() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { scrollY } = useScroll();
+  
+  const headerBg = useTransform(
+    scrollY,
+    [0, 100],
+    ["rgba(0,0,0,0)", "rgba(0,0,0,0.8)"]
+  );
+  
+  const headerBlur = useTransform(
+    scrollY,
+    [0, 100],
+    ["blur(0px)", "blur(20px)"]
+  );
+  
+  const headerBorder = useTransform(
+    scrollY,
+    [0, 100],
+    ["rgba(255,255,255,0)", "rgba(255,255,255,0.1)"]
+  );
+
+  // Lock body scroll when mobile menu open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  return (
+    <>
+      <motion.header
+        style={{
+          backgroundColor: headerBg,
+          backdropFilter: headerBlur,
+          borderBottomColor: headerBorder,
+        }}
+        className="fixed top-0 left-0 right-0 z-50 border-b"
+      >
+        <nav className="max-w-7xl mx-auto px-6 h-[72px] flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={springs.snappy}
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center"
+            >
+              <Sparkles className="w-5 h-5 text-white" />
+            </motion.div>
+            <span className="text-lg font-semibold text-white">Sovereign</span>
+          </Link>
+
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="relative px-4 py-2 text-[15px] text-neutral-400 hover:text-white transition-colors"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop CTA */}
+          <div className="hidden md:flex items-center gap-3">
+            <SignedIn>
+              <Link href="/dashboard">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={springs.snappy}
+                  className="px-5 py-2.5 text-sm font-medium text-white bg-white/10 hover:bg-white/15 rounded-full border border-white/10 transition-colors"
+                >
+                  Dashboard
+                </motion.button>
+              </Link>
+            </SignedIn>
+            <SignedOut>
+              <Link
+                href="/login"
+                className="px-4 py-2 text-sm text-neutral-400 hover:text-white transition-colors"
+              >
+                Sign in
+              </Link>
+              <Link href="/signup">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={springs.snappy}
+                  className="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 rounded-full shadow-lg shadow-indigo-500/25"
+                >
+                  Get Started Free
+                </motion.button>
+              </Link>
+            </SignedOut>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            transition={springs.snappy}
+            onClick={() => setMobileOpen(true)}
+            className="md:hidden p-2 text-white"
+          >
+            <Menu className="w-6 h-6" />
+          </motion.button>
+        </nav>
+      </motion.header>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm md:hidden"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={springs.smooth}
+              className="fixed top-0 right-0 bottom-0 z-50 w-[280px] bg-neutral-900 border-l border-white/10 md:hidden"
+            >
+              <div className="flex items-center justify-between p-5 border-b border-white/10">
+                <span className="text-lg font-semibold text-white">Menu</span>
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setMobileOpen(false)}
+                  className="p-2 text-neutral-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </motion.button>
+              </div>
+              <div className="p-5 space-y-1">
+                {navItems.map((item, i) => (
+                  <motion.div
+                    key={item.label}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ ...springs.smooth, delay: i * 0.05 }}
+                  >
+                    <Link
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="block py-3 text-lg text-neutral-300 hover:text-white transition-colors"
+                    >
+                      {item.label}
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-5 border-t border-white/10 space-y-3">
+                <SignedIn>
+                  <Link href="/dashboard" className="block">
+                    <button className="w-full py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl">
+                      Go to Dashboard
+                    </button>
+                  </Link>
+                </SignedIn>
+                <SignedOut>
+                  <Link href="/login" className="block">
+                    <button className="w-full py-3 text-sm font-medium text-white border border-white/20 rounded-xl hover:bg-white/5 transition-colors">
+                      Sign in
+                    </button>
+                  </Link>
+                  <Link href="/signup" className="block">
+                    <button className="w-full py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl">
+                      Get Started Free
+                    </button>
+                  </Link>
+                </SignedOut>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+```
+
+---
+
+## 4. Hero Section (Scroll-Driven Zoom)
+
+### `src/components/landing/hero/HeroSection.tsx`
+
+```typescript
+"use client";
+
+import { useRef } from "react";
+import Link from "next/link";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { springs, stagger } from "@/lib/animations";
+import { ArrowRight, Play, CheckCircle } from "lucide-react";
+import { HeroBackground } from "./HeroBackground";
+import { ScrollIndicator } from "./ScrollIndicator";
+
+const features = [
+  "AI contract analysis",
+  "Risk detection in seconds",
+  "Auto-generate counteroffers",
+];
+
+export function HeroSection() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  // Animations driven by scroll
+  const headlineScale = useTransform(scrollYProgress, [0, 0.4], [1, 2.5]);
+  const headlineOpacity = useTransform(scrollYProgress, [0.2, 0.4], [1, 0]);
+  const headlineY = useTransform(scrollYProgress, [0, 0.4], [0, -100]);
+  
+  const subtitleOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  const subtitleY = useTransform(scrollYProgress, [0, 0.15], [0, -50]);
+  
+  const badgeOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
+  const badgeY = useTransform(scrollYProgress, [0, 0.1], [0, -30]);
+  
+  const ctaOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const ctaY = useTransform(scrollYProgress, [0, 0.2], [0, 30]);
+
+  return (
+    <section
+      ref={containerRef}
+      className="relative min-h-[200vh]" // Extra height for scroll
+    >
+      {/* Background */}
+      <HeroBackground scrollProgress={scrollYProgress} />
+
+      {/* Sticky Content Container */}
+      <div className="sticky top-0 h-screen flex flex-col items-center justify-center overflow-hidden">
+        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
+          {/* Announcement Badge */}
+          <motion.div
+            style={{ opacity: badgeOpacity, y: badgeY }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...springs.smooth, delay: 0.1 }}
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
+              </span>
+              <span className="text-sm text-neutral-300">
+                Now with AI-powered contract negotiation
+              </span>
+              <ArrowRight className="w-3.5 h-3.5 text-neutral-400" />
+            </div>
+          </motion.div>
+
+          {/* Main Headline */}
+          <motion.div
+            style={{
+              scale: headlineScale,
+              opacity: headlineOpacity,
+              y: headlineY,
+            }}
+            className="mb-6"
+          >
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springs.smooth, delay: 0.2 }}
+              className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight"
+            >
+              <span className="text-white">The Operating System</span>
+              <br />
+              <span className="text-white">for the </span>
+              <span className="relative inline-block">
+                <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Business of One
+                </span>
+                {/* Underline accent */}
+                <svg
+                  className="absolute -bottom-2 left-0 w-full"
+                  viewBox="0 0 300 12"
+                  fill="none"
+                  preserveAspectRatio="none"
+                >
+                  <motion.path
+                    d="M2 10C50 4 100 2 150 6C200 10 250 4 298 8"
+                    stroke="url(#underline-gradient)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{ duration: 1, delay: 0.8, ease: "easeOut" }}
+                  />
+                  <defs>
+                    <linearGradient id="underline-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#818cf8" />
+                      <stop offset="50%" stopColor="#c084fc" />
+                      <stop offset="100%" stopColor="#f472b6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </span>
+            </motion.h1>
+          </motion.div>
+
+          {/* Subtitle */}
+          <motion.div style={{ opacity: subtitleOpacity, y: subtitleY }}>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springs.smooth, delay: 0.35 }}
+              className="text-lg sm:text-xl text-neutral-400 max-w-2xl mx-auto mb-8 leading-relaxed"
+            >
+              Sovereign automates 50% of your admin work. Defend contracts.
+              Generate leads. Collect proof. All from one intelligent platform.
+            </motion.p>
+
+            {/* Feature Pills */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springs.smooth, delay: 0.45 }}
+              className="flex flex-wrap items-center justify-center gap-3 mb-10"
+            >
+              {features.map((feature, i) => (
+                <motion.div
+                  key={feature}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ ...springs.bouncy, delay: 0.5 + i * 0.08 }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10"
+                >
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm text-neutral-300">{feature}</span>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+
+          {/* CTAs */}
+          <motion.div
+            style={{ opacity: ctaOpacity, y: ctaY }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...springs.smooth, delay: 0.6 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <Link href="/signup">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                transition={springs.snappy}
+                className="group relative px-8 py-4 text-base font-semibold text-white rounded-full overflow-hidden"
+              >
+                {/* Animated gradient bg */}
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 bg-[length:200%_100%] animate-shimmer" />
+                {/* Glow */}
+                <div className="absolute inset-0 rounded-full shadow-[0_0_30px_rgba(99,102,241,0.5)]" />
+                <span className="relative flex items-center gap-2">
+                  Get Started Free
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </motion.button>
+            </Link>
+
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              transition={springs.snappy}
+              className="group flex items-center gap-3 px-6 py-4 text-base font-medium text-neutral-300 hover:text-white transition-colors"
+            >
+              <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/15 transition-colors">
+                <Play className="w-4 h-4 text-white ml-0.5" />
+              </div>
+              Watch Demo
+            </motion.button>
+          </motion.div>
+        </div>
+
+        {/* Scroll Indicator */}
+        <ScrollIndicator scrollProgress={scrollYProgress} />
+      </div>
+    </section>
+  );
+}
+```
+
+### `src/components/landing/hero/HeroBackground.tsx`
+
+```typescript
+"use client";
+
+import { motion, useTransform, MotionValue } from "framer-motion";
+
+interface HeroBackgroundProps {
+  scrollProgress: MotionValue<number>;
+}
+
+export function HeroBackground({ scrollProgress }: HeroBackgroundProps) {
+  const opacity1 = useTransform(scrollProgress, [0, 0.5], [0.3, 0.6]);
+  const opacity2 = useTransform(scrollProgress, [0, 0.5], [0.2, 0.4]);
+  const scale1 = useTransform(scrollProgress, [0, 0.5], [1, 1.2]);
+  const scale2 = useTransform(scrollProgress, [0, 0.5], [1, 1.3]);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {/* Base gradient */}
+      <div className="absolute inset-0 bg-black" />
+
+      {/* Animated orbs */}
+      <motion.div
+        style={{ opacity: opacity1, scale: scale1 }}
+        className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full bg-indigo-500/30 blur-[120px]"
+      />
+      <motion.div
+        style={{ opacity: opacity2, scale: scale2 }}
+        className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-purple-500/25 blur-[100px]"
+      />
+      <motion.div
+        style={{ opacity: opacity2 }}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-pink-500/15 blur-[130px]"
+      />
+
+      {/* Grid pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                           linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: "60px 60px",
+        }}
+      />
+
+      {/* Noise texture */}
+      <div
+        className="absolute inset-0 opacity-[0.015]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      {/* Vignette */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/50" />
+    </div>
+  );
+}
+```
+
+### `src/components/landing/hero/ScrollIndicator.tsx`
+
+```typescript
+"use client";
+
+import { motion, useTransform, MotionValue } from "framer-motion";
+
+interface ScrollIndicatorProps {
+  scrollProgress: MotionValue<number>;
+}
+
+export function ScrollIndicator({ scrollProgress }: ScrollIndicatorProps) {
+  const opacity = useTransform(scrollProgress, [0, 0.1], [1, 0]);
+  const y = useTransform(scrollProgress, [0, 0.1], [0, 20]);
+
+  return (
+    <motion.div
+      style={{ opacity, y }}
+      className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
+    >
+      <span className="text-xs text-neutral-500 uppercase tracking-widest">
+        Scroll to explore
+      </span>
+      <motion.div
+        animate={{ y: [0, 8, 0] }}
+        transition={{
+          duration: 1.5,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="w-6 h-10 rounded-full border-2 border-neutral-700 p-1.5"
+      >
+        <motion.div
+          animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="w-1.5 h-1.5 rounded-full bg-neutral-500 mx-auto"
+        />
+      </motion.div>
+    </motion.div>
+  );
+}
+```
+
+---
+
+## 5. Social Proof Section (Testimonials, Not Boring Logos)
+
+### `src/components/landing/social-proof/SocialProofSection.tsx`
+
+```typescript
+"use client";
+
+import { useRef, useState, useEffect } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { springs } from "@/lib/animations";
+import { Star, ChevronLeft, ChevronRight, Quote } from "lucide-react";
+
+const testimonials = [
+  {
+    quote: "Sovereign caught a $12,000 liability clause I would have completely missed. Paid for itself 100x over on day one.",
+    author: "Sarah Chen",
+    title: "UX Designer",
+    company: "Independent",
+    rating: 5,
+  },
+  {
+    quote: "I used to spend 3 hours reviewing every contract. Now it takes 10 minutes. The AI negotiation emails are incredibly good.",
+    author: "Marcus Rodriguez",
+    title: "Full-Stack Developer",
+    company: "Freelance",
+    rating: 5,
+  },
+  {
+    quote: "The client health scoring predicted exactly which clients would become problems. It's like having a business analyst on staff.",
+    author: "Emily Watson",
+    title: "Brand Strategist",
+    company: "Watson Design Co",
+    rating: 5,
+  },
+  {
+    quote: "Collecting testimonials used to be awkward. Now I just send a magic link and they come in beautifully formatted. Game changer.",
+    author: "James Park",
+    title: "Video Producer",
+    company: "Park Productions",
+    rating: 5,
+  },
+];
+
+const stats = [
+  { value: "10,000+", label: "Freelancers Protected" },
+  { value: "$2.4M", label: "Risk Identified" },
+  { value: "4.9/5", label: "Average Rating" },
+  { value: "50%", label: "Time Saved" },
+];
+
+export function SocialProofSection() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
+
+  // Auto-rotate testimonials
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDirection(1);
+      setActiveIndex((prev) => (prev + 1) % testimonials.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const goTo = (index: number) => {
+    setDirection(index > activeIndex ? 1 : -1);
+    setActiveIndex(index);
+  };
+
+  const goPrev = () => {
+    setDirection(-1);
+    setActiveIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  };
+
+  const goNext = () => {
+    setDirection(1);
+    setActiveIndex((prev) => (prev + 1) % testimonials.length);
+  };
+
+  const variants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 100 : -100,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction: number) => ({
+      x: direction > 0 ? -100 : 100,
+      opacity: 0,
+    }),
+  };
+
+  return (
+    <section ref={ref} className="relative py-24 bg-black overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px]" />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-6">
+        {/* Stats Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={springs.smooth}
+          className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20"
+        >
+          {stats.map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ ...springs.smooth, delay: i * 0.1 }}
+              className="text-center"
+            >
+              <p className="text-4xl md:text-5xl font-bold text-white mb-2">
+                {stat.value}
+              </p>
+              <p className="text-sm text-neutral-500">{stat.label}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Testimonial Carousel */}
+        <div className="max-w-4xl mx-auto">
+          {/* Rating */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ ...springs.smooth, delay: 0.3 }}
+            className="flex items-center justify-center gap-1 mb-8"
+          >
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
+            ))}
+            <span className="ml-2 text-sm text-neutral-400">
+              4.9/5 from 847 reviews
+            </span>
+          </motion.div>
+
+          {/* Testimonial */}
+          <div className="relative h-[280px] md:h-[200px]">
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={activeIndex}
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={springs.smooth}
+                className="absolute inset-0"
+              >
+                <div className="relative p-8 md:p-10 rounded-3xl bg-white/[0.03] border border-white/10 backdrop-blur-sm">
+                  {/* Quote icon */}
+                  <Quote className="absolute top-6 left-6 w-8 h-8 text-indigo-500/30" />
+                  
+                  <blockquote className="text-xl md:text-2xl text-white leading-relaxed mb-6 pl-6">
+                    "{testimonials[activeIndex].quote}"
+                  </blockquote>
+                  
+                  <div className="flex items-center gap-4 pl-6">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                      {testimonials[activeIndex].author[0]}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white">
+                        {testimonials[activeIndex].author}
+                      </p>
+                      <p className="text-sm text-neutral-400">
+                        {testimonials[activeIndex].title}, {testimonials[activeIndex].company}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              transition={springs.snappy}
+              onClick={goPrev}
+              className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </motion.button>
+
+            <div className="flex items-center gap-2">
+              {testimonials.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goTo(i)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    i === activeIndex
+                      ? "bg-indigo-500 w-6"
+                      : "bg-white/20 hover:bg-white/40"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              transition={springs.snappy}
+              onClick={goNext}
+              className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </motion.button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+## 6. Product Showcase (3D Rotation on Scroll)
+
+### `src/components/landing/product-showcase/ProductShowcase.tsx`
+
+```typescript
+"use client";
+
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { springs } from "@/lib/animations";
+import { Shield, AlertTriangle, CheckCircle, Sparkles } from "lucide-react";
+
+export function ProductShowcase() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"],
+  });
+
+  // 3D rotation transforms
+  const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [15, 0, -15]);
+  const rotateY = useTransform(scrollYProgress, [0, 0.5, 1], [-5, 0, 5]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1, 0.9]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+
+  // Callout animations
+  const callout1Progress = useTransform(scrollYProgress, [0.2, 0.4], [0, 1]);
+  const callout2Progress = useTransform(scrollYProgress, [0.35, 0.55], [0, 1]);
+  const callout3Progress = useTransform(scrollYProgress, [0.5, 0.7], [0, 1]);
+
+  return (
+    <section
+      ref={containerRef}
+      className="relative py-32 bg-black overflow-hidden"
+    >
+      {/* Background */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[600px] bg-indigo-500/10 rounded-full blur-[150px]" />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-6">
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={springs.smooth}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            See it in action
+          </h2>
+          <p className="text-lg text-neutral-400 max-w-2xl mx-auto">
+            Watch how Sovereign analyzes contracts and protects your business
+            in real-time
+          </p>
+        </motion.div>
+
+        {/* 3D Product Preview */}
+        <div className="relative" style={{ perspective: 1200 }}>
+          <motion.div
+            style={{
+              rotateX,
+              rotateY,
+              scale,
+              opacity,
+              transformStyle: "preserve-3d",
+            }}
+          >
+            {/* Browser Frame */}
+            <div className="relative mx-auto max-w-5xl rounded-2xl overflow-hidden shadow-2xl shadow-black/50">
+              {/* Browser Chrome */}
+              <div className="bg-neutral-900 border-b border-white/10 px-4 py-3 flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500" />
+                  <div className="w-3 h-3 rounded-full bg-amber-500" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                </div>
+                <div className="flex-1 flex justify-center">
+                  <div className="px-4 py-1.5 rounded-lg bg-neutral-800 text-sm text-neutral-400">
+                    app.sovereign.com/contracts/analyze
+                  </div>
+                </div>
+              </div>
+
+              {/* Dashboard Content */}
+              <div className="relative bg-neutral-950 aspect-[16/10]">
+                {/* Sidebar */}
+                <div className="absolute top-0 left-0 bottom-0 w-56 bg-neutral-900/80 border-r border-white/5 p-4">
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="font-semibold text-white text-sm">Sovereign</span>
+                  </div>
+                  <div className="space-y-1">
+                    {["Dashboard", "Contracts", "Clients", "Portfolio", "Testimonials"].map(
+                      (item, i) => (
+                        <div
+                          key={item}
+                          className={`px-3 py-2 rounded-lg text-sm ${
+                            i === 1
+                              ? "bg-white/10 text-white"
+                              : "text-neutral-400"
+                          }`}
+                        >
+                          {item}
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="absolute top-0 left-56 right-0 bottom-0 p-6">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-semibold text-white">
+                        Contract Analysis
+                      </h3>
+                      <p className="text-sm text-neutral-400">
+                        Acme_Consulting_Agreement.pdf
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 text-sm font-medium">
+                        Medium Risk
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content Grid */}
+                  <div className="grid grid-cols-3 gap-4 h-[calc(100%-80px)]">
+                    {/* Document Preview */}
+                    <div className="col-span-2 rounded-xl bg-neutral-900/50 border border-white/5 p-4">
+                      <div className="space-y-3">
+                        {[...Array(8)].map((_, i) => (
+                          <div key={i} className="flex gap-2">
+                            <div
+                              className={`h-3 rounded ${
+                                i === 2 || i === 5
+                                  ? "flex-1 bg-red-500/20 border-l-2 border-red-500"
+                                  : i === 3
+                                  ? "flex-1 bg-amber-500/20 border-l-2 border-amber-500"
+                                  : "w-3/4 bg-white/5"
+                              }`}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Risk Panel */}
+                    <div className="rounded-xl bg-neutral-900/50 border border-white/5 p-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Shield className="w-5 h-5 text-indigo-400" />
+                        <span className="font-medium text-white text-sm">
+                          Risk Score
+                        </span>
+                      </div>
+                      <div className="text-4xl font-bold text-amber-400 mb-4">
+                        67%
+                      </div>
+                      <div className="space-y-2">
+                        <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/20">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
+                            <span className="text-xs text-red-400">
+                              Unlimited revisions
+                            </span>
+                          </div>
+                        </div>
+                        <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                            <span className="text-xs text-amber-400">
+                              NET-60 payment
+                            </span>
+                          </div>
+                        </div>
+                        <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                            <span className="text-xs text-emerald-400">
+                              IP protection
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Floating Callouts */}
+          <motion.div
+            style={{
+              opacity: callout1Progress,
+              x: useTransform(callout1Progress, [0, 1], [-50, 0]),
+            }}
+            className="absolute top-1/4 -left-4 max-w-xs"
+          >
+            <div className="p-4 rounded-xl bg-neutral-900/90 backdrop-blur-sm border border-white/10 shadow-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-indigo-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-white text-sm">
+                    AI Contract Shield
+                  </p>
+                  <p className="text-xs text-neutral-400">
+                    Scans 50+ risk factors instantly
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            style={{
+              opacity: callout2Progress,
+              x: useTransform(callout2Progress, [0, 1], [50, 0]),
+            }}
+            className="absolute top-1/3 -right-4 max-w-xs"
+          >
+            <div className="p-4 rounded-xl bg-neutral-900/90 backdrop-blur-sm border border-white/10 shadow-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-white text-sm">Risk Detection</p>
+                  <p className="text-xs text-neutral-400">
+                    Found 3 issues to negotiate
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            style={{
+              opacity: callout3Progress,
+              y: useTransform(callout3Progress, [0, 1], [30, 0]),
+            }}
+            className="absolute bottom-10 left-1/2 -translate-x-1/2 max-w-xs"
+          >
+            <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-500/20 to-purple-500/20 backdrop-blur-sm border border-indigo-500/30 shadow-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-indigo-500/30 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-indigo-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-white text-sm">
+                    AI Negotiation Ready
+                  </p>
+                  <p className="text-xs text-neutral-300">
+                    Click to generate counter-offer email
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+## 7. Features Section (Interactive Tabs)
+
+### `src/components/landing/features/FeaturesSection.tsx`
+
+```typescript
+"use client";
+
+import { useState, useRef } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { springs } from "@/lib/animations";
+import { cn } from "@/lib/utils";
+import {
+  Shield,
+  Target,
+  Briefcase,
+  MessageSquare,
+  ArrowRight,
+  CheckCircle,
+  Zap,
+  Lock,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+
+const features = [
+  {
+    id: "shield",
+    name: "Contract Shield",
+    icon: Shield,
+    color: "cyan",
+    gradient: "from-cyan-500 to-blue-500",
+    tagline: "Never sign a bad contract again",
+    description:
+      "AI analyzes every clause, identifies risks, and generates negotiation emails that protect your interests. Catch liability traps before they catch you.",
+    benefits: [
+      "50+ risk factors analyzed automatically",
+      "Plain English explanations of legal jargon",
+      "AI-generated counter-offer emails",
+      "Version comparison and change tracking",
+    ],
+    stat: { value: "$847", label: "avg risk identified per contract" },
+  },
+  {
+    id: "radar",
+    name: "Client Radar",
+    icon: Target,
+    color: "amber",
+    gradient: "from-amber-500 to-orange-500",
+    tagline: "Know your clients better than they know themselves",
+    description:
+      "Track relationships, analyze communication sentiment, and get early warnings before clients become problems. Never be blindsided again.",
+    benefits: [
+      "Real-time relationship health scoring",
+      "Communication sentiment analysis",
+      "Payment behavior tracking",
+      "Churn prediction alerts",
+    ],
+    stat: { value: "94%", label: "accuracy in predicting client issues" },
+  },
+  {
+    id: "magnet",
+    name: "Lead Magnet",
+    icon: Briefcase,
+    color: "purple",
+    gradient: "from-purple-500 to-pink-500",
+    tagline: "Turn your work into a lead generation machine",
+    description:
+      "Automatically capture and nurture leads with intelligent portfolio showcases. Your best work does the selling while you sleep.",
+    benefits: [
+      "Auto-generated case studies",
+      "SEO-optimized portfolio pages",
+      "Lead capture forms with smart follow-up",
+      "Analytics on what converts",
+    ],
+    stat: { value: "3.2x", label: "more qualified leads on average" },
+  },
+  {
+    id: "forge",
+    name: "Proof Forge",
+    icon: MessageSquare,
+    color: "rose",
+    gradient: "from-rose-500 to-red-500",
+    tagline: "Social proof that actually converts",
+    description:
+      "Collect testimonials effortlessly with magic link requests. Video or text, your clients can leave reviews in under 2 minutes.",
+    benefits: [
+      "One-click testimonial requests",
+      "Video testimonial support",
+      "Auto-generated review widgets",
+      "Smart timing suggestions",
+    ],
+    stat: { value: "8x", label: "faster testimonial collection" },
+  },
+];
+
+export function FeaturesSection() {
+  const [activeFeature, setActiveFeature] = useState(features[0]);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <section
+      id="features"
+      ref={ref}
+      className="relative py-32 bg-black overflow-hidden"
+    >
+      {/* Background */}
+      <div className="absolute inset-0">
+        <motion.div
+          animate={{
+            background: `radial-gradient(ellipse at 50% 50%, ${
+              activeFeature.color === "cyan"
+                ? "rgba(6, 182, 212, 0.08)"
+                : activeFeature.color === "amber"
+                ? "rgba(245, 158, 11, 0.08)"
+                : activeFeature.color === "purple"
+                ? "rgba(168, 85, 247, 0.08)"
+                : "rgba(244, 63, 94, 0.08)"
+            } 0%, transparent 70%)`,
+          }}
+          transition={{ duration: 0.8 }}
+          className="absolute inset-0"
+        />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={springs.smooth}
+          className="text-center mb-16"
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6">
+            <Zap className="w-4 h-4 text-indigo-400" />
+            <span className="text-sm text-neutral-300">Four Powerful Engines</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Everything you need.
+            <br />
+            <span className="text-neutral-500">Nothing you don't.</span>
+          </h2>
+        </motion.div>
+
+        {/* Feature Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ ...springs.smooth, delay: 0.1 }}
+          className="flex flex-wrap justify-center gap-2 mb-12"
+        >
+          {features.map((feature) => {
+            const Icon = feature.icon;
+            const isActive = activeFeature.id === feature.id;
+
+            return (
+              <motion.button
+                key={feature.id}
+                onClick={() => setActiveFeature(feature)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={springs.snappy}
+                className={cn(
+                  "relative flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-colors",
+                  isActive
+                    ? "text-white"
+                    : "text-neutral-400 hover:text-white bg-white/5"
+                )}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className={cn(
+                      "absolute inset-0 rounded-xl bg-gradient-to-r",
+                      feature.gradient
+                    )}
+                    transition={springs.smooth}
+                  />
+                )}
+                <Icon className="relative w-5 h-5" />
+                <span className="relative hidden sm:inline">{feature.name}</span>
+              </motion.button>
+            );
+          })}
+        </motion.div>
+
+        {/* Feature Content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeFeature.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={springs.smooth}
+            className="grid lg:grid-cols-2 gap-12 items-center"
+          >
+            {/* Left - Feature Details */}
+            <div>
+              <div
+                className={cn(
+                  "inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6",
+                  `bg-${activeFeature.color}-500/10`
+                )}
+              >
+                <activeFeature.icon
+                  className={cn("w-4 h-4", `text-${activeFeature.color}-400`)}
+                />
+                <span className={cn("text-sm", `text-${activeFeature.color}-400`)}>
+                  {activeFeature.name}
+                </span>
+              </div>
+
+              <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                {activeFeature.tagline}
+              </h3>
+
+              <p className="text-lg text-neutral-400 mb-8 leading-relaxed">
+                {activeFeature.description}
+              </p>
+
+              <ul className="space-y-4 mb-8">
+                {activeFeature.benefits.map((benefit, i) => (
+                  <motion.li
+                    key={benefit}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ ...springs.smooth, delay: i * 0.08 }}
+                    className="flex items-start gap-3"
+                  >
+                    <CheckCircle
+                      className={cn(
+                        "w-5 h-5 mt-0.5 shrink-0",
+                        `text-${activeFeature.color}-400`
+                      )}
+                    />
+                    <span className="text-neutral-300">{benefit}</span>
+                  </motion.li>
+                ))}
+              </ul>
+
+              {/* Stat */}
+              <div
+                className={cn(
+                  "inline-flex items-center gap-4 px-5 py-4 rounded-2xl",
+                  `bg-${activeFeature.color}-500/10 border border-${activeFeature.color}-500/20`
+                )}
+              >
+                <div
+                  className={cn(
+                    "text-3xl font-bold",
+                    `text-${activeFeature.color}-400`
+                  )}
+                >
+                  {activeFeature.stat.value}
+                </div>
+                <div className="text-sm text-neutral-400">
+                  {activeFeature.stat.label}
+                </div>
+              </div>
+            </div>
+
+            {/* Right - Visual */}
+            <div className="relative">
+              <div
+                className={cn(
+                  "absolute inset-0 rounded-3xl blur-3xl opacity-20",
+                  `bg-gradient-to-br ${activeFeature.gradient}`
+                )}
+              />
+              <div className="relative rounded-3xl bg-neutral-900/50 border border-white/10 p-8 min-h-[400px]">
+                <FeatureVisual feature={activeFeature} />
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </section>
+  );
+}
+
+function FeatureVisual({ feature }: { feature: (typeof features)[0] }) {
+  if (feature.id === "shield") {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+              <Shield className="w-5 h-5 text-cyan-400" />
+            </div>
+            <div>
+              <p className="font-medium text-white">Risk Analysis</p>
+              <p className="text-sm text-neutral-500">Contract_v2.pdf</p>
+            </div>
+          </div>
+          <div className="text-3xl font-bold text-amber-400">67%</div>
+        </div>
+        <div className="space-y-3">
+          {[
+            { label: "Unlimited revisions clause", severity: "high" },
+            { label: "NET-60 payment terms", severity: "medium" },
+            { label: "Missing kill fee", severity: "high" },
+            { label: "IP rights secured", severity: "good" },
+          ].map((item, i) => (
+            <motion.div
+              key={item.label}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className={cn(
+                "p-3 rounded-xl border",
+                item.severity === "high"
+                  ? "bg-red-500/10 border-red-500/20"
+                  : item.severity === "medium"
+                  ? "bg-amber-500/10 border-amber-500/20"
+                  : "bg-emerald-500/10 border-emerald-500/20"
+              )}
+            >
+              <div className="flex items-center gap-2">
+                {item.severity === "good" ? (
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                ) : (
+                  <AlertTriangle
+                    className={cn(
+                      "w-4 h-4",
+                      item.severity === "high" ? "text-red-400" : "text-amber-400"
+                    )}
+                  />
+                )}
+                <span
+                  className={cn(
+                    "text-sm",
+                    item.severity === "good"
+                      ? "text-emerald-400"
+                      : item.severity === "high"
+                      ? "text-red-400"
+                      : "text-amber-400"
+                  )}
+                >
+                  {item.label}
+                </span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (feature.id === "radar") {
+    return (
+      <div className="space-y-4">
+        <div className="text-sm text-neutral-500 mb-4">Client Health Overview</div>
+        <div className="space-y-3">
+          {[
+            { name: "Acme Corp", health: 92, trend: "up" },
+            { name: "TechStart Inc", health: 78, trend: "down" },
+            { name: "Design Studio", health: 85, trend: "up" },
+            { name: "StartupXYZ", health: 45, trend: "down" },
+          ].map((client, i) => (
+            <motion.div
+              key={client.name}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="flex items-center gap-4 p-3 rounded-xl bg-white/5"
+            >
+              <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400 font-medium">
+                {client.name[0]}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-white">{client.name}</p>
+                <div className="h-1.5 bg-neutral-800 rounded-full mt-1 overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${client.health}%` }}
+                    transition={{ delay: 0.3 + i * 0.1, duration: 0.5 }}
+                    className={cn(
+                      "h-full rounded-full",
+                      client.health >= 80
+                        ? "bg-emerald-500"
+                        : client.health >= 60
+                        ? "bg-amber-500"
+                        : "bg-red-500"
+                    )}
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <TrendingUp
+                  className={cn(
+                    "w-4 h-4",
+                    client.trend === "up" ? "text-emerald-400" : "text-red-400 rotate-180"
+                  )}
+                />
+                <span
+                  className={cn(
+                    "text-sm font-medium",
+                    client.health >= 80
+                      ? "text-emerald-400"
+                      : client.health >= 60
+                      ? "text-amber-400"
+                      : "text-red-400"
+                  )}
+                >
+                  {client.health}%
+                </span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (feature.id === "magnet") {
+    return (
+      <div className="space-y-4">
+        <div className="text-sm text-neutral-500 mb-4">Portfolio Performance</div>
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="p-4 rounded-xl bg-white/5">
+            <p className="text-2xl font-bold text-purple-400">847</p>
+            <p className="text-xs text-neutral-500">Portfolio views</p>
+          </div>
+          <div className="p-4 rounded-xl bg-white/5">
+            <p className="text-2xl font-bold text-pink-400">23</p>
+            <p className="text-xs text-neutral-500">Leads this month</p>
+          </div>
+        </div>
+        <div className="space-y-3">
+          {[
+            { project: "E-commerce Redesign", views: 234, leads: 8 },
+            { project: "Brand Identity", views: 189, leads: 5 },
+            { project: "Mobile App UI", views: 156, leads: 4 },
+          ].map((item, i) => (
+            <motion.div
+              key={item.project}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="flex items-center justify-between p-3 rounded-xl bg-white/5"
+            >
+              <span className="text-sm text-white">{item.project}</span>
+              <div className="flex items-center gap-4 text-xs text-neutral-400">
+                <span>{item.views} views</span>
+                <span className="text-purple-400">{item.leads} leads</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Forge
+  return (
+    <div className="space-y-4">
+      <div className="text-sm text-neutral-500 mb-4">Recent Testimonials</div>
+      <div className="space-y-4">
+        {[
+          {
+            name: "Sarah Chen",
+            text: "Incredible experience working together...",
+            rating: 5,
+          },
+          {
+            name: "Marcus Johnson",
+            text: "Transformed our entire brand...",
+            rating: 5,
+          },
+        ].map((item, i) => (
+          <motion.div
+            key={item.name}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="p-4 rounded-xl bg-white/5"
+          >
+            <div className="flex items-center gap-1 mb-2">
+              {[...Array(item.rating)].map((_, j) => (
+                <Star key={j} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+              ))}
+            </div>
+            <p className="text-sm text-neutral-300 mb-2">"{item.text}"</p>
+            <p className="text-xs text-neutral-500">— {item.name}</p>
+          </motion.div>
+        ))}
+      </div>
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="w-full py-3 rounded-xl bg-rose-500/10 text-rose-400 text-sm font-medium hover:bg-rose-500/20 transition-colors"
+      >
+        Request Testimonial →
+      </motion.button>
+    </div>
+  );
+}
+
+// Need this import for the Star icon in FeatureVisual
+import { Star, AlertTriangle } from "lucide-react";
+```
+
+---
+
+## 8. Pricing Section
+
+### `src/components/landing/pricing/PricingSection.tsx`
+
+```typescript
+"use client";
+
+import { useState, useRef } from "react";
+import Link from "next/link";
+import { motion, useInView } from "framer-motion";
+import { springs } from "@/lib/animations";
+import { cn } from "@/lib/utils";
+import { Check, Sparkles, Zap, Crown, ArrowRight } from "lucide-react";
+
+const plans = [
+  {
+    name: "Free",
+    description: "Perfect for getting started",
+    price: { monthly: 0, annually: 0 },
+    icon: Sparkles,
+    color: "neutral",
+    features: [
+      "3 contract analyses / month",
+      "Up to 5 clients",
+      "Basic portfolio (5 items)",
+      "Email testimonial requests",
+      "Community support",
+    ],
+    cta: "Get Started Free",
+    href: "/signup",
+  },
+  {
+    name: "Pro",
+    description: "For serious freelancers",
+    price: { monthly: 29, annually: 24 },
+    icon: Zap,
+    color: "indigo",
+    popular: true,
+    features: [
+      "Unlimited contract analyses",
+      "Unlimited clients",
+      "Unlimited portfolio items",
+      "AI negotiation emails",
+      "Client health scoring",
+      "Video testimonials",
+      "Priority support",
+      "API access",
+    ],
+    cta: "Start Pro Trial",
+    href: "/signup?plan=pro",
+  },
+  {
+    name: "Agency",
+    description: "For teams and agencies",
+    price: { monthly: 79, annually: 66 },
+    icon: Crown,
+    color: "amber",
+    features: [
+      "Everything in Pro",
+      "Up to 5 team members",
+      "White-label portfolio",
+      "Custom branding",
+      "Advanced analytics",
+      "Dedicated account manager",
+      "Custom integrations",
+      "SLA guarantee",
+    ],
+    cta: "Contact Sales",
+    href: "/contact",
+  },
+];
+
+export function PricingSection() {
+  const [annual, setAnnual] = useState(true);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <section id="pricing" ref={ref} className="relative py-32 bg-black">
+      {/* Background */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-indigo-500/5 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={springs.smooth}
+          className="text-center mb-12"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Simple, transparent pricing
+          </h2>
+          <p className="text-lg text-neutral-400 mb-8">
+            Start free and scale as you grow. No hidden fees.
+          </p>
+
+          {/* Billing Toggle */}
+          <div className="inline-flex items-center p-1 rounded-full bg-white/5 border border-white/10">
+            <button
+              onClick={() => setAnnual(false)}
+              className={cn(
+                "px-5 py-2 rounded-full text-sm font-medium transition-all",
+                !annual ? "bg-white text-black" : "text-neutral-400"
+              )}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setAnnual(true)}
+              className={cn(
+                "px-5 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2",
+                annual ? "bg-white text-black" : "text-neutral-400"
+              )}
+            >
+              Annually
+              <span className="px-1.5 py-0.5 text-xs bg-emerald-500 text-white rounded">
+                -20%
+              </span>
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Pricing Cards */}
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {plans.map((plan, i) => {
+            const Icon = plan.icon;
+            const price = annual ? plan.price.annually : plan.price.monthly;
+
+            return (
+              <motion.div
+                key={plan.name}
+                initial={{ opacity: 0, y: 30 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ ...springs.smooth, delay: i * 0.1 }}
+                className={cn(
+                  "relative rounded-2xl p-[1px]",
+                  plan.popular
+                    ? "bg-gradient-to-b from-indigo-500 to-indigo-500/0"
+                    : "bg-gradient-to-b from-white/10 to-white/0"
+                )}
+              >
+                {/* Popular Badge */}
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-indigo-500 text-xs font-medium text-white">
+                    Most Popular
+                  </div>
+                )}
+
+                <div className="relative h-full rounded-2xl bg-neutral-950 p-6">
+                  {/* Header */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div
+                      className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center",
+                        plan.color === "indigo"
+                          ? "bg-indigo-500/20"
+                          : plan.color === "amber"
+                          ? "bg-amber-500/20"
+                          : "bg-white/10"
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          "w-5 h-5",
+                          plan.color === "indigo"
+                            ? "text-indigo-400"
+                            : plan.color === "amber"
+                            ? "text-amber-400"
+                            : "text-neutral-400"
+                        )}
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">{plan.name}</h3>
+                      <p className="text-sm text-neutral-500">{plan.description}</p>
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <div className="mb-6">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-bold text-white">${price}</span>
+                      {price > 0 && (
+                        <span className="text-neutral-500">/month</span>
+                      )}
+                    </div>
+                    {annual && price > 0 && (
+                      <p className="text-sm text-neutral-500">
+                        ${price * 12} billed annually
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Features */}
+                  <ul className="space-y-3 mb-6">
+                    {plan.features.map((feature) => (
+                      <li
+                        key={feature}
+                        className="flex items-start gap-2 text-sm text-neutral-300"
+                      >
+                        <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* CTA */}
+                  <Link href={plan.href}>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={springs.snappy}
+                      className={cn(
+                        "w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors",
+                        plan.popular
+                          ? "bg-indigo-500 hover:bg-indigo-400 text-white"
+                          : "bg-white/5 hover:bg-white/10 text-white border border-white/10"
+                      )}
+                    >
+                      {plan.cta}
+                      <ArrowRight className="w-4 h-4" />
+                    </motion.button>
+                  </Link>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Trust Badge */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ ...springs.smooth, delay: 0.4 }}
+          className="text-center text-neutral-500 text-sm mt-10"
+        >
+          All paid plans include a 14-day free trial. No credit card required.
+        </motion.p>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+## 9. FAQ Section (Spring Accordion)
+
+### `src/components/landing/faq/FAQSection.tsx`
+
+```typescript
+"use client";
+
+import { useState, useRef } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { springs } from "@/lib/animations";
+import { cn } from "@/lib/utils";
+import { Plus, Minus } from "lucide-react";
+
+const faqs = [
+  {
+    question: "How does Contract Shield analyze contracts?",
+    answer:
+      "Our AI reads every clause and compares it against 50+ risk factors based on industry standards. It identifies unfavorable terms like unlimited revisions, poor payment terms, IP issues, and missing protections. Analysis typically takes 30-60 seconds.",
+  },
+  {
+    question: "Is my data secure?",
+    answer:
+      "Absolutely. We use AES-256 encryption for all data at rest and in transit. Your contracts are processed in isolated environments and never used to train AI models. We're SOC 2 Type II compliant and undergo regular security audits.",
+  },
+  {
+    question: "Can I cancel anytime?",
+    answer:
+      "Yes, you can cancel your subscription at any time with no questions asked. If you cancel, you'll retain access until the end of your billing period. We also offer a 14-day free trial on all paid plans—no credit card required.",
+  },
+  {
+    question: "What file formats do you support?",
+    answer:
+      "Contract Shield supports PDF, DOC, DOCX, and plain text files up to 16MB. We can also analyze contracts copy-pasted directly into the app. Images of contracts (JPG, PNG) can be processed with OCR.",
+  },
+  {
+    question: "How accurate is the AI analysis?",
+    answer:
+      "Our AI achieves 94% accuracy in identifying contract risks compared to legal professional review. However, we always recommend having a lawyer review high-stakes contracts. Sovereign is designed to catch issues early, not replace legal counsel.",
+  },
+  {
+    question: "Can I white-label my portfolio?",
+    answer:
+      "Yes! On the Agency plan, you can use your own custom domain, remove all Sovereign branding, and fully customize colors and styling. Your portfolio will look completely native to your brand.",
+  },
+];
+
+export function FAQSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <section id="faq" ref={ref} className="relative py-32 bg-black">
+      <div className="max-w-3xl mx-auto px-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={springs.smooth}
+          className="text-center mb-12"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Frequently asked questions
+          </h2>
+          <p className="text-lg text-neutral-400">
+            Everything you need to know about Sovereign
+          </p>
+        </motion.div>
+
+        {/* FAQ Items */}
+        <div className="space-y-3">
+          {faqs.map((faq, index) => {
+            const isOpen = openIndex === index;
+
+            return (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ ...springs.smooth, delay: index * 0.05 }}
+              >
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : index)}
+                  className="w-full"
+                >
+                  <div
+                    className={cn(
+                      "rounded-2xl text-left transition-all duration-300",
+                      isOpen
+                        ? "bg-white/5 border border-white/10"
+                        : "bg-transparent border border-white/5 hover:border-white/10"
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-4 p-5">
+                      <h3 className="font-medium text-white text-left">
+                        {faq.question}
+                      </h3>
+                      <motion.div
+                        animate={{ rotate: isOpen ? 180 : 0 }}
+                        transition={springs.snappy}
+                        className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                          isOpen ? "bg-indigo-500" : "bg-white/5"
+                        )}
+                      >
+                        {isOpen ? (
+                          <Minus className="w-4 h-4 text-white" />
+                        ) : (
+                          <Plus className="w-4 h-4 text-neutral-400" />
+                        )}
+                      </motion.div>
+                    </div>
+
+                    <AnimatePresence>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={springs.smooth}
+                          className="overflow-hidden"
+                        >
+                          <p className="px-5 pb-5 text-neutral-400 leading-relaxed">
+                            {faq.answer}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </button>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+## 10. CTA Section
+
+### `src/components/landing/cta/CTASection.tsx`
+
+```typescript
+"use client";
+
+import { useRef } from "react";
+import Link from "next/link";
+import { motion, useInView, useScroll, useTransform } from "framer-motion";
+import { springs } from "@/lib/animations";
+import { ArrowRight, Sparkles } from "lucide-react";
+
+export function CTASection() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+
+  const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
+
+  return (
+    <section ref={ref} className="relative py-32 overflow-hidden">
+      {/* Animated Background */}
+      <motion.div style={{ y: backgroundY }} className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-pink-500/20" />
+        <div className="absolute inset-0 bg-black/80" />
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-500/30 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-purple-500/30 rounded-full blur-[100px]" />
+      </motion.div>
+
+      <div className="relative max-w-4xl mx-auto px-6 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={springs.smooth}
+        >
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8">
+            <Sparkles className="w-4 h-4 text-indigo-400" />
+            <span className="text-sm text-neutral-300">
+              Join 10,000+ freelancers
+            </span>
+          </div>
+
+          {/* Headline */}
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+            Ready to take control
+            <br />
+            of your business?
+          </h2>
+
+          <p className="text-xl text-neutral-400 mb-10 max-w-2xl mx-auto">
+            Start free today. No credit card required.
+            <br />
+            Set up in under 5 minutes.
+          </p>
+
+          {/* CTA Button */}
+          <Link href="/signup">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              transition={springs.snappy}
+              className="group relative inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white rounded-full overflow-hidden"
+            >
+              {/* Animated gradient */}
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 bg-[length:200%_100%] animate-shimmer" />
+              
+              {/* Glow */}
+              <div className="absolute inset-0 rounded-full shadow-[0_0_40px_rgba(99,102,241,0.5)]" />
+              
+              <span className="relative">Get Started Free</span>
+              <ArrowRight className="relative w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </motion.button>
+          </Link>
+
+          {/* Trust indicators */}
+          <div className="flex flex-wrap items-center justify-center gap-8 mt-12 pt-12 border-t border-white/10">
+            {[
+              { value: "4.9/5", label: "Average rating" },
+              { value: "$2.4M+", label: "Risk identified" },
+              { value: "SOC 2", label: "Certified" },
+            ].map((item) => (
+              <div key={item.label} className="text-center">
+                <p className="text-2xl font-bold text-white">{item.value}</p>
+                <p className="text-sm text-neutral-500">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+```
+
+---
+
+## 11. Footer
+
+### `src/components/landing/Footer.tsx`
+
+```typescript
+"use client";
+
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { springs } from "@/lib/animations";
+import { Sparkles, Twitter, Linkedin, Github } from "lucide-react";
+
+const navigation = {
+  product: [
+    { name: "Features", href: "#features" },
+    { name: "Pricing", href: "#pricing" },
+    { name: "FAQ", href: "#faq" },
+    { name: "Changelog", href: "/changelog" },
+  ],
+  resources: [
+    { name: "Documentation", href: "/docs" },
+    { name: "Blog", href: "/blog" },
+    { name: "Templates", href: "/templates" },
+    { name: "API", href: "/api" },
+  ],
+  company: [
+    { name: "About", href: "/about" },
+    { name: "Careers", href: "/careers" },
+    { name: "Contact", href: "/contact" },
+  ],
+  legal: [
+    { name: "Privacy", href: "/privacy" },
+    { name: "Terms", href: "/terms" },
+    { name: "Security", href: "/security" },
+  ],
+};
+
+const social = [
+  { name: "Twitter", icon: Twitter, href: "#" },
+  { name: "LinkedIn", icon: Linkedin, href: "#" },
+  { name: "GitHub", icon: Github, href: "#" },
+];
+
+export function Footer() {
+  return (
+    <footer className="relative bg-black border-t border-white/5">
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-12">
+          {/* Brand */}
+          <div className="col-span-2">
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-semibold text-white">Sovereign</span>
+            </Link>
+            <p className="text-sm text-neutral-500 mb-4 max-w-xs">
+              The autonomous operating system for freelancers, consultants, and
+              independent professionals.
+            </p>
+            <div className="flex items-center gap-2">
+              {social.map((item) => (
+                <motion.a
+                  key={item.name}
+                  href={item.href}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={springs.snappy}
+                  className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-neutral-400 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  <item.icon className="w-4 h-4" />
+                </motion.a>
+              ))}
+            </div>
+          </div>
+
+          {/* Links */}
+          <div>
+            <h4 className="font-medium text-white mb-4">Product</h4>
+            <ul className="space-y-2">
+              {navigation.product.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className="text-sm text-neutral-500 hover:text-white transition-colors"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-white mb-4">Resources</h4>
+            <ul className="space-y-2">
+              {navigation.resources.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className="text-sm text-neutral-500 hover:text-white transition-colors"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-white mb-4">Company</h4>
+            <ul className="space-y-2">
+              {navigation.company.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className="text-sm text-neutral-500 hover:text-white transition-colors"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-white mb-4">Legal</h4>
+            <ul className="space-y-2">
+              {navigation.legal.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className="text-sm text-neutral-500 hover:text-white transition-colors"
+                  >
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-white/5">
+          <p className="text-sm text-neutral-500">
+            © {new Date().getFullYear()} Sovereign. All rights reserved.
+          </p>
+          <div className="flex items-center gap-2 text-sm text-neutral-500">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            All systems operational
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+```
+
+---
+
+## 12. Global CSS Animation
+
+### Add to `src/app/globals.css`
+
+```css
+@keyframes shimmer {
+  0% {
+    background-position: 200% 50%;
+  }
+  100% {
+    background-position: -200% 50%;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s linear infinite;
+}
+```
+
+---
+
+## Summary
+
+This landing page now has:
+
+| Feature | Implementation |
+|---------|---------------|
+| **Scroll-zoom hero** | Text scales 1x → 2.5x as you scroll through |
+| **Spring physics** | All interactions use Apple-style spring configs |
+| **3D product showcase** | Dashboard rotates on scroll with perspective |
+| **Testimonial carousel** | Spring-animated with auto-rotation |
+| **Interactive feature tabs** | Background color shifts, content animates |
+| **Clean pricing** | Monthly/annual toggle with springs |
+| **FAQ accordion** | Spring-animated expand/collapse |
+| **Parallax CTA** | Background moves differently than content |
+| **Proper animations** | Staggered, direction-aware, interruptible |

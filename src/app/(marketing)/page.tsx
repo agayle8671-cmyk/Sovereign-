@@ -1,25 +1,23 @@
-import { PremiumHero } from "@/components/marketing/premium-hero";
-import { LogoCloud } from "@/components/marketing/logo-cloud";
-import { FeaturesSection } from "@/components/marketing/features-section";
-import { ProductShowcase } from "@/components/marketing/product-showcase";
-import { SocialProofSection } from "@/components/marketing/social-proof-section";
-import { PricingSection } from "@/components/marketing/pricing-section";
-import { FAQSection } from "@/components/marketing/faq-section";
-import { CTASection } from "@/components/marketing/cta-section";
-import { PremiumFooter } from "@/components/marketing/premium-footer";
+import { HeroSection } from "@/components/landing/hero/HeroSection";
+import { SocialProofSection } from "@/components/landing/social-proof/SocialProofSection";
+import { ProductShowcase } from "@/components/landing/product-showcase/ProductShowcase";
+import { FeaturesSection } from "@/components/landing/features/FeaturesSection";
+import { PricingSection } from "@/components/landing/pricing/PricingSection";
+import { FAQSection } from "@/components/landing/faq/FAQSection";
+import { CTASection } from "@/components/landing/cta/CTASection";
+import { Footer } from "@/components/landing/Footer";
 
 export default function MarketingPage() {
     return (
-        <div className="flex flex-col min-h-screen bg-neutral-950 text-white selection:bg-brand-500/30 selection:text-brand-200">
-            <PremiumHero />
-            <LogoCloud />
-            <FeaturesSection />
-            <ProductShowcase />
+        <main className="bg-black min-h-screen">
+            <HeroSection />
             <SocialProofSection />
+            <ProductShowcase />
+            <FeaturesSection />
             <PricingSection />
             <FAQSection />
             <CTASection />
-            <PremiumFooter />
-        </div>
+            <Footer />
+        </main>
     );
 }

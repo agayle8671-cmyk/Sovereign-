@@ -93,6 +93,7 @@
 }
 
 @layer components {
+
   /* Glass Morphism */
   .glass {
     @apply border border-white/10 bg-white/5 backdrop-blur-xl;
@@ -147,9 +148,11 @@
     0% {
       background-position: 0% 50%;
     }
+
     50% {
       background-position: 100% 50%;
     }
+
     100% {
       background-position: 0% 50%;
     }
@@ -163,12 +166,10 @@
   .shimmer::after {
     content: "";
     @apply absolute inset-0;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.05),
-      transparent
-    );
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.05),
+        transparent);
     animation: shimmer 2s infinite;
   }
 
@@ -200,6 +201,7 @@
 }
 
 @layer utilities {
+
   /* Hide scrollbar but allow scrolling */
   .scrollbar-hide {
     -ms-overflow-style: none;
@@ -217,18 +219,14 @@
 
   /* Backdrop Patterns */
   .pattern-dots {
-    background-image: radial-gradient(
-      rgba(255, 255, 255, 0.1) 1px,
-      transparent 1px
-    );
+    background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px,
+        transparent 1px);
     background-size: 20px 20px;
   }
 
   .pattern-grid {
-    background-image: linear-gradient(
-        rgba(255, 255, 255, 0.05) 1px,
-        transparent 1px
-      ),
+    background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px,
+        transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 40px 40px;
   }
@@ -246,18 +244,23 @@
   .animation-delay-100 {
     animation-delay: 100ms;
   }
+
   .animation-delay-200 {
     animation-delay: 200ms;
   }
+
   .animation-delay-300 {
     animation-delay: 300ms;
   }
+
   .animation-delay-500 {
     animation-delay: 500ms;
   }
+
   .animation-delay-700 {
     animation-delay: 700ms;
   }
+
   .animation-delay-1000 {
     animation-delay: 1000ms;
   }
