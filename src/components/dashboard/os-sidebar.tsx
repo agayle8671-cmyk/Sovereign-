@@ -107,6 +107,8 @@ const colorMap: Record<string, string> = {
   amber: "text-amber-400 bg-amber-500/10",
   purple: "text-purple-400 bg-purple-500/10",
   rose: "text-rose-400 bg-rose-500/10",
+  orange: "text-orange-400 bg-orange-500/10",
+  indigo: "text-indigo-400 bg-indigo-500/10",
 };
 
 export function OSSidebar({ user, collapsed, onToggle }: OSSidebarProps) {
