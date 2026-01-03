@@ -157,6 +157,7 @@ export const clients = pgTable("clients", {
     notes: text("notes"),
     metadata: jsonb("metadata").default({}).$type<ClientMetadata>(),
     isArchived: boolean("is_archived").default(false),
+    lastContactedAt: timestamp("last_contacted_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
