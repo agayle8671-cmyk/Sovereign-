@@ -1,11 +1,13 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 
-if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-    throw new Error("GOOGLE_GENERATIVE_AI_API_KEY is not set");
+const apiKey = process.env.GOOGLE_AI_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+
+if (!apiKey) {
+    throw new Error("GOOGLE_AI_KEY is not set");
 }
 
 export const google = createGoogleGenerativeAI({
-    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    apiKey,
 });
 
 // Default model for contract analysis
