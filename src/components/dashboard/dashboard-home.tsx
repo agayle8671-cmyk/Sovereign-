@@ -25,7 +25,8 @@ import {
 } from "lucide-react";
 import { RevenueChart } from "@/components/charts/RevenueChart";
 import { Sparkline } from "@/components/charts/Sparkline";
-import { ProgressRing } from "@/components/charts/ProgressRing";
+import { ProgressRing, MultiProgressRing } from "@/components/charts/ProgressRing";
+import { HealthHeatmap } from "@/components/charts/HealthHeatmap";
 
 interface DashboardHomeProps {
   user: any;
@@ -147,50 +148,52 @@ export function DashboardHome({
           </div>
         </motion.div>
 
-        {/* Triage / Approvals (1x2) */}
+        {/* Monthly Targets (1x2) - Premium Rings */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="col-span-1 row-span-2 rounded-2xl bg-[#0f0f12] border border-white/[0.04] flex flex-col overflow-hidden hover:border-white/[0.08] transition-colors"
+          className="col-span-1 row-span-2 rounded-2xl bg-[#0f0f12] border border-white/[0.04] p-4 flex flex-col items-center justify-between hover:border-white/[0.08] transition-colors group relative overflow-hidden"
         >
-          <div className="p-4 border-b border-white/[0.04] flex items-center justify-between">
+          {/* Ambient background glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-purple-500/10 blur-[50px] rounded-full pointer-events-none" />
+
+          <div className="w-full flex items-center justify-between z-10">
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-400" />
-              <h3 className="text-sm font-medium text-white">Approvals</h3>
+              <Zap className="w-4 h-4 text-purple-400" />
+              <h3 className="text-sm font-medium text-white">Targets</h3>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-medium text-amber-400">
-              {approvals.length}
-            </span>
-          </div>
-          <div className="flex-1 overflow-y-auto p-2 space-y-2">
-            {approvals.map((item) => (
-              <div
-                key={item.id}
-                className="p-3 rounded-xl bg-[#0a0a0c] border border-white/[0.04] hover:border-white/[0.08] transition-colors"
-              >
-                <p className="text-xs text-white mb-2 line-clamp-2">{item.action}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-emerald-400">{item.confidence}% confident</span>
-                  <div className="flex items-center gap-1">
-                    <button className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition-colors">
-                      <Check className="w-3 h-3" />
-                    </button>
-                    <button className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="p-3 border-t border-white/[0.04]">
-            <Link
-              href="/dashboard/inbox"
-              className="block text-center text-xs text-zinc-500 hover:text-white transition-colors"
-            >
-              View all approvals →
+            <Link href="/dashboard/goals" className="text-zinc-600 hover:text-white transition-colors">
+              <ArrowUpRight className="w-4 h-4" />
             </Link>
+          </div>
+
+          <div className="flex-1 flex items-center justify-center scale-110 z-10">
+            <MultiProgressRing
+              size={140}
+              strokeWidth={8}
+              gap={6}
+              rings={[
+                { value: 75, color: "emerald", label: "Revenue" },
+                { value: 60, color: "cyan", label: "Clients" },
+                { value: 45, color: "purple", label: "Projects" },
+              ]}
+            />
+          </div>
+
+          <div className="w-full grid grid-cols-3 gap-1 z-10">
+            <div className="text-center">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 mx-auto mb-1" />
+              <p className="text-[10px] text-zinc-500">Rev</p>
+            </div>
+            <div className="text-center">
+              <div className="w-2 h-2 rounded-full bg-cyan-500 mx-auto mb-1" />
+              <p className="text-[10px] text-zinc-500">Cli</p>
+            </div>
+            <div className="text-center">
+              <div className="w-2 h-2 rounded-full bg-purple-500 mx-auto mb-1" />
+              <p className="text-[10px] text-zinc-500">Proj</p>
+            </div>
           </div>
         </motion.div>
 
@@ -308,19 +311,22 @@ export function DashboardHome({
           )}
         </motion.div>
 
-        {/* Client Health (2x1) */}
+        {/* Client Health (2x1) - Premium Heatmap */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.65 }}
-          className="col-span-2 row-span-1 rounded-2xl bg-[#0f0f12] border border-white/[0.04] p-4 hover:border-white/[0.08] transition-colors"
+          className="col-span-2 row-span-1 rounded-2xl bg-[#0f0f12] border border-white/[0.04] p-4 hover:border-white/[0.08] transition-colors overflow-hidden group"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                <Users className="w-3.5 h-3.5 text-amber-400" />
+              <div className="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <Users className="w-3.5 h-3.5 text-emerald-400" />
               </div>
-              <h3 className="text-sm font-medium text-white">Client Health</h3>
+              <div>
+                <h3 className="text-sm font-medium text-white">Engagement Pulse</h3>
+                <p className="text-[10px] text-zinc-500">Client activity heatmap</p>
+              </div>
             </div>
             <Link
               href="/dashboard/clients"
@@ -329,55 +335,14 @@ export function DashboardHome({
               View all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
-          {recentClients.length === 0 ? (
-            <div className="flex items-center justify-center h-20">
-              <Link
-                href="/dashboard/clients/new"
-                className="flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300"
-              >
-                <Plus className="w-4 h-4" />
-                Add your first client
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {recentClients.slice(0, 3).map((client) => {
-                const score = client.healthScore || 0;
-                const color =
-                  score >= 80
-                    ? "bg-emerald-500"
-                    : score >= 60
-                      ? "bg-amber-500"
-                      : "bg-red-500";
 
-                return (
-                  <Link
-                    key={client.id}
-                    href={`/dashboard/clients/${client.id}`}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.03] transition-colors"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center text-amber-400 font-medium text-xs shrink-0">
-                      {client.name[0]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white truncate">{client.name}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
-                        <div
-                          className={cn("h-full rounded-full", color)}
-                          style={{ width: `${score}%` }}
-                        />
-                      </div>
-                      <span className="text-xs font-medium text-zinc-400 w-8 text-right">
-                        {score}%
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+          <div className="flex items-center justify-center h-[100px] -mt-2">
+            <HealthHeatmap
+              weeks={18}
+              color="emerald"
+              className="scale-105"
+            />
+          </div>
         </motion.div>
       </div>
     </div>
@@ -418,14 +383,23 @@ function StatTile({
   color: string;
   delay: number;
 }) {
-  const colorMap: Record<string, { bg: string; text: string; glow: string }> = {
-    cyan: { bg: "bg-cyan-500/10", text: "text-cyan-400", glow: "group-hover:shadow-cyan-500/20" },
-    amber: { bg: "bg-amber-500/10", text: "text-amber-400", glow: "group-hover:shadow-amber-500/20" },
-    purple: { bg: "bg-purple-500/10", text: "text-purple-400", glow: "group-hover:shadow-purple-500/20" },
-    rose: { bg: "bg-rose-500/10", text: "text-rose-400", glow: "group-hover:shadow-rose-500/20" },
+  const colorMap: Record<string, { bg: string; text: string; glow: string; sparkline: "emerald" | "cyan" | "amber" | "purple" | "rose" }> = {
+    cyan: { bg: "bg-cyan-500/10", text: "text-cyan-400", glow: "group-hover:shadow-cyan-500/20", sparkline: "cyan" },
+    amber: { bg: "bg-amber-500/10", text: "text-amber-400", glow: "group-hover:shadow-amber-500/20", sparkline: "amber" },
+    purple: { bg: "bg-purple-500/10", text: "text-purple-400", glow: "group-hover:shadow-purple-500/20", sparkline: "purple" },
+    rose: { bg: "bg-rose-500/10", text: "text-rose-400", glow: "group-hover:shadow-rose-500/20", sparkline: "rose" },
   };
 
   const colors = colorMap[color];
+
+  // Generate mock trend data based on current value
+  const trendData = Array.from({ length: 7 }, (_, i) =>
+    Math.max(0, value - 3 + Math.floor(Math.random() * 4) + (i * 0.3))
+  );
+  const trend = trendData[6] >= trendData[0] ? "up" : "down";
+  const changePercent = trendData[0] > 0
+    ? Math.abs(((trendData[6] - trendData[0]) / trendData[0]) * 100).toFixed(0)
+    : "0";
 
   return (
     <motion.div
@@ -435,19 +409,55 @@ function StatTile({
     >
       <Link href={href}>
         <div className={cn(
-          "relative group col-span-1 row-span-1 rounded-2xl bg-[#0f0f12] border border-white/[0.04] p-4 flex flex-col justify-between hover:border-white/[0.08] transition-all",
+          "relative group col-span-1 row-span-1 h-[180px] rounded-2xl bg-[#0f0f12] border border-white/[0.04] p-4 flex flex-col justify-between hover:border-white/[0.08] transition-all overflow-hidden",
           colors.glow,
           "group-hover:shadow-lg"
         )}>
-          <div className="flex items-center justify-between">
-            <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", colors.bg)}>
+          {/* Background glow on hover */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+            <div className={cn(
+              "absolute bottom-0 right-0 w-24 h-24 blur-[40px] rounded-full",
+              color === "cyan" && "bg-cyan-500/20",
+              color === "amber" && "bg-amber-500/20",
+              color === "purple" && "bg-purple-500/20",
+              color === "rose" && "bg-rose-500/20",
+            )} />
+          </div>
+
+          {/* Header Row */}
+          <div className="relative flex items-center justify-between">
+            <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", colors.bg)}>
               <Icon className={cn("w-4 h-4", colors.text)} />
             </div>
             <ArrowUpRight className="w-4 h-4 text-zinc-700 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
           </div>
-          <div>
-            <p className="text-3xl font-bold text-white">{value}</p>
-            <p className="text-xs text-zinc-600">{label}</p>
+
+          {/* Sparkline in middle */}
+          <div className="relative flex-1 flex items-center justify-center -mx-2">
+            <Sparkline
+              data={trendData}
+              width={120}
+              height={40}
+              color={colors.sparkline}
+              showGradient={true}
+            />
+          </div>
+
+          {/* Value and Label */}
+          <div className="relative flex items-end justify-between">
+            <div>
+              <p className="text-3xl font-bold text-white tabular-nums">{value}</p>
+              <p className="text-xs text-zinc-600">{label}</p>
+            </div>
+            {/* Trend indicator */}
+            <div className={cn(
+              "flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium",
+              trend === "up"
+                ? "bg-emerald-500/10 text-emerald-400"
+                : "bg-red-500/10 text-red-400"
+            )}>
+              {trend === "up" ? "▲" : "▼"} {changePercent}%
+            </div>
           </div>
         </div>
       </Link>
