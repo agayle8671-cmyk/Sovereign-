@@ -16,6 +16,7 @@ const isPublicRoute = createRouteMatcher([
     "/api/webhooks(.*)",
     "/api/forge(.*)",
     "/p/(.*)",
+    "/product(.*)",
     "/testimonial/(.*)",
 ]);
 

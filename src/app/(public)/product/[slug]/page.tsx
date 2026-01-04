@@ -27,7 +27,8 @@ const products = {
     }
 };
 
-export default function LandingPage({ params }: { params: { slug: string } }) {
+export default async function LandingPage(props: { params: Promise<{ slug: string }> }) {
+    const params = await props.params;
     const product = products[params.slug as keyof typeof products];
 
     if (!product) {
