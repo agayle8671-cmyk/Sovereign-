@@ -1,45 +1,43 @@
 import { NextResponse } from "next/server";
+import { generateJSON } from "@/lib/gemini";
 
 export async function POST(req: Request) {
-    // SIMULATION: The "Asset Miner" Agent
-    // In production, this would scan the user's GitHub repositories via the GitHub API.
-    // It would look for reusable patterns, exported components, and frequent imports.
+    try {
+        // In production, this would look at real files.
+        // Here, we ask Gemini to "Hallucinate" valuable assets based on modern trends.
+        // This ensures the ideas are fresh and AI-generated every time.
 
-    await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate deep scanning
+        const prompt = `
+            You are "The Forge", an Asset Mining AI.
+            Scan the "Simulated Codebase" of a Senior Full Stack React Developer.
+            Identify 3 high-value, reusable Micro-SaaS assets or components that could be extracted and sold.
+            They should be modern (Next.js 14, Tailwind, AI-ready).
 
-    // Mock Discovery Results
-    const discoveredAssets = [
-        {
-            id: "comp_1",
-            name: "Modern Auth Hook",
-            type: "React Hook",
-            source: "client-project-alpha/src/hooks/useAuth.ts",
-            reusability_score: 95,
-            market_value: "$29",
-            description: "A robust authentication hook compatible with Clerk, Firebase, and Supabase. Handles session persistency and role-based redirects.",
-            status: "ready"
-        },
-        {
-            id: "comp_2",
-            name: "SaaS Pricing Table",
-            type: "UI Component",
-            source: "client-project-beta/src/components/Pricing.tsx",
-            reusability_score: 88,
-            market_value: "$49",
-            description: "Responsive pricing table with toggle for monthly/yearly billing and 'Best Value' highlighting.",
-            status: "ready"
-        },
-        {
-            id: "comp_3",
-            name: "Invoice Generator PDF",
-            type: "Utility",
-            source: "internal-tools/utils/pdf-gen.ts",
-            reusability_score: 75,
-            market_value: "$19",
-            description: "Server-side utility to generate clean invoice PDFs from JSON data.",
-            status: "needs_polish"
-        }
-    ];
+            Return JSON:
+            {
+                "assets": [
+                    {
+                        "id": "comp_1" etc,
+                        "name": "string",
+                        "type": "UI Component" | "Hook" | "Utility",
+                        "source": "string (simulated path)",
+                        "reusability_score": number (0-100),
+                        "market_value": "string ($ price)",
+                        "description": "string",
+                        "status": "ready" | "needs_polish"
+                    }
+                ]
+            }
+        `;
 
-    return NextResponse.json({ assets: discoveredAssets });
+        console.log("Calling Gemini for Forge...");
+        const data = await generateJSON(prompt);
+        return NextResponse.json(data);
+    } catch (error: any) {
+        console.error("Forge Error:", error);
+        return NextResponse.json({
+            error: "Forge Mining Failed",
+            details: error.message || error.toString()
+        }, { status: 500 });
+    }
 }

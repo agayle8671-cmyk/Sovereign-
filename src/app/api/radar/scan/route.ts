@@ -1,44 +1,45 @@
 import { NextResponse } from "next/server";
+import { generateJSON } from "@/lib/gemini";
 
 export async function POST(req: Request) {
-    // SIMULATION: The "Radar" Agent
-    // In production, this would connect to Gmail/Slack API and use NLP to analyze sentiment.
+    try {
+        // In a real app, this would read emails/Slack. 
+        // For this demo, we feed Gemini a "Simulated Context" of a difficult client.
+        const prompt = `
+            You are "The Radar", a Client Intelligence Officer.
+            Analyze the following recent email history from a client "Apex Corp":
+            
+            "Hey, we need these changes by EOD. Also, I don't think we should pay for the last milestone since it was late (even though we delayed requirements). Let's hop on a call."
 
-    await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate analysis
+            Analyze sentiment, predict churn risk, and draft a "Battlecard" for the freelancer.
+            
+            Return JSON:
+            {
+                "clients": [
+                    {
+                        "id": "apex_corp",
+                        "name": "Apex Corp",
+                        "sentiment_score": number (0-100, 100 is happy),
+                        "status": "Healthy" | "At Risk" | "Critical",
+                        "trend": "up" | "down" | "stable",
+                        "last_interaction": "2 hours ago",
+                        "risk_factors": ["string"],
+                        "opportunity": "string",
+                        "battlecard": {
+                            "scenario": "string",
+                            "strategy": "string",
+                            "script": "string (what to say on the call)"
+                        }
+                    }
+                ]
+            }
+        `;
 
-    // Mock Sentiment Results
-    const clients = [
-        {
-            id: "client_1",
-            name: "Acme Corp",
-            sentiment_score: 92, // High (Happy)
-            trend: "up",
-            last_interaction: "2 hours ago",
-            risk_factors: [],
-            opportunity: "Upsell Ready: They are consistently praising the design. Good time to pitch the Mobile App add-on.",
-            status: "healthy"
-        },
-        {
-            id: "client_2",
-            name: "TechStart Inc",
-            sentiment_score: 45, // Low (Unhappy)
-            trend: "down",
-            last_interaction: "4 days ago",
-            risk_factors: ["Delayed Response", "Passive Aggressive Tone", "Scope Creep mentions"],
-            opportunity: "Churn Risk: Send a 'Value Drop' (status video) immediately to re-engage.",
-            status: "at_risk"
-        },
-        {
-            id: "client_3",
-            name: "Global Media",
-            sentiment_score: 75, // Neutral
-            trend: "stable",
-            last_interaction: "1 day ago",
-            risk_factors: ["Budget Constraints mentioned"],
-            opportunity: "Maintenance Mode: Schedule a check-in call to solidify the relationship.",
-            status: "stable"
-        }
-    ];
-
-    return NextResponse.json({ clients });
+        console.log("Calling Gemini for Radar...");
+        const analysis = await generateJSON(prompt);
+        return NextResponse.json(analysis);
+    } catch (error) {
+        console.error("Radar Error:", error);
+        return NextResponse.json({ error: "Radar Scan Failed" }, { status: 500 });
+    }
 }
