@@ -38,7 +38,13 @@ export default function ForgePage() {
         try {
             const res = await fetch("/api/forge/mine", { method: "POST" });
             const data = await res.json();
-            setAssets(data.assets);
+
+            if (res.ok && data.assets) {
+                setAssets(data.assets);
+            } else {
+                console.error("Forge Scan Failed:", data);
+                // Optional: set an error state here to show a toast
+            }
         } catch (e) {
             console.error(e);
         } finally {

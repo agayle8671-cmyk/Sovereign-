@@ -19,7 +19,15 @@ export async function generateJSON(prompt: string) {
     const text = response.text();
 
     // Helper to clean markdown code blocks if Gemini wraps JSON in ```json ... ```
-    const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    let cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
+
+    // If cleaning isn't enough, find the first '{' and last '}'
+    const firstBrace = cleaned.indexOf("{");
+    const lastBrace = cleaned.lastIndexOf("}");
+
+    if (firstBrace !== -1 && lastBrace !== -1) {
+        cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    }
 
     try {
         return JSON.parse(cleaned);
