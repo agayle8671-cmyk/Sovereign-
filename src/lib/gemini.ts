@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Access your API key as an environment variable (see "Set up your API key" above)
-const apiKey = process.env.GOOGLE_API_KEY || "";
+// Access your API key (Check both standard and Railway variable names)
+const apiKey = process.env.GOOGLE_API_KEY || process.env.GOOGLE_AI_KEY || "";
 console.log("Gemini Helper: Using Env Key:", apiKey ? "Yes" : "No");
 const genAI = new GoogleGenerativeAI(apiKey);
 
